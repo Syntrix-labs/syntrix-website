@@ -14,7 +14,7 @@ export default function Navbar() {
       </div>
 
       <button className="bg-blue-500 px-5 py-2 rounded-xl">
-        Let's Talk
+        Book Call
       </button>
 
     </nav>
