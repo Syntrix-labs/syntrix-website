@@ -1,6 +1,6 @@
 export default function Navbar() {
   return (
-    <nav className="w-full h-20 bg-black border-b border-gray-800 flex items-center justify-between px-10">
+    <nav className="w-full h-20 bg-black/60 shadow-lg shadow-black/20 border-b border-gray-800 flex items-center justify-between px-10">
       
       <div className="text-2xl font-bold">
         SYNTRIX
@@ -14,7 +14,7 @@ export default function Navbar() {
       </div>
 
       <button className="bg-blue-500 px-5 py-2 rounded-xl">
-        Let's Talk
+        Book Call
       </button>
 
     </nav>
