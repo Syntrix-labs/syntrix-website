@@ -13,9 +13,12 @@ export default function Navbar() {
         <a href="#">Contact</a>
       </div>
 
-      <button className="bg-blue-500 px-5 py-2 rounded-xl">
-        Book Call
-      </button>
+      <a
+  href="/login"
+  className="bg-blue-500 px-5 py-2 rounded-xl hover:bg-blue-600 transition-all duration-300"
+>
+  Login
+</a>
 
     </nav>
   );
