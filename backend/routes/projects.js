@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
+const Notification = require('../models/Notification');
 const authMiddleware = require('../middleware/authMiddleware'); // We reuse your bouncer!
 
 // @route   POST /api/projects
@@ -51,23 +52,38 @@ router.get('/', authMiddleware, async (req, res) => {
 
 // @route   PUT /api/projects/:id
 // @desc    Update a project (e.g., change status)
+// @route   PUT /api/projects/:id
+// @desc    Update a project and trigger a notification
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    // 1. Find the project by the ID in the URL
     let project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    // 2. SECURITY CHECK: Make sure the logged-in user actually owns this project
     if (project.client.toString() !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized to edit this project' });
     }
 
-    // 3. Update the project with whatever new data was sent in the body
+    // Capture the old status just to see if it changed
+    const oldStatus = project.status;
+
     project = await Project.findByIdAndUpdate(
       req.params.id,
       { $set: req.body },
-      { new: true } // Returns the updated project instead of the old one
+      { new: true }
     );
+
+    // --- NEW AUTOMATION BLOCK ---
+    // If the request included a status change, automatically generate a notification!
+    if (req.body.status && req.body.status !== oldStatus) {
+      const statusNotification = new Notification({
+        user: project.client,
+        project: project._id,
+        message: `Your project "${project.title}" has been moved to: ${project.status}`,
+        type: 'Project Update'
+      });
+      await statusNotification.save();
+    }
+    // ----------------------------
 
     res.json(project);
   } catch (error) {
