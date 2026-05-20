@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Topbar from "@/components/dashboard/Topbar";
 
 export default function DashboardPage() {
   return (
@@ -49,19 +50,12 @@ export default function DashboardPage() {
 
         </nav>
 
-        <div>
-  <button
-    className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
-  >
-    Logout
-  </button>
-
-</div>
 
       </aside>
 
       {/* Main Content */}
       <section className="flex-1 p-8 md:p-12">
+        <Topbar showBack={false} showLogout={true} />
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
