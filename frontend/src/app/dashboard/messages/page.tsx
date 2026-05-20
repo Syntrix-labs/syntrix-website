@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Topbar from "@/components/dashboard/Topbar";
+import Topbar from "@/components/topbar/Topbar";
 
 export default function MessagesPage() {
   return (
@@ -76,6 +76,8 @@ export default function MessagesPage() {
               New dashboard design revisions uploaded successfully.
             </p>
           </div>
+
+          
 
         </div>
 

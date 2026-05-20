@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Topbar from "@/components/dashboard/Topbar";
+import Topbar from "@/components/topbar/Topbar";
 
 
 export default function SettingsPage() {

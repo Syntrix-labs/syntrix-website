@@ -1,3 +1,5 @@
+import Button from "@/components/ui/Button";
+
 type TopbarProps = {
   showBack?: boolean;
   showLogout?: boolean;
@@ -25,12 +27,9 @@ export default function Topbar({
       {/* Logout Button */}
       <div>
         {showLogout && (
-          <button
-            onClick={() => window.location.href = "/"}
-            className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-6 py-3 rounded-2xl text-white font-medium transition-all duration-300"
-          >
-            Logout
-          </button>
+          <Button onClick={() => window.location.href = "/"}>
+  Logout
+</Button>
         )}
       </div>
 

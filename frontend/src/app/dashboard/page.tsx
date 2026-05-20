@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Topbar from "@/components/dashboard/Topbar";
+import Topbar from "@/components/topbar/Topbar";
+import Card from "@/components/ui/Card";
 
 export default function DashboardPage() {
   return (
@@ -79,36 +80,24 @@ export default function DashboardPage() {
 
           {/* Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          
+          <Card
+  title="Active Projects"
+  value="03"
+/>
 
-            <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8">
-              <h2 className="text-2xl font-bold mb-4">
-                Active Projects
-              </h2>
+<Card
+  title="Unread Messages"
+  value="12"
+/>
 
-              <p className="text-5xl font-bold text-blue-500">
-                03
-              </p>
-            </div>
+<Card
+  title="Scheduled Meetings"
+  value="02"
+/>
+            
 
-            <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8">
-              <h2 className="text-2xl font-bold mb-4">
-                Unread Messages
-              </h2>
-
-              <p className="text-5xl font-bold text-blue-500">
-                12
-              </p>
-            </div>
-
-            <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8">
-              <h2 className="text-2xl font-bold mb-4">
-                Scheduled Meetings
-              </h2>
-
-              <p className="text-5xl font-bold text-blue-500">
-                02
-              </p>
-            </div>
+      
 
           </div>
           

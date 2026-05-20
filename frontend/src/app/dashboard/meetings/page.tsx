@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Topbar from "@/components/dashboard/Topbar";
+import Topbar from "@/components/topbar/Topbar";
 
 export default function MeetingsPage() {
   return (
@@ -76,6 +76,75 @@ export default function MeetingsPage() {
             </div>
 
           </div>
+
+          {/* Upcoming Meetings */}
+
+<div className="mt-12">
+
+  <h2 className="text-3xl font-bold mb-6">
+    Upcoming Meetings
+  </h2>
+
+  <div className="space-y-6">
+
+    {/* Meeting Card */}
+    <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8">
+
+      <div className="flex items-center justify-between mb-6">
+
+        <div>
+          <h3 className="text-2xl font-bold">
+            UI Review Meeting
+          </h3>
+
+          <p className="text-gray-400 mt-2">
+            Discuss dashboard progress and next features.
+          </p>
+        </div>
+
+        <span className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-full text-sm">
+          Upcoming
+        </span>
+
+      </div>
+
+      <div className="space-y-3 text-gray-300">
+
+        <p>
+          📅 24 May 2026
+        </p>
+
+        <p>
+          ⏰ 7:00 PM IST
+        </p>
+
+        <p>
+          📍 Google Meet
+        </p>
+
+      </div>
+
+      <div className="flex gap-4 mt-8">
+
+        <button
+          className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-2xl transition-all duration-300 font-semibold"
+        >
+          Join Meeting
+        </button>
+
+        <button
+          className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-6 py-3 rounded-2xl transition-all duration-300"
+        >
+          Schedule
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
         </div>
 

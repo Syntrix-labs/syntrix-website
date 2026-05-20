@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 export default function LoginPage() {
   return (
