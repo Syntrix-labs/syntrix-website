@@ -1,11 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiPath } from "@/lib/api";
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
+export default function ResetPasswordPage() {
+  const router = useRouter();
+  const params = useParams<{ token: string }>();
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -13,16 +16,21 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(apiPath("/api/auth/forgot-password"), {
-        method: "POST",
+      const response = await fetch(apiPath(`/api/auth/reset-password/${params.token}`), {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ password }),
       });
       const data = await response.json();
 
-      alert(data.message || (response.ok ? "Reset email sent" : "Unable to send reset email"));
+      if (data.success) {
+        alert("Password reset successful. Please log in.");
+        router.push("/login");
+      } else {
+        alert(data.message || "Unable to reset password");
+      }
     } catch (error) {
       console.error(error);
       alert("Server error");
@@ -44,20 +52,21 @@ export default function ForgotPasswordPage() {
             Syntrix Labs
           </p>
 
-          <h1 className="text-4xl font-bold">Forgot Password</h1>
+          <h1 className="text-4xl font-bold">Reset Password</h1>
 
           <p className="text-gray-400 mt-4">
-            Enter your email to receive a password reset link.
+            Choose a new password for your account.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <input
-            type="email"
+            type="password"
             required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Enter your email"
+            minLength={6}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="New password"
             className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 transition"
           />
 
@@ -66,16 +75,9 @@ export default function ForgotPasswordPage() {
             disabled={isSubmitting}
             className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-60 transition-all duration-300 py-4 rounded-2xl font-semibold hover:scale-[1.02]"
           >
-            {isSubmitting ? "Sending..." : "Send Reset Link"}
+            {isSubmitting ? "Saving..." : "Reset Password"}
           </button>
         </form>
-
-        <p className="text-gray-500 text-sm text-center mt-8">
-          Remember your password?{" "}
-          <a href="/login" className="text-blue-500 hover:text-blue-400 transition">
-            Login
-          </a>
-        </p>
       </motion.div>
     </main>
   );

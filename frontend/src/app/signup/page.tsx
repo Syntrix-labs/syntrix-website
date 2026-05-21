@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiPath } from "@/lib/api";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -15,26 +16,19 @@ export default function SignupPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name,
-      email,
-      password,
-    }),
-  }
-);
+      const response = await fetch(apiPath("/api/auth/signup"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      });
 
-      const text = await response.text();
-
-      console.log("BACKEND RESPONSE:", text);
-
-      const data = JSON.parse(text);
+      const data = await response.json();
 
       if (data.success) {
         alert("Account created successfully!");
@@ -72,6 +66,7 @@ export default function SignupPage() {
         <form onSubmit={handleSignup} className="space-y-5">
           <input
             type="text"
+            required
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Full Name"
@@ -80,6 +75,7 @@ export default function SignupPage() {
 
           <input
             type="email"
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email Address"
@@ -88,6 +84,7 @@ export default function SignupPage() {
 
           <input
             type="password"
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"

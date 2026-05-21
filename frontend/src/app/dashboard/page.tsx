@@ -3,8 +3,53 @@
 import { motion } from "framer-motion";
 import Topbar from "@/components/topbar/Topbar";
 import Card from "@/components/ui/Card";
+import { apiPath } from "@/lib/api";
+import { useEffect, useState } from "react";
+
+type User = {
+  name: string;
+};
 
 export default function DashboardPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setIsLoadingUser(false);
+      return;
+    }
+
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(apiPath("/api/auth/me"), {
+          headers: {
+            "x-auth-token": token,
+          },
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem("token");
+          setIsLoadingUser(false);
+          return;
+        }
+
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const displayName = user?.name || "Client";
+
   return (
     <main className="h-screen bg-black text-white flex">
 
@@ -70,7 +115,7 @@ export default function DashboardPage() {
             </p>
 
             <h1 className="text-5xl font-bold">
-              Welcome Back, Tahir
+              {isLoadingUser ? "Welcome Back" : `Welcome Back, ${displayName}`}
             </h1>
 
             <p className="text-gray-400 mt-4">

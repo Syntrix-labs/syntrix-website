@@ -14,9 +14,8 @@ const userSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
-  // The new OTP fields for Phase 2 Polish
-  resetPasswordOtp: String,
-  resetPasswordOtpExpire: Date
+  resetPasswordToken: String,
+  resetPasswordExpire: Date
 }, { timestamps: true }); 
 
 module.exports = mongoose.model('User', userSchema);

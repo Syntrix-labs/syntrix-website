@@ -1,10 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiPath } from "@/lib/api";
 
 export default function LoginPage() {
 
@@ -17,7 +16,7 @@ export default function LoginPage() {
   e.preventDefault();
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+    const response = await fetch(apiPath("/api/auth/login"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,6 +85,7 @@ export default function LoginPage() {
 
             <input
               type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
@@ -100,6 +100,7 @@ export default function LoginPage() {
 
             <input
               type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"

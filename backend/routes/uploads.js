@@ -8,8 +8,8 @@ const authMiddleware = require('../middleware/authMiddleware');
 // 1. Configure Multer to store files in memory (not on your disk)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 2. Authenticate your "Robot User" with Google Drive
-const KEYFILEPATH = 'credentials.json';
+// 2. Authenticate your service account with Google Drive
+const KEYFILEPATH = process.env.GOOGLE_APPLICATION_CREDENTIALS || 'credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 
 const auth = new google.auth.GoogleAuth({
@@ -18,13 +18,16 @@ const auth = new google.auth.GoogleAuth({
 });
 const drive = google.drive({ version: 'v3', auth });
 
-// PASTE YOUR FOLDER ID HERE
-const PARENT_FOLDER_ID = 'YOUR_COPIED_FOLDER_ID_HERE'; 
+const PARENT_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
 // @route   POST /api/uploads
 // @desc    Upload a file directly to Google Drive
 router.post('/', [authMiddleware, upload.single('clientFile')], async (req, res) => {
   try {
+    if (!PARENT_FOLDER_ID) {
+      return res.status(500).json({ message: 'Google Drive folder is not configured' });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Navbar from "@/components/navbar/Navbar";
 import { motion } from "framer-motion";
@@ -65,7 +65,7 @@ transition={{ duration: 1 }}
       View Our Work
     </button>
 
-    <button className="border border-gray-700 hover:border-gray-500 ttransition-all duration-300 hover:scale-105 px-8 py-4 rounded-2xl text-lg font-medium">
+    <button className="border border-gray-700 hover:border-gray-500 transition-all duration-300 hover:scale-105 px-8 py-4 rounded-2xl text-lg font-medium">
       Learn More
     </button>
   </motion.div>
@@ -363,7 +363,7 @@ transition={{ duration: 1 }}
   animate={{ opacity: 1 }}
   transition={{ delay: 0.5, duration: 1 }}
   className="text-gray-400 leading-relaxed text-lg">
-          We don’t just build software —
+          We don't just build software -
           we build solutions that improve business efficiency,
           branding, and customer experience.
         </motion.p>
@@ -389,7 +389,7 @@ transition={{ duration: 1 }}
   animate={{ opacity: 1 }}
   transition={{ delay: 0.5, duration: 1 }}
   className="text-blue-500 uppercase tracking-[0.3em] font-semibold mb-6">
-      Let’s Build Together
+      Let's Build Together
     </motion.p>
 
     <h2 className="text-6xl md:text-7xl font-bold leading-tight">
@@ -409,7 +409,7 @@ transition={{ duration: 1 }}
 
     <div className="flex flex-col md:flex-row gap-6 justify-center mt-14">
 
-      <button className="bg-blue-500 hover:bg-blue-600 transition-all duration-300 hover:scale-105 px-10 py-5 rounded-2xl text-lg font-semibold shadow-2xl shadow-blue-500/40 hover:scale-105">
+      <button className="bg-blue-500 hover:bg-blue-600 transition-all duration-300 hover:scale-105 px-10 py-5 rounded-2xl text-lg font-semibold shadow-2xl shadow-blue-500/40">
         Start Your Project
       </button>
 
@@ -464,7 +464,7 @@ transition={{ duration: 1 }}
   animate={{ opacity: 1 }}
   transition={{ delay: 0.5, duration: 1 }}
   className="text-gray-500 text-sm">
-      © 2026 Syntrix Labs. All rights reserved.
+      Copyright 2026 Syntrix Labs. All rights reserved.
     </motion.p>
 
   </div>

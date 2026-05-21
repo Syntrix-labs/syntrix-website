@@ -1,14 +1,16 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const apiUrl = process.env.BACKEND_URL || "http://localhost:5000";
+
+const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination:
-          "https://symmetrical-tribble-qvqrq56pw577f697w-5000.app.github.dev/api/:path*",
+        destination: `${apiUrl}/api/:path*`,
       },
     ];
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

@@ -91,8 +91,10 @@ router.get('/me', authMiddleware, async (req, res) => {
 // @route   POST /api/auth/forgot-password
 // @desc    Send password reset email
 router.post('/forgot-password', async (req, res) => {
+  let user;
+
   try {
-    const user = await User.findOne({ email: req.body.email });
+    user = await User.findOne({ email: req.body.email });
     if (!user) {
       return res.status(404).json({ success: false, message: 'No user with that email' });
     }
@@ -105,8 +107,9 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    // 3. Create the reset URL (Tahir will build this frontend page later)
-    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+    // 3. Create the reset URL
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const resetUrl = `${clientUrl.split(',')[0]}/reset-password/${resetToken}`;
 
     // 4. Configure Nodemailer to send the email
     const transporter = nodemailer.createTransport({
@@ -121,7 +124,7 @@ router.post('/forgot-password', async (req, res) => {
       from: `${process.env.EMAIL_USER}`,
       to: user.email,
       subject: 'Syntrix Labs - Password Reset',
-      text: `You requested a password reset. Please make a PUT request to: \n\n ${resetUrl}`
+      text: `You requested a password reset. Open this link to set a new password:\n\n${resetUrl}`
     };
 
     await transporter.sendMail(message);
@@ -130,9 +133,11 @@ router.post('/forgot-password', async (req, res) => {
   } catch (error) {
     console.error(error);
     // If it fails, clear the token fields so they can try again
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
+    if (user) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+    }
     res.status(500).json({ success: false, message: 'Email could not be sent' });
   }
 });

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Topbar from "@/components/topbar/Topbar";
@@ -111,15 +111,15 @@ export default function MeetingsPage() {
       <div className="space-y-3 text-gray-300">
 
         <p>
-          📅 24 May 2026
+          Date: 24 May 2026
         </p>
 
         <p>
-          ⏰ 7:00 PM IST
+          Time: 7:00 PM IST
         </p>
 
         <p>
-          📍 Google Meet
+          Location: Google Meet
         </p>
 
       </div>

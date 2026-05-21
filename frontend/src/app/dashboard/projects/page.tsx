@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Topbar from "@/components/topbar/Topbar";
@@ -96,7 +96,7 @@ export default function ProjectsPage() {
   <div className="bg-zinc-900 border border-dashed border-white/20 rounded-3xl p-12 text-center hover:border-blue-500 transition-all duration-300">
 
     <div className="text-6xl mb-6">
-      📁
+      Files
     </div>
 
     <h3 className="text-2xl font-bold mb-4">
