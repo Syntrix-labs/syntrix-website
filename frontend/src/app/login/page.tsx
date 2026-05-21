@@ -3,9 +3,57 @@
 import { motion } from "framer-motion";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+
+      localStorage.setItem("token", data.token);
+
+      alert("Login successful!");
+
+      router.push("/dashboard");
+
+    } else {
+
+      alert(data.message);
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+    alert("Server error");
+
+  }
+};
+
   return (
+
     <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
 
       <motion.div
@@ -29,7 +77,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-6">
 
           <div>
             <label className="block mb-2 text-sm text-gray-400">
@@ -38,6 +86,8 @@ export default function LoginPage() {
 
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 transition"
             />
@@ -50,6 +100,8 @@ export default function LoginPage() {
 
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 transition"
             />

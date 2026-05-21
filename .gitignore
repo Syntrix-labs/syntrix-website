@@ -141,3 +141,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+backend/credentials.json
+backend/credentials.json
+credentials.json
+.env.local
