@@ -11,7 +11,7 @@ const nodemailer = require('nodemailer');
 // @desc    Register a new user
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, company } = req.body;
 
     let user = await User.findOne({ email });
     if (user) {
@@ -24,12 +24,17 @@ router.post('/signup', async (req, res) => {
     user = new User({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      phone,
+      company
     });
 
     await user.save();
 
-    res.status(201).json({ success: true, message: 'User registered successfully!' });
+    const payload = { user: { id: user.id } };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({ success: true, message: 'User registered successfully!', token });
 
   } catch (error) {
     console.error('Signup Error:', error);
@@ -90,6 +95,74 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 // @route   POST /api/auth/forgot-password
 // @desc    Send password reset email
+router.post('/profile/request-otp', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    user.emailOtp = crypto.createHash('sha256').update(otp).digest('hex');
+    user.emailOtpExpire = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+
+      await transporter.sendMail({
+        from: `${process.env.EMAIL_USER}`,
+        to: req.body.email || user.email,
+        subject: 'Syntrix Labs - Profile verification OTP',
+        text: `Your Syntrix profile verification OTP is: ${otp}`
+      });
+    }
+
+    res.json({
+      success: true,
+      message: process.env.EMAIL_USER && process.env.EMAIL_PASS ? 'OTP sent to email' : 'OTP generated. Configure email credentials to send it automatically.',
+      devOtp: process.env.NODE_ENV === 'production' ? undefined : otp
+    });
+  } catch (error) {
+    console.error('Profile OTP Error:', error);
+    res.status(500).json({ success: false, message: 'Server error sending OTP' });
+  }
+});
+
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const allowed = ['name', 'email', 'phone', 'company'];
+    const updates = {};
+    allowed.forEach((field) => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
+
+    const existingUser = await User.findById(req.user.id);
+    if (!existingUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (updates.email && updates.email !== existingUser.email) {
+      const hashedOtp = crypto.createHash('sha256').update(req.body.otp || '').digest('hex');
+      if (!existingUser.emailOtp || existingUser.emailOtp !== hashedOtp || existingUser.emailOtpExpire < Date.now()) {
+        return res.status(400).json({ success: false, message: 'Valid email OTP is required to change email' });
+      }
+      updates.emailOtp = undefined;
+      updates.emailOtpExpire = undefined;
+    }
+
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-password');
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Profile Update Error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating profile' });
+  }
+});
+
 router.post('/forgot-password', async (req, res) => {
   let user;
 

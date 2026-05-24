@@ -35,7 +35,8 @@ export default function LoginPage() {
 
       alert("Login successful!");
 
-      router.push("/dashboard");
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next === "meetings" ? "/dashboard/meetings" : "/dashboard");
 
     } else {
 

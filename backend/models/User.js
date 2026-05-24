@@ -15,7 +15,11 @@ const userSchema = new mongoose.Schema({
     required: true 
   },
   resetPasswordToken: String,
-  resetPasswordExpire: Date
+  resetPasswordExpire: Date,
+  phone: String,
+  company: String,
+  emailOtp: String,
+  emailOtpExpire: Date
 }, { timestamps: true }); 
 
 module.exports = mongoose.model('User', userSchema);

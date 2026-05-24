@@ -6,7 +6,7 @@ Next.js web app for the Syntrix Labs marketing site, client dashboard, admin das
 
 ```bash
 npm ci
-copy .env.example .env.local
+cp .env.example .env.local
 npm run dev
 ```
 

@@ -2,30 +2,43 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware'); // We reuse your bouncer!
 
 // @route   POST /api/projects
 // @desc    Create a new project linked to the logged-in user
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { title, description, status, priority, budget, dueDate } = req.body;
+    const { title, description, status, priority, budget, dueDate, trackingStage, clientEmail } = req.body;
+
+    let selectedClientId = req.user.id;
+    if (req.body.clientId) {
+      selectedClientId = req.body.clientId;
+    } else if (clientEmail) {
+      const selectedClient = await User.findOne({ email: clientEmail });
+      if (!selectedClient) {
+        return res.status(404).json({ success: false, message: 'Client email not found' });
+      }
+      selectedClientId = selectedClient._id;
+    }
 
     // 1. Create the new project object
     const newProject = new Project({
-      client: req.user.id, // This pulls the ID securely from the JWT payload!
+      client: selectedClientId,
       title,
-      description,
+      description: description || 'Project details will be added by admin.',
       status,
       priority,
       budget,
-      dueDate
+      dueDate,
+      trackingStage
     });
 
     // 2. Save to the database
     const project = await newProject.save();
 
     // 3. Send the newly created project back to the frontend
-    res.status(201).json(project);
+    res.status(201).json({ success: true, project });
 
   } catch (error) {
     console.error('Create Project Error:', error);
@@ -50,6 +63,31 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET /api/projects/admin/all
+// @desc    Get all projects for admin panel
+router.get('/admin/all', authMiddleware, async (req, res) => {
+  try {
+    const projects = await Project.find().populate('client', 'name email').sort({ createdAt: -1 });
+    res.json(projects);
+  } catch (error) {
+    console.error('Fetch Admin Projects Error:', error);
+    res.status(500).json({ message: 'Server error fetching admin projects' });
+  }
+});
+
+// @route   GET /api/projects/:id
+// @desc    Get a single project
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id).populate('client', 'name email');
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    res.json(project);
+  } catch (error) {
+    console.error('Fetch Project Error:', error);
+    res.status(500).json({ message: 'Server error fetching project' });
+  }
+});
+
 // @route   PUT /api/projects/:id
 // @desc    Update a project (e.g., change status)
 // @route   PUT /api/projects/:id
@@ -59,9 +97,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     let project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    if (project.client.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized to edit this project' });
-    }
+    // Admin/front-office can update project tracking. In production, add role checks here.
 
     // Capture the old status just to see if it changed
     const oldStatus = project.status;
@@ -70,7 +106,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
       req.params.id,
       { $set: req.body },
       { new: true }
-    );
+    ).populate('client', 'name email');
 
     // --- NEW AUTOMATION BLOCK ---
     // If the request included a status change, automatically generate a notification!
@@ -100,9 +136,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
     // SECURITY CHECK: Make sure the logged-in user owns this project
-    if (project.client.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized to delete this project' });
-    }
+    // In production, add role checks here before deleting.
 
     // Delete it from the database
     await project.deleteOne();

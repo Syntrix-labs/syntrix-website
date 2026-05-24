@@ -18,7 +18,7 @@ const projectSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Planning', 'In Progress', 'In Review', 'Completed'],
+    enum: ['Pending', 'Planning', 'In Progress', 'In Review', 'Completed'],
     default: 'Planning'
   },
   priority: {
@@ -31,7 +31,17 @@ const projectSchema = new mongoose.Schema({
   },
   dueDate: {
     type: Date
-  }
+  },
+  trackingStage: {
+    type: String,
+    enum: ['Created', 'Coding Starting', 'Frontend Review', 'Test', 'Final Review', 'Publish'],
+    default: 'Created'
+  },
+  documentLinks: [{
+    name: String,
+    url: String,
+    uploadedAt: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true }); 
 
 module.exports = mongoose.model('Project', projectSchema);

@@ -1,155 +1,128 @@
-﻿"use client";
+"use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import Topbar from "@/components/topbar/Topbar";
+import DashboardShell from "@/components/layout/DashboardShell";
+import SectionHeader from "@/components/ui/SectionHeader";
+import { apiGet, apiPath, authHeaders } from "@/lib/api";
+
+type Meeting = {
+  _id: string;
+  title: string;
+  date: string;
+  time: string;
+  timezone?: string;
+  status: "Requested" | "Confirmed" | "Completed" | "Cancelled";
+  meetingLink?: string;
+  meetingPlatform?: string;
+  notes?: string;
+};
+
+const fallback: Meeting[] = [
+  {
+    _id: "demo",
+    title: "Project consultation",
+    date: "Admin will confirm",
+    time: "Requested",
+    timezone: "Your timezone",
+    status: "Requested",
+    notes: "Your meeting requests and confirmed calls will appear here."
+  }
+];
 
 export default function MeetingsPage() {
+  const [meetings, setMeetings] = useState<Meeting[]>(fallback);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [timezone, setTimezone] = useState("Asia/Kolkata");
+  const [notes, setNotes] = useState("");
+
+  const loadMeetings = () => apiGet<Meeting[]>("/api/meetings", fallback).then(setMeetings);
+  useEffect(() => {
+    loadMeetings();
+  }, []);
+
+  const book = async () => {
+    if (!date || !time) return alert("Choose date and time");
+    const response = await fetch(apiPath("/api/meetings/book"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ title: "Client consultation", date, time, timezone, notes })
+    });
+    if (response.ok) {
+      alert("Meeting request sent. After admin accepts, it will move to upcoming automatically.");
+      setDate("");
+      setTime("");
+      setNotes("");
+      loadMeetings();
+    }
+  };
+
+  const pending = meetings.filter((meeting) => meeting.status === "Requested");
+  const upcoming = meetings.filter((meeting) => meeting.status === "Confirmed");
+  const history = meetings.filter((meeting) => meeting.status === "Completed" || meeting.status === "Cancelled");
+
   return (
-    <main className="min-h-screen bg-black text-white p-8 md:p-12">
-      <Topbar />
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-      >
+    <DashboardShell>
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
+        <SectionHeader
+          eyebrow="Meetings"
+          title="Book meetings and track history"
+          description="Request a meeting in your timezone. After Syntrix accepts it, the confirmed meeting and link appear here automatically."
+        />
 
-        <div className="mb-12">
-          <p className="text-blue-500 uppercase tracking-[0.3em] text-sm mb-4">
-            Meetings
-          </p>
-
-          <h1 className="text-5xl font-bold">
-            Upcoming Meetings
-          </h1>
-
-          <p className="text-gray-400 mt-4">
-            Manage scheduled calls, consultations, and project discussions.
-          </p>
-        </div>
-
-        <div className="space-y-6">
-
-          <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 flex items-center justify-between">
-
-            <div>
-              <h2 className="text-2xl font-bold mb-2">
-                Client Strategy Call
-              </h2>
-
-              <p className="text-gray-400">
-                Discussion about project planning and launch roadmap.
-              </p>
-            </div>
-
-            <div className="text-right">
-              <p className="text-blue-500 font-semibold">
-                21 May
-              </p>
-
-              <p className="text-gray-500 text-sm">
-                7:30 PM
-              </p>
-            </div>
-
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-2 space-y-6">
+            <Panel title="Pending Admin Approval" items={pending} />
+            <Panel title="Upcoming Meetings" items={upcoming} />
+            <Panel title="Meeting History" items={history} />
           </div>
 
-          <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 flex items-center justify-between">
-
-            <div>
-              <h2 className="text-2xl font-bold mb-2">
-                UI Review Meeting
-              </h2>
-
-              <p className="text-gray-400">
-                Reviewing dashboard and mobile responsiveness updates.
-              </p>
-            </div>
-
-            <div className="text-right">
-              <p className="text-blue-500 font-semibold">
-                24 May
-              </p>
-
-              <p className="text-gray-500 text-sm">
-                5:00 PM
-              </p>
-            </div>
-
+          <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 h-fit">
+            <h2 className="text-2xl font-bold mb-5">Book Meeting</h2>
+            <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4" />
+            <input type="time" value={time} onChange={(event) => setTime(event.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4" />
+            <select value={timezone} onChange={(event) => setTimezone(event.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4">
+              <option value="Asia/Kolkata">India - IST</option>
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">New York</option>
+              <option value="Europe/London">London</option>
+              <option value="Asia/Dubai">Dubai</option>
+              <option value="Asia/Singapore">Singapore</option>
+            </select>
+            <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="What do you want to discuss?" className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4 min-h-28" />
+            <button onClick={book} className="w-full bg-blue-500 hover:bg-blue-600 rounded-2xl py-3 font-semibold">Request Schedule</button>
           </div>
-
-          {/* Upcoming Meetings */}
-
-<div className="mt-12">
-
-  <h2 className="text-3xl font-bold mb-6">
-    Upcoming Meetings
-  </h2>
-
-  <div className="space-y-6">
-
-    {/* Meeting Card */}
-    <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8">
-
-      <div className="flex items-center justify-between mb-6">
-
-        <div>
-          <h3 className="text-2xl font-bold">
-            UI Review Meeting
-          </h3>
-
-          <p className="text-gray-400 mt-2">
-            Discuss dashboard progress and next features.
-          </p>
         </div>
-
-        <span className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-full text-sm">
-          Upcoming
-        </span>
-
-      </div>
-
-      <div className="space-y-3 text-gray-300">
-
-        <p>
-          Date: 24 May 2026
-        </p>
-
-        <p>
-          Time: 7:00 PM IST
-        </p>
-
-        <p>
-          Location: Google Meet
-        </p>
-
-      </div>
-
-      <div className="flex gap-4 mt-8">
-
-        <button
-          className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-2xl transition-all duration-300 font-semibold"
-        >
-          Join Meeting
-        </button>
-
-        <button
-          className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-6 py-3 rounded-2xl transition-all duration-300"
-        >
-          Schedule
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-        </div>
-
       </motion.div>
+    </DashboardShell>
+  );
+}
 
-    </main>
+function Panel({ title, items }: { title: string; items: Meeting[] }) {
+  return (
+    <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6">
+      <h2 className="text-2xl font-bold mb-5">{title}</h2>
+      <div className="space-y-4">
+        {items.length ? items.map((meeting) => (
+          <div key={meeting._id} className="bg-black border border-white/10 rounded-2xl p-5">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div>
+                <h3 className="font-bold text-xl">{meeting.title}</h3>
+                <p className="text-gray-400 mt-2">{meeting.date} at {meeting.time} ({meeting.timezone || "Asia/Kolkata"})</p>
+                <p className="text-gray-500 mt-1">{meeting.notes}</p>
+                {meeting.meetingLink && meeting.meetingLink.startsWith("http") && (
+                  <a href={meeting.meetingLink} target="_blank" className="inline-block text-blue-300 mt-3">Join meeting</a>
+                )}
+                {meeting.meetingLink && !meeting.meetingLink.startsWith("http") && (
+                  <p className="text-blue-300 mt-3">{meeting.meetingLink}</p>
+                )}
+              </div>
+              <span className="text-blue-300 bg-blue-500/10 px-3 py-2 h-fit rounded-full text-sm">{meeting.status}</span>
+            </div>
+          </div>
+        )) : <p className="text-gray-500">No records yet.</p>}
+      </div>
+    </div>
   );
 }

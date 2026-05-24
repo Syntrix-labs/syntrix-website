@@ -31,9 +31,12 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (data.success) {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
         alert("Account created successfully!");
-
-        router.push("/login");
+        const next = new URLSearchParams(window.location.search).get("next");
+        router.push(next === "meetings" ? "/dashboard/meetings" : "/dashboard");
       } else {
         alert(data.message);
       }

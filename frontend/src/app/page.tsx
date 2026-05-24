@@ -1,476 +1,127 @@
-﻿"use client";
+"use client";
 
 import Navbar from "@/components/navbar/Navbar";
 import { motion } from "framer-motion";
+
+const services = [
+  ["Custom Websites", "Fast, premium business websites for startups, local companies, agencies, creators, and service brands."],
+  ["Web Applications", "Client portals, dashboards, booking flows, admin panels, SaaS tools, and internal business platforms."],
+  ["Mobile App Experiences", "Modern app interfaces, product flows, authentication screens, and API-ready mobile foundations."],
+  ["Backend & API Systems", "Secure API logic for users, projects, uploads, meetings, payments, and admin operations."],
+  ["Automation & Operations", "Tracking stages, reminders, client updates, document workflows, and business process dashboards."],
+  ["Launch & Growth Support", "Deployment guidance, performance tuning, portfolio presentation, and ongoing product iteration."],
+];
+
+const portfolio = [
+  { title: "Startup Website", type: "Landing page", image: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=900&q=80" },
+  { title: "Client Dashboard", type: "Business portal", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80" },
+  { title: "Admin Panel", type: "Operations control", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80" },
+  { title: "Booking System", type: "Meeting workflow", image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80" },
+  { title: "Mobile App UI", type: "Product design", image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=900&q=80" },
+  { title: "Payment Flow", type: "Client billing", image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80" },
+];
 
 export default function Home() {
   return (
     <>
       <Navbar />
-
-      <main className="min-h-screen bg-black text-white pt-5">
-        <motion.section
-        initial={{ opacity: 0, y: 40 }}
-animate={{ opacity: 1, y: 0 }}
-transition={{ duration: 1 }} 
-        className="relative flex flex-col items-center justify-center min-h-screen px-6 text-center overflow-hidden">
-
-  {/* Background Glow */}
-  <motion.div
-  animate={{
-    y: [0, -20, 0],
-  }}
-  transition={{
-    duration: 6,
-    repeat: Infinity,
-    ease: "easeInOut",
-  }}
-  className="absolute w-[500px] h-[500px] bg-blue-500/20 blur-[120px] rounded-full top-20"
-/>
-
-  <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-blue-500 font-semibold tracking-[0.3em] uppercase mb-6 z-10">
-    Syntrix Labs
-  </motion.p>
-
-  <motion.h1
-  initial={{ opacity: 0, y: 40 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.2, duration: 1 }} className="text-5xl sm:text-6xl md:text-8xl font-bold leading-tight max-w-6xl z-10">
-    Building Premium
-    <span className="text-blue-500"> Web & App </span>
-    Experiences
-  </motion.h1>
-
-  <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 text-lg md:text-xl mt-8 max-w-3xl leading-relaxed z-10">
-    We create scalable digital products, business platforms,
-    custom websites, mobile applications, and modern software
-    solutions tailored for ambitious businesses worldwide.
-  </motion.p>
-
-  <motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.8, duration: 1 }}
-  className="flex flex-col sm:flex-row gap-5 mt-12 z-10"
->
-    <button className="bg-blue-500 hover:bg-blue-600 transition-all duration-300 hover:scale-105 px-8 py-4 rounded-2xl text-lg font-medium shadow-lg shadow-blue-500/30">
-      View Our Work
-    </button>
-
-    <button className="border border-gray-700 hover:border-gray-500 transition-all duration-300 hover:scale-105 px-8 py-4 rounded-2xl text-lg font-medium">
-      Learn More
-    </button>
-  </motion.div>
-
-</motion.section>
-
-<section className="py-32 px-8 bg-black">
-
-  <div className="max-w-7xl mx-auto">
-
-    <div className="text-center mb-20">
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-blue-500 uppercase tracking-[0.3em] font-semibold mb-4">
-        Services
-      </motion.p>
-
-      <h2 className="text-5xl font-bold">
-        What We Build
-      </h2>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-      <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 hover:border-blue-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105">
-        <h3 className="text-2xl font-bold mb-4">
-          Business Websites
-        </h3>
-
-        <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed">
-          Premium company websites designed for modern brands,
-          startups, agencies, and businesses worldwide.
-        </motion.p>
-      </div>
-
-      <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 hover:border-blue-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105">
-        <h3 className="text-2xl font-bold mb-4">
-          Web Applications
-        </h3>
-
-        <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed">
-          Custom dashboards, admin panels, portals, SaaS platforms,
-          and scalable business systems.
-        </motion.p>
-      </div>
-
-      <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 hover:border-blue-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105">
-        <h3 className="text-2xl font-bold mb-4">
-          Mobile Apps
-        </h3>
-
-        <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed">
-          Android and iOS applications with premium UI,
-          smooth performance, and scalable backend systems.
-        </motion.p>
-      </div>
-
-    </div>
-
-  </div>
-
-  {/*stats section*/}
-
-</section>
-
-<section className="py-28 px-8 bg-zinc-950 border-t border-white/5 border-b border-white/5">
-
-  <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-
-    <div>
-      <h3 className="text-5xl font-bold text-blue-500">
-        10+
-      </h3>
-
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 mt-3">
-        Modern Technologies
-      </motion.p>
-    </div>
-
-    <div>
-      <h3 className="text-5xl font-bold text-blue-500">
-        24/7
-      </h3>
-
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 mt-3">
-        Client Support
-      </motion.p>
-    </div>
-
-    <div>
-      <h3 className="text-5xl font-bold text-blue-500">
-        100%
-      </h3>
-
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 mt-3">
-        Custom Solutions
-      </motion.p>
-    </div>
-
-    <div>
-      <h3 className="text-5xl font-bold text-blue-500">
-        Global
-      </h3>
-
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 mt-3">
-        Service Availability
-      </motion.p>
-    </div>
-
-  </div>
-
-</section>
-
-{/*project section*/}
-
-<section className="py-32 px-8 bg-black">
-
-  <div className="max-w-7xl mx-auto">
-
-    <div className="text-center mb-20">
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-blue-500 uppercase tracking-[0.3em] font-semibold mb-4">
-        Portfolio
-      </motion.p>
-
-      <h2 className="text-5xl font-bold">
-        Featured Projects
-      </h2>
-    </div>
-
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-      <div className="bg-zinc-900 rounded-3xl overflow-hidden border border-white/10 hover:border-blue-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105">
-
-        <div className="h-72 bg-gradient-to-br from-blue-500/20 to-black flex items-center justify-center text-4xl font-bold text-blue-500">
-          SaaS Dashboard
-        </div>
-
-        <div className="p-8">
-          <h3 className="text-3xl font-bold mb-4">
-            Business Management Platform
-          </h3>
-
-          <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed">
-            A scalable dashboard system designed for business analytics,
-            management operations, reports, and team collaboration.
-          </motion.p>
-        </div>
-
-      </div>
-
-      <div className="bg-zinc-900 rounded-3xl overflow-hidden border border-white/10 hover:border-blue-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105">
-
-        <div className="h-72 bg-gradient-to-br from-cyan-500/20 to-black flex items-center justify-center text-4xl font-bold text-cyan-400">
-          Mobile App
-        </div>
-
-        <div className="p-8">
-          <h3 className="text-3xl font-bold mb-4">
-            Modern Service Application
-          </h3>
-
-          <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed">
-            Premium mobile application experience with clean UI,
-            authentication systems, payment integration, and modern UX.
-          </motion.p>
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
- 
-
-</section>
-
-{/*why choose us section*/}
-
-<section className="py-32 px-8 bg-zinc-950">
-
-  <div className="max-w-7xl mx-auto">
-
-    <div className="text-center mb-20">
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-blue-500 uppercase tracking-[0.3em] font-semibold mb-4">
-        Why Choose Us
-      </motion.p>
-
-      <h2 className="text-5xl font-bold">
-        Built For Modern Businesses
-      </h2>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-      <div className="bg-black border border-white/10 rounded-3xl p-10">
-        <h3 className="text-3xl font-bold mb-5">
-          Premium Design Experience
-        </h3>
-
-        <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed text-lg">
-          We focus on building visually modern, smooth,
-          responsive, and user-friendly digital experiences
-          that help businesses stand out online.
-        </motion.p>
-      </div>
-
-      <div className="bg-black border border-white/10 rounded-3xl p-10">
-        <h3 className="text-3xl font-bold mb-5">
-          Fully Custom Development
-        </h3>
-
-        <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed text-lg">
-          Every project is tailored according to client needs,
-          business goals, workflows, and future scalability.
-        </motion.p>
-      </div>
-
-      <div className="bg-black border border-white/10 rounded-3xl p-10">
-        <h3 className="text-3xl font-bold mb-5">
-          Modern Technology Stack
-        </h3>
-
-        <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed text-lg">
-          Using modern frameworks and scalable architectures,
-          we create high-performance digital products built
-          for long-term growth.
-        </motion.p>
-      </div>
-
-      <div className="bg-black border border-white/10 rounded-3xl p-10">
-        <h3 className="text-3xl font-bold mb-5">
-          Business Focused Solutions
-        </h3>
-
-        <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 leading-relaxed text-lg">
-          We don't just build software -
-          we build solutions that improve business efficiency,
-          branding, and customer experience.
-        </motion.p>
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-{/*lets work together*/}
-
-<section className="py-40 px-8 bg-black relative overflow-hidden">
-
-  {/* Glow Effect */}
-  <div className="absolute w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full top-0 left-1/2 -translate-x-1/2"></div>
-
-  <div className="max-w-5xl mx-auto text-center relative z-10">
-
-    <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-blue-500 uppercase tracking-[0.3em] font-semibold mb-6">
-      Let's Build Together
-    </motion.p>
-
-    <h2 className="text-6xl md:text-7xl font-bold leading-tight">
-      Ready To Build Your
-      <span className="text-blue-500"> Next Digital Product?</span>
-    </h2>
-
-    <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-400 text-xl leading-relaxed mt-8 max-w-3xl mx-auto">
-      From modern websites to scalable business platforms,
-      Syntrix helps businesses transform ideas into premium
-      digital experiences with modern technology and clean execution.
-    </motion.p>
-
-    <div className="flex flex-col md:flex-row gap-6 justify-center mt-14">
-
-      <button className="bg-blue-500 hover:bg-blue-600 transition-all duration-300 hover:scale-105 px-10 py-5 rounded-2xl text-lg font-semibold shadow-2xl shadow-blue-500/40">
-        Start Your Project
-      </button>
-
-      <button className="border border-gray-700 hover:border-gray-500 transition-all duration-300 hover:scale-105 px-10 py-5 rounded-2xl text-lg font-semibold">
-        Schedule Consultation
-      </button>
-
-    </div>
-
-  </div>
-
-</section>
-
-<footer className="border-t border-white/10 bg-zinc-950 py-12 px-8">
-
-  <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-
-    <div>
-      <h3 className="text-2xl font-bold">
-        SYNTRIX
-      </h3>
-
-      <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-500 mt-2">
-        Modern Web & App Solutions
-      </motion.p>
-    </div>
-
-    <div className="flex gap-8 text-gray-400">
-      <a href="#" className="hover:text-white transition-all duration-300 hover:-translate-y-1">
-        Home
-      </a>
-
-      <a href="#" className="hover:text-white transition-all duration-300 hover:-translate-y-1">
-        Services
-      </a>
-
-      <a href="#" className="hover:text-white transition-all duration-300 hover:-translate-y-1">
-        Portfolio
-      </a>
-
-      <a href="#" className="hover:text-white transition-all duration-300 hover:-translate-y-1">
-        Contact
-      </a>
-    </div>
-
-    <motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.5, duration: 1 }}
-  className="text-gray-500 text-sm">
-      Copyright 2026 Syntrix Labs. All rights reserved.
-    </motion.p>
-
-  </div>
-
-</footer>
-
+      <main className="min-h-screen bg-black text-white pt-20">
+        <section
+          id="home"
+          className="relative min-h-[82vh] px-6 flex items-center overflow-hidden bg-cover bg-center"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=85')" }}
+        >
+          <div className="absolute inset-0 bg-black/75" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.08),#000)]" />
+          <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 max-w-7xl mx-auto w-full">
+            <p className="text-blue-400 font-semibold uppercase mb-5">Syntrix Labs</p>
+            <h1 className="text-5xl md:text-7xl font-bold leading-tight max-w-5xl">
+              Custom websites, apps, and business platforms for serious startups.
+            </h1>
+            <p className="text-gray-300 text-lg md:text-xl mt-7 max-w-3xl leading-relaxed">
+              We help clients turn ideas into polished digital products: public websites, client dashboards, admin systems, APIs, booking flows, payments, and launch-ready platforms.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 mt-10">
+              <a href="#portfolio" className="bg-blue-500 hover:bg-blue-600 transition px-7 py-4 rounded-2xl text-lg font-semibold shadow-lg shadow-blue-500/25">View Work</a>
+              <a href="#services" className="border border-white/20 hover:border-blue-400 transition px-7 py-4 rounded-2xl text-lg font-semibold">Learn More</a>
+            </div>
+          </motion.div>
+        </section>
+
+        <section id="services" className="py-24 px-6 bg-black scroll-mt-24">
+          <div className="max-w-7xl mx-auto">
+            <div className="max-w-3xl mb-12">
+              <p className="text-blue-500 uppercase font-semibold mb-4">Services</p>
+              <h2 className="text-4xl md:text-5xl font-bold">Everything a client needs to start online and scale.</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {services.map(([title, text]) => (
+                <div key={title} className="bg-zinc-950 border border-white/10 rounded-2xl p-7 hover:border-blue-500/60 transition">
+                  <h3 className="text-2xl font-bold mb-4">{title}</h3>
+                  <p className="text-gray-400 leading-relaxed">{text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 px-6 bg-zinc-950 border-y border-white/10">
+          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[["10+", "Frontend concepts"], ["24/7", "Client-first support"], ["100%", "Custom builds"], ["Global", "Remote ready"]].map(([number, label]) => (
+              <div key={label} className="border border-white/10 rounded-2xl p-6 bg-black">
+                <h3 className="text-4xl font-bold text-blue-500">{number}</h3>
+                <p className="text-gray-400 mt-3">{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="portfolio" className="py-24 px-6 bg-black scroll-mt-24">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <p className="text-blue-500 uppercase font-semibold mb-4">Portfolio</p>
+                <h2 className="text-4xl md:text-5xl font-bold">Work directions we can ship for clients.</h2>
+              </div>
+              <a href="/signup?next=meetings" className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-6 py-4 font-semibold">Start Your Job</a>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {portfolio.map((item) => (
+                <a key={item.title} href="/signup?next=meetings" className="group overflow-hidden bg-zinc-950 border border-white/10 rounded-2xl hover:border-blue-500/60 transition">
+                  <div className="aspect-video overflow-hidden">
+                    <img src={item.image} alt={item.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  </div>
+                  <div className="p-6">
+                    <p className="text-blue-300 text-sm mb-2">{item.type}</p>
+                    <h3 className="font-bold text-2xl">{item.title}</h3>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="contact" className="py-24 px-6 bg-zinc-950 scroll-mt-24">
+          <div className="max-w-5xl mx-auto text-center">
+            <p className="text-blue-500 uppercase font-semibold mb-4">Contact</p>
+            <h2 className="text-4xl md:text-6xl font-bold mb-6">Ready to build your next digital product?</h2>
+            <p className="text-gray-400 text-lg mb-10">Start your project or schedule consultancy. After signup, your dashboard will guide meetings, project uploads, payments, and admin updates.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="/signup?next=meetings" className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-8 py-4 font-semibold">Start Your Job</a>
+              <a href="/signup?next=meetings" className="border border-white/10 hover:border-blue-500 rounded-2xl px-8 py-4 font-semibold">Schedule Consultancy</a>
+            </div>
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+              <div className="bg-black border border-white/10 rounded-2xl p-5">
+                <p className="text-gray-500 text-sm">GitHub</p>
+                <a href="https://github.com/Syntrix-labs/syntrix-website" className="text-blue-300">Syntrix-labs/syntrix-website</a>
+              </div>
+              <div className="bg-black border border-white/10 rounded-2xl p-5">
+                <p className="text-gray-500 text-sm">LinkedIn</p>
+                <p className="text-blue-300">Add your official LinkedIn URL here when ready</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </>
   );
