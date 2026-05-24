@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "node scripts/install-dependencies.js",
+    "install:all": "node scripts/install-dependencies.js",
     "setup": "node scripts/setup.js",
     "dev": "node scripts/dev.js",
     "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
     "start:backend": "npm --prefix backend start",
     "start:frontend": "npm --prefix frontend run dev"
   },
