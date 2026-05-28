@@ -13,11 +13,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [loginSucceeded, setLoginSucceeded] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsSubmitting(true);
   setMessage("");
+  setLoginSucceeded(false);
 
   try {
     const response = await apiFetch("/api/auth/login", {
@@ -38,7 +40,10 @@ export default function LoginPage() {
       localStorage.setItem("token", data.token);
 
       const next = new URLSearchParams(window.location.search).get("next");
-      router.push(next === "meetings" ? "/dashboard/meetings" : "/dashboard");
+      const destination = next === "meetings" ? "/dashboard/meetings" : "/dashboard";
+      setLoginSucceeded(true);
+      setMessage("Login successful. Taking you to your dashboard...");
+      window.setTimeout(() => router.push(destination), 800);
 
     } else {
 
@@ -93,10 +98,11 @@ export default function LoginPage() {
             <input
               type="email"
               required
+              disabled={isSubmitting || loginSucceeded}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 transition"
+              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 transition"
             />
           </div>
 
@@ -108,10 +114,11 @@ export default function LoginPage() {
             <input
               type="password"
               required
+              disabled={isSubmitting || loginSucceeded}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 transition"
+              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 transition"
             />
           </div>
 
@@ -126,18 +133,23 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-500 hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-300 py-4 rounded-2xl font-semibold hover:scale-[1.02]"
+            disabled={isSubmitting || loginSucceeded}
+            className="w-full bg-blue-500 hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70 transition-all duration-300 py-4 rounded-2xl font-semibold hover:scale-[1.02]"
           >
-            {isSubmitting ? "Checking..." : "Login"}
+            {loginSucceeded ? "Redirecting..." : isSubmitting ? "Checking..." : "Login"}
           </button>
 
         </form>
 
         {message && (
-          <p className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {message}
-          </p>
+          <div className={`mt-5 rounded-2xl border px-4 py-4 text-sm ${
+            loginSucceeded
+              ? "border-green-500/30 bg-green-500/10 text-green-100"
+              : "border-red-500/30 bg-red-500/10 text-red-200"
+          }`}>
+            <p className="font-semibold">{loginSucceeded ? "Welcome back" : "Login issue"}</p>
+            <p className="mt-1 opacity-90">{message}</p>
+          </div>
         )}
 
         <p className="text-gray-500 text-sm text-center mt-8">
