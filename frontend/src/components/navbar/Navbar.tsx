@@ -8,7 +8,7 @@ export default function Navbar() {
         <a href="#portfolio" className="hover:text-white">Portfolio</a>
         <a href="#contact" className="hover:text-white">Contact</a>
       </div>
-      <a href="/login" className="bg-blue-500 px-5 py-2 rounded-xl hover:bg-blue-600 transition">Login</a>
+      <a href="/schedule" className="bg-blue-500 px-5 py-2 rounded-xl hover:bg-blue-600 transition">Schedule</a>
     </nav>
   );
 }
