@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [loginSucceeded, setLoginSucceeded] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -111,15 +112,27 @@ export default function LoginPage() {
               Password
             </label>
 
-            <input
-              type="password"
-              required
-              disabled={isSubmitting || loginSucceeded}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 transition"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                disabled={isSubmitting || loginSucceeded}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 pr-14 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 transition"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowPassword((value) => !value)}
+                disabled={isSubmitting || loginSucceeded}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           <div className="text-right mt-3">
