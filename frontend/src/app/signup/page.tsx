@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiPath } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -11,12 +11,16 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setMessage("");
 
     try {
-      const response = await fetch(apiPath("/api/auth/signup"), {
+      const response = await apiFetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,15 +38,18 @@ export default function SignupPage() {
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
-        alert("Account created successfully!");
         const next = new URLSearchParams(window.location.search).get("next");
         router.push(next === "meetings" ? "/dashboard/meetings" : "/dashboard");
       } else {
-        alert(data.message);
+        setMessage(data.message || "Signup failed. Please try again.");
       }
     } catch (error) {
       console.error("SIGNUP ERROR:", error);
-      alert("Server error");
+      setMessage(error instanceof DOMException && error.name === "AbortError"
+        ? "Signup is taking too long. Please try again in a moment."
+        : "Server error. Please try again in a moment.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -96,11 +103,18 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 transition-all duration-300 py-4 rounded-2xl font-semibold hover:scale-[1.02]"
+            disabled={isSubmitting}
+            className="w-full bg-blue-500 hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-300 py-4 rounded-2xl font-semibold hover:scale-[1.02]"
           >
-            Create Account
+            {isSubmitting ? "Creating..." : "Create Account"}
           </button>
         </form>
+
+        {message && (
+          <p className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {message}
+          </p>
+        )}
 
         <p className="text-gray-500 text-sm text-center mt-8">
           Already have an account?{" "}

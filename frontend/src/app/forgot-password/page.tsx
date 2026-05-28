@@ -2,18 +2,20 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { apiPath } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
+    setMessage("");
 
     try {
-      const response = await fetch(apiPath("/api/auth/forgot-password"), {
+      const response = await apiFetch("/api/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -22,10 +24,12 @@ export default function ForgotPasswordPage() {
       });
       const data = await response.json();
 
-      alert(data.message || (response.ok ? "Reset email sent" : "Unable to send reset email"));
+      setMessage(data.message || (response.ok ? "Reset email sent" : "Unable to send reset email"));
     } catch (error) {
       console.error(error);
-      alert("Server error");
+      setMessage(error instanceof DOMException && error.name === "AbortError"
+        ? "Password reset is taking too long. Please try again in a moment."
+        : "Server error. Please try again in a moment.");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,6 +73,12 @@ export default function ForgotPasswordPage() {
             {isSubmitting ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
+
+        {message && (
+          <p className="mt-5 rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-gray-200">
+            {message}
+          </p>
+        )}
 
         <p className="text-gray-500 text-sm text-center mt-8">
           Remember your password?{" "}

@@ -4,6 +4,20 @@ export function apiPath(path: string) {
   return `${baseUrl}${normalizedPath}`;
 }
 
+export async function apiFetch(path: string, init?: RequestInit, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(apiPath(path), {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 export function authHeaders(): Record<string, string> {
   if (typeof window === "undefined") return {};
   const token = localStorage.getItem("token");
