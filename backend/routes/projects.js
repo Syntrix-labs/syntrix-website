@@ -4,10 +4,11 @@ const Project = require('../models/Project');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware'); // We reuse your bouncer!
+const requireAdmin = require('../middleware/adminMiddleware');
 
 // @route   POST /api/projects
 // @desc    Create a new project linked to the logged-in user
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, requireAdmin, async (req, res) => {
   try {
     const { title, description, status, priority, budget, dueDate, trackingStage, clientEmail } = req.body;
 
@@ -65,7 +66,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
 // @route   GET /api/projects/admin/all
 // @desc    Get all projects for admin panel
-router.get('/admin/all', authMiddleware, async (req, res) => {
+router.get('/admin/all', authMiddleware, requireAdmin, async (req, res) => {
   try {
     const projects = await Project.find().populate('client', 'name email').sort({ createdAt: -1 });
     res.json(projects);
@@ -81,6 +82,11 @@ router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id).populate('client', 'name email');
     if (!project) return res.status(404).json({ message: 'Project not found' });
+    const isOwner = String(project.client?._id || project.client) === req.user.id;
+    if (!isOwner) {
+      return requireAdmin(req, res, () => res.json(project));
+    }
+
     res.json(project);
   } catch (error) {
     console.error('Fetch Project Error:', error);
@@ -92,7 +98,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // @desc    Update a project (e.g., change status)
 // @route   PUT /api/projects/:id
 // @desc    Update a project and trigger a notification
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, requireAdmin, async (req, res) => {
   try {
     let project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -130,7 +136,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
 // @route   DELETE /api/projects/:id
 // @desc    Delete a project
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authMiddleware, requireAdmin, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });

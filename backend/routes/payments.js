@@ -3,18 +3,19 @@ const router = express.Router();
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
+const requireAdmin = require('../middleware/adminMiddleware');
 
 router.get('/', authMiddleware, async (req, res) => {
   const payments = await Payment.find({ client: req.user.id }).sort({ createdAt: -1 });
   res.json(payments);
 });
 
-router.get('/admin/all', authMiddleware, async (req, res) => {
+router.get('/admin/all', authMiddleware, requireAdmin, async (req, res) => {
   const payments = await Payment.find().populate('client', 'name email').populate('project', 'title').sort({ createdAt: -1 });
   res.json(payments);
 });
 
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, requireAdmin, async (req, res) => {
   const body = { ...req.body };
   if (body.clientEmail && !body.client) {
     const client = await User.findOne({ email: body.clientEmail });
@@ -36,7 +37,7 @@ router.post('/', authMiddleware, async (req, res) => {
   res.status(201).json({ success: true, payment });
 });
 
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, requireAdmin, async (req, res) => {
   const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json({ success: true, payment });
 });

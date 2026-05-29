@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/api";
 
 const clientItems = [
   { label: "Overview", href: "/dashboard" },
@@ -27,8 +28,47 @@ const adminItems = [
 
 export default function DashboardShell({ type = "client", children }: { type?: "client" | "admin"; children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [adminReady, setAdminReady] = useState(type !== "admin");
   const items = type === "admin" ? adminItems : clientItems;
+
+  useEffect(() => {
+    if (type !== "admin") {
+      setAdminReady(true);
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    let cancelled = false;
+    apiGet<{ isAdmin?: boolean }>("/api/auth/me", { isAdmin: false }).then((user) => {
+      if (cancelled) return;
+      if (user.isAdmin) {
+        setAdminReady(true);
+      } else {
+        router.replace("/dashboard");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router, type]);
+
+  if (type === "admin" && !adminReady) {
+    return (
+      <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+        <div className="rounded-2xl border border-white/10 bg-zinc-950 px-6 py-5 text-sm text-gray-300">
+          Checking admin access...
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-black text-white md:flex">

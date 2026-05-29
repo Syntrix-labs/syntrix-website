@@ -41,7 +41,7 @@ export default function LoginPage() {
       localStorage.setItem("token", data.token);
 
       const next = new URLSearchParams(window.location.search).get("next");
-      const destination = next === "meetings" ? "/dashboard/meetings" : "/dashboard";
+      const destination = next === "meetings" ? "/dashboard/meetings" : data.isAdmin ? "/admin" : "/dashboard";
       setLoginSucceeded(true);
       setMessage("Login successful. Taking you to your dashboard...");
       window.setTimeout(() => router.push(destination), 800);

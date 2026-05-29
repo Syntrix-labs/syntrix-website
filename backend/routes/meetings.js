@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Meeting = require('../models/Meeting');
 const authMiddleware = require('../middleware/authMiddleware');
+const requireAdmin = require('../middleware/adminMiddleware');
 
 router.get('/', authMiddleware, async (req, res) => {
   const meetings = await Meeting.find({ client: req.user.id }).sort({ date: 1, time: 1 });
@@ -21,7 +22,7 @@ router.post('/book', authMiddleware, async (req, res) => {
   res.status(201).json({ success: true, meeting });
 });
 
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, requireAdmin, async (req, res) => {
   const meeting = await Meeting.create({
     client: req.body.client || req.user.id,
     title: req.body.title || 'Client consultation',
@@ -36,12 +37,12 @@ router.post('/', authMiddleware, async (req, res) => {
   res.status(201).json({ success: true, meeting });
 });
 
-router.get('/admin/all', authMiddleware, async (req, res) => {
+router.get('/admin/all', authMiddleware, requireAdmin, async (req, res) => {
   const meetings = await Meeting.find().populate('client', 'name email').sort({ createdAt: -1 });
   res.json(meetings);
 });
 
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, requireAdmin, async (req, res) => {
   const updates = { ...req.body };
   if (updates.status === 'Confirmed' && !updates.meetingLink) {
     updates.meetingLink = 'Admin will share the meeting link soon';

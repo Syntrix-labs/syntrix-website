@@ -8,6 +8,7 @@ const stream = require('stream');
 const authMiddleware = require('../middleware/authMiddleware');
 const DocumentUpload = require('../models/DocumentUpload');
 const Project = require('../models/Project');
+const requireAdmin = require('../middleware/adminMiddleware');
 
 const uploadsDir = path.join(__dirname, '..', 'uploads', 'documents');
 fs.mkdirSync(uploadsDir, { recursive: true });
@@ -74,7 +75,7 @@ router.get('/', authMiddleware, async (req, res) => {
   res.json(documents);
 });
 
-router.get('/admin/all', authMiddleware, async (req, res) => {
+router.get('/admin/all', authMiddleware, requireAdmin, async (req, res) => {
   const documents = await DocumentUpload.find()
     .populate('client', 'name email')
     .populate('project', 'title')

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const authMiddleware = require('./middleware/authMiddleware');
+const requireAdmin = require('./middleware/adminMiddleware');
 
 // Initialize Express App
 const app = express();
@@ -94,7 +95,7 @@ app.use('/api/consultations', requireDatabase, require('./routes/consultations')
 app.use('/api/advertisements', requireDatabase, require('./routes/advertisements'));
 app.use('/api/team', requireDatabase, require('./routes/team'));
 
-app.get('/api/admin/clients', requireDatabase, authMiddleware, async (req, res) => {
+app.get('/api/admin/clients', requireDatabase, authMiddleware, requireAdmin, async (req, res) => {
   const User = require('./models/User');
   const Project = require('./models/Project');
   const Payment = require('./models/Payment');
@@ -109,7 +110,7 @@ app.get('/api/admin/clients', requireDatabase, authMiddleware, async (req, res) 
   res.json(results);
 });
 
-app.get('/api/admin/summary', requireDatabase, authMiddleware, async (req, res) => {
+app.get('/api/admin/summary', requireDatabase, authMiddleware, requireAdmin, async (req, res) => {
   const User = require('./models/User');
   const Project = require('./models/Project');
   const Payment = require('./models/Payment');

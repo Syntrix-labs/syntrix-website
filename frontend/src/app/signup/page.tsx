@@ -40,7 +40,7 @@ export default function SignupPage() {
           localStorage.setItem("token", data.token);
         }
         const next = new URLSearchParams(window.location.search).get("next");
-        router.push(next === "meetings" ? "/dashboard/meetings" : "/dashboard");
+        router.push(next === "meetings" ? "/dashboard/meetings" : data.isAdmin ? "/admin" : "/dashboard");
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
       }

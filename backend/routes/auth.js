@@ -6,6 +6,7 @@ const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware'); // Import the middleware
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { isAdminEmail } = require('../utils/adminAccess');
 
 // @route   POST /api/auth/signup
 // @desc    Register a new user
@@ -34,7 +35,12 @@ router.post('/signup', async (req, res) => {
     const payload = { user: { id: user.id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    res.status(201).json({ success: true, message: 'User registered successfully!', token });
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully!',
+      token,
+      isAdmin: isAdminEmail(user.email)
+    });
 
   } catch (error) {
     console.error('Signup Error:', error);
@@ -70,7 +76,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ success: true, token });
+        res.json({ success: true, token, isAdmin: isAdminEmail(user.email) });
       }
     );
 
@@ -86,7 +92,12 @@ router.get('/me', authMiddleware, async (req, res) => {
   try {
     // req.user comes from the decoded token in your middleware
     const user = await User.findById(req.user.id).select('-password'); 
-    res.json(user);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const userObject = user.toObject();
+    res.json({ ...userObject, isAdmin: isAdminEmail(user.email) });
   } catch (error) {
     console.error(error.message);
     res.status(500).send('Server Error');
@@ -156,7 +167,8 @@ router.put('/profile', authMiddleware, async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-password');
-    res.json({ success: true, user });
+    const userObject = user.toObject();
+    res.json({ success: true, user: { ...userObject, isAdmin: isAdminEmail(user.email) } });
   } catch (error) {
     console.error('Profile Update Error:', error);
     res.status(500).json({ success: false, message: 'Server error updating profile' });
