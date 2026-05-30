@@ -4,7 +4,7 @@ export function apiPath(path: string) {
   return `${baseUrl}${normalizedPath}`;
 }
 
-export async function apiFetch(path: string, init?: RequestInit, timeoutMs = 12000) {
+export async function apiFetch(path: string, init?: RequestInit, timeoutMs = 60000) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 

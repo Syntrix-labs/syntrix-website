@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
     } catch (error) {
       console.error(error);
       setMessage(error instanceof DOMException && error.name === "AbortError"
-        ? "Password reset is taking too long. Please try again in a moment."
+        ? "The server is waking up. Please try again in a moment."
         : "Server error. Please try again in a moment.");
     } finally {
       setIsSubmitting(false);

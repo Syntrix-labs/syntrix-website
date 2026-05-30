@@ -47,7 +47,7 @@ export default function SignupPage() {
     } catch (error) {
       console.error("SIGNUP ERROR:", error);
       setMessage(error instanceof DOMException && error.name === "AbortError"
-        ? "Signup is taking too long. Please try again in a moment."
+        ? "The server is waking up. Please try again in a moment."
         : "Server error. Please try again in a moment.");
     } finally {
       setIsSubmitting(false);
