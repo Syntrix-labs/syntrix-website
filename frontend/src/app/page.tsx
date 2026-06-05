@@ -36,7 +36,11 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/75" />
           <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.08),#000)]" />
           <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 max-w-7xl mx-auto w-full">
-            <p className="text-blue-400 font-semibold uppercase mb-5">Syntrix Labs</p>
+            <img
+              src="/brand/syntrix-logo.jpg"
+              alt="Syntrix Labs"
+              className="mb-8 w-full max-w-md rounded-2xl border border-white/10 shadow-2xl shadow-blue-500/20 md:max-w-xl"
+            />
             <h1 className="text-5xl md:text-7xl font-bold leading-tight max-w-5xl">
               Custom websites, apps, and business platforms for serious startups.
             </h1>

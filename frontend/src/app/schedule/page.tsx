@@ -1,3 +1,5 @@
+import BrandLogo from "@/components/brand/BrandLogo";
+
 const schedulingUrl = process.env.NEXT_PUBLIC_SCHEDULING_URL || "";
 const fallbackMailto =
   "mailto:hello@syntrixlabs.in?subject=Schedule%20a%20Syntrix%20Labs%20call";
@@ -9,7 +11,7 @@ export default function SchedulePage() {
   return (
     <main className="min-h-screen bg-black text-white px-6 py-16">
       <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-6xl flex-col justify-center gap-10">
-        <a href="/" className="text-2xl font-bold">SYNTRIX</a>
+        <BrandLogo markClassName="h-12 w-12" />
 
         <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>

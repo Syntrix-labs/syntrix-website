@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { apiPath } from "@/lib/api";
 
 export default function ResetPasswordPage() {
@@ -48,9 +49,7 @@ export default function ResetPasswordPage() {
         className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-10"
       >
         <div className="text-center mb-10">
-          <p className="text-blue-500 uppercase tracking-[0.3em] text-sm mb-4">
-            Syntrix Labs
-          </p>
+          <BrandLogo className="mb-7 justify-center" markClassName="h-14 w-14 rounded-2xl" textClassName="text-blue-100" />
 
           <h1 className="text-4xl font-bold">Reset Password</h1>
 

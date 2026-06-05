@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { apiFetch } from "@/lib/api";
 
 export default function LoginPage() {
@@ -76,9 +77,7 @@ export default function LoginPage() {
       >
 
         <div className="text-center mb-10">
-          <p className="text-blue-500 uppercase tracking-[0.3em] text-sm mb-4">
-            Syntrix Labs
-          </p>
+          <BrandLogo className="mb-7 justify-center" markClassName="h-14 w-14 rounded-2xl" textClassName="text-blue-100" />
 
           <h1 className="text-4xl font-bold">
             Welcome Back

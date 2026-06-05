@@ -56,8 +56,27 @@ export const metadata: Metadata = {
     description: "Custom websites, apps, dashboards, APIs, and launch-ready business platforms.",
     url: "https://syntrixlabs.in",
     siteName: "Syntrix Labs",
+    images: [
+      {
+        url: "/brand/syntrix-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Syntrix Labs logo",
+      },
+    ],
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Syntrix Labs | Websites, Apps, and Business Platforms",
+    description: "Custom websites, apps, dashboards, APIs, and launch-ready business platforms.",
+    images: ["/brand/syntrix-og.jpg"],
+  },
+  icons: {
+    icon: "/favicon.png",
+    apple: "/icon-192.png",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { apiGet } from "@/lib/api";
 
 const clientItems = [
@@ -74,9 +75,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
     <main className="min-h-screen bg-black text-white md:flex">
       <aside className={`${collapsed ? "md:w-24" : "md:w-72"} border-r border-white/10 bg-zinc-950 p-5 md:p-7 transition-all duration-300 md:min-h-screen sticky top-0 z-40`}>
         <div className="flex items-center justify-between gap-3 mb-8">
-          <Link href={type === "admin" ? "/admin" : "/dashboard"} className="font-bold tracking-tight">
-            <span className="text-blue-500 text-2xl">S</span>{!collapsed && <span className="text-2xl">YNTRIX</span>}
-          </Link>
+          <BrandLogo href={type === "admin" ? "/admin" : "/dashboard"} compact={collapsed} markClassName="h-11 w-11" />
           <button onClick={() => setCollapsed((value) => !value)} className="border border-white/10 hover:border-blue-500/50 rounded-xl px-3 py-2 text-sm text-gray-300 transition">
             {collapsed ? "→" : "←"}
           </button>
