@@ -7,12 +7,50 @@ const authMiddleware = require('../middleware/authMiddleware'); // Import the mi
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { isAdminEmail } = require('../utils/adminAccess');
+const { authLimiter, passwordResetLimiter } = require('../middleware/rateLimiters');
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function requireString(value, field, min = 1, max = 200) {
+  if (typeof value !== 'string') {
+    return `${field} is required.`;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed.length < min) {
+    return `${field} is required.`;
+  }
+
+  if (trimmed.length > max) {
+    return `${field} is too long.`;
+  }
+
+  return null;
+}
 
 // @route   POST /api/auth/signup
 // @desc    Register a new user
-router.post('/signup', async (req, res) => {
+router.post('/signup', authLimiter, async (req, res) => {
   try {
-    const { name, email, password, phone, company } = req.body;
+    const name = String(req.body.name || '').trim();
+    const email = normalizeEmail(req.body.email);
+    const password = req.body.password;
+    const phone = typeof req.body.phone === 'string' ? req.body.phone.trim() : undefined;
+    const company = typeof req.body.company === 'string' ? req.body.company.trim() : undefined;
+
+    const validationError = requireString(name, 'Name', 2, 100)
+      || (!isValidEmail(email) ? 'Enter a valid email address.' : null)
+      || requireString(password, 'Password', 8, 128);
+
+    if (validationError) {
+      return res.status(400).json({ success: false, message: validationError });
+    }
 
     let user = await User.findOne({ email });
     if (user) {
@@ -50,9 +88,14 @@ router.post('/signup', async (req, res) => {
 
 // @route   POST /api/auth/login
 // @desc    Authenticate user & get token
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const password = req.body.password;
+
+    if (!isValidEmail(email) || typeof password !== 'string' || !password) {
+      return res.status(400).json({ success: false, message: 'Invalid credentials' });
+    }
 
     let user = await User.findOne({ email });
     if (!user) {
@@ -106,7 +149,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 // @route   POST /api/auth/forgot-password
 // @desc    Send password reset email
-router.post('/profile/request-otp', authMiddleware, async (req, res) => {
+router.post('/profile/request-otp', authMiddleware, passwordResetLimiter, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -129,7 +172,7 @@ router.post('/profile/request-otp', authMiddleware, async (req, res) => {
 
       await transporter.sendMail({
         from: `${process.env.EMAIL_USER}`,
-        to: req.body.email || user.email,
+        to: typeof req.body.email === 'string' && isValidEmail(normalizeEmail(req.body.email)) ? normalizeEmail(req.body.email) : user.email,
         subject: 'Syntrix Labs - Profile verification OTP',
         text: `Your Syntrix profile verification OTP is: ${otp}`
       });
@@ -175,11 +218,16 @@ router.put('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
   let user;
 
   try {
-    user = await User.findOne({ email: req.body.email });
+    const email = normalizeEmail(req.body.email);
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Enter a valid email address' });
+    }
+
+    user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ success: false, message: 'No user with that email' });
     }
@@ -231,6 +279,10 @@ router.post('/forgot-password', async (req, res) => {
 // @desc    Reset password using token
 router.put('/reset-password/:token', async (req, res) => {
   try {
+    if (typeof req.body.password !== 'string' || req.body.password.length < 8 || req.body.password.length > 128) {
+      return res.status(400).json({ success: false, message: 'Password must be 8 to 128 characters' });
+    }
+
     // 1. Get the hashed version of the token from the URL
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 

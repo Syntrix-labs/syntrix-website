@@ -9,6 +9,9 @@ const authMiddleware = require('../middleware/authMiddleware');
 const DocumentUpload = require('../models/DocumentUpload');
 const Project = require('../models/Project');
 const requireAdmin = require('../middleware/adminMiddleware');
+const User = require('../models/User');
+const { isAdminEmail } = require('../utils/adminAccess');
+const { uploadLimiter } = require('../middleware/rateLimiters');
 
 const uploadsDir = path.join(__dirname, '..', 'uploads', 'documents');
 fs.mkdirSync(uploadsDir, { recursive: true });
@@ -21,9 +24,31 @@ const storage = multer.diskStorage({
   }
 });
 
+const allowedMimeTypes = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/zip'
+]);
+
 const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 }
+  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter: (req, file, callback) => {
+    if (!allowedMimeTypes.has(file.mimetype)) {
+      return callback(new Error('Unsupported file type'));
+    }
+
+    return callback(null, true);
+  }
 });
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
@@ -83,10 +108,25 @@ router.get('/admin/all', authMiddleware, requireAdmin, async (req, res) => {
   res.json(documents);
 });
 
-router.post('/', [authMiddleware, upload.single('clientFile')], async (req, res) => {
+router.post('/', [authMiddleware, uploadLimiter, upload.single('clientFile')], async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    let linkedProject = null;
+    if (req.body.projectId) {
+      linkedProject = await Project.findById(req.body.projectId);
+      if (!linkedProject) {
+        return res.status(404).json({ success: false, message: 'Project not found' });
+      }
+
+      const user = await User.findById(req.user.id).select('email');
+      const isOwner = String(linkedProject.client) === req.user.id;
+      const isAdmin = isAdminEmail(user?.email);
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ success: false, message: 'Not authorized for this project' });
+      }
     }
 
     let driveFile = null;
@@ -99,7 +139,7 @@ router.post('/', [authMiddleware, upload.single('clientFile')], async (req, res)
     const publicUrl = getPublicUrl(req, req.file.filename);
     const document = await DocumentUpload.create({
       client: req.user.id,
-      project: req.body.projectId || undefined,
+      project: linkedProject?._id,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,
@@ -111,8 +151,8 @@ router.post('/', [authMiddleware, upload.single('clientFile')], async (req, res)
       driveDownloadLink: driveFile?.webContentLink
     });
 
-    if (req.body.projectId) {
-      await Project.findByIdAndUpdate(req.body.projectId, {
+    if (linkedProject) {
+      await Project.findByIdAndUpdate(linkedProject._id, {
         $push: {
           documentLinks: {
             name: req.file.originalname,

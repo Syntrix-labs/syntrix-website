@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
 const authMiddleware = require('../middleware/authMiddleware');
+const requireAdmin = require('../middleware/adminMiddleware');
 
 // @route   GET /api/notifications
 // @desc    Get all notifications for the logged-in user
@@ -43,7 +44,7 @@ router.put('/:id/read', authMiddleware, async (req, res) => {
 
 // @route   POST /api/notifications (FOR TESTING ONLY)
 // @desc    Manually trigger a notification to test the UI
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, requireAdmin, async (req, res) => {
   try {
     const newNotification = new Notification({
       user: req.user.id,

@@ -2,12 +2,17 @@ require('dotenv').config({ quiet: true });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 const authMiddleware = require('./middleware/authMiddleware');
 const requireAdmin = require('./middleware/adminMiddleware');
+const sanitizeInput = require('./middleware/sanitizeInput');
+const { apiLimiter } = require('./middleware/rateLimiters');
 
 // Initialize Express App
 const app = express();
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
 const defaultClientUrls = [
   'http://localhost:3000',
@@ -55,6 +60,9 @@ const requireDatabase = (req, res, next) => {
 };
 
 // Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 app.use(cors({
   origin(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -65,7 +73,9 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+app.use(sanitizeInput);
+app.use('/api', apiLimiter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health Check Route
@@ -141,6 +151,32 @@ app.get('/api/admin/summary', requireDatabase, authMiddleware, requireAdmin, asy
     upcomingMeetings,
     consultationMessages,
     teamMembers
+  });
+});
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  if (error?.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
+      success: false,
+      message: 'File is too large. Maximum upload size is 25 MB.'
+    });
+  }
+
+  if (error?.message === 'Unsupported file type') {
+    return res.status(400).json({
+      success: false,
+      message: 'Unsupported file type. Upload a PDF, image, document, spreadsheet, presentation, text file, or ZIP.'
+    });
+  }
+
+  console.error('Unhandled API Error:', error);
+  return res.status(500).json({
+    success: false,
+    message: 'Server error'
   });
 });
 
