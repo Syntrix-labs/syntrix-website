@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell, { authStagger, authItem, authInputClass } from "@/components/auth/AuthShell";
-import { apiFetch } from "@/lib/api";
+import NameParticleTransition from "@/components/NameParticleTransition";
+import { apiFetch, apiGet } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [loginSucceeded, setLoginSucceeded] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [transition, setTransition] = useState<{ name: string; destination: string } | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +38,8 @@ export default function LoginPage() {
         const next = new URLSearchParams(window.location.search).get("next");
         const destination = next === "meetings" ? "/dashboard/meetings" : data.isAdmin ? "/admin" : "/dashboard";
         setLoginSucceeded(true);
-        setMessage("Login successful. Taking you to your dashboard...");
-        window.setTimeout(() => router.push(destination), 800);
+        const me = await apiGet<{ name?: string }>("/api/auth/me", {});
+        setTransition({ name: me.name || "Welcome", destination });
       } else {
         setMessage(data.message || "Login failed. Please check your email and password.");
       }
@@ -50,6 +52,15 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (transition) {
+    return (
+      <NameParticleTransition
+        name={transition.name}
+        onComplete={() => router.push(transition.destination)}
+      />
+    );
+  }
 
   return (
     <AuthShell cardTitle="Welcome back" cardSubtitle="Login to access your dashboard and projects.">

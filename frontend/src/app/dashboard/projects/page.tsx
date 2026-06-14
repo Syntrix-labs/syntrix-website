@@ -72,53 +72,79 @@ export default function ProjectsPage() {
         />
 
         <div className="space-y-6">
-          {projects.map((project) => {
+          {projects.map((project, projectIndex) => {
             const index = Math.max(0, steps.indexOf(project.trackingStage || "Created"));
             return (
-              <div key={project._id} className="bg-zinc-900 border border-white/10 rounded-3xl p-7">
-                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 mb-7">
+              <motion.div
+                key={project._id}
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.6, delay: projectIndex * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-7 backdrop-blur-sm"
+              >
+                <div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
                   <div>
-                    <h2 className="text-3xl font-bold">{project.title}</h2>
-                    <p className="text-gray-400 mt-3">{project.description}</p>
+                    <h2 className="text-3xl font-light tracking-wide">{project.title}</h2>
+                    <p className="mt-3 font-light text-emerald-50/60">{project.description}</p>
                   </div>
-                  <div className="text-sm text-gray-300 bg-black border border-white/10 rounded-2xl px-4 py-3">
+                  <div className="rounded-2xl border border-emerald-200/10 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-50/70">
                     Deadline: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "Admin will set"}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
-                  {steps.map((step, stepIndex) => (
-                    <div key={step} className={`rounded-2xl p-3 text-sm border ${stepIndex <= index ? "bg-blue-500/20 border-blue-500/40 text-blue-200" : "bg-black border-white/10 text-gray-500"}`}>
-                      {step}
-                    </div>
-                  ))}
+                <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-6">
+                  {steps.map((step, stepIndex) => {
+                    const reached = stepIndex <= index;
+                    return (
+                      <motion.div
+                        key={step}
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: stepIndex * 0.06 }}
+                        className={`rounded-2xl border p-3 text-sm transition ${
+                          reached
+                            ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-100"
+                            : "border-emerald-200/10 bg-emerald-950/40 text-emerald-50/40"
+                        }`}
+                      >
+                        {step}
+                      </motion.div>
+                    );
+                  })}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <div className="bg-black border border-white/10 rounded-3xl p-5">
-                    <h3 className="text-xl font-bold mb-4">Documents Upload</h3>
-                    <div className="flex flex-col md:flex-row gap-4">
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-emerald-200/10 bg-emerald-950/40 p-5">
+                    <h3 className="mb-4 text-xl font-light">Document upload</h3>
+                    <div className="flex flex-col gap-4 md:flex-row">
                       <input
                         type="file"
                         onChange={(event) => setFiles({ ...files, [project._id]: event.target.files?.[0] || null })}
-                        className="flex-1 bg-zinc-950 border border-white/10 rounded-2xl px-4 py-3"
+                        className="flex-1 rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-50/80 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-500/20 file:px-3 file:py-1.5 file:text-emerald-100"
                       />
-                      <button onClick={() => uploadDocument(project._id)} className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-6 py-3 font-semibold transition">Add File</button>
+                      <button
+                        onClick={() => uploadDocument(project._id)}
+                        className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]"
+                      >
+                        Add file
+                      </button>
                     </div>
                   </div>
 
-                  <div className="bg-black border border-white/10 rounded-3xl p-5">
-                    <h3 className="text-xl font-bold mb-4">Documents</h3>
+                  <div className="rounded-3xl border border-emerald-200/10 bg-emerald-950/40 p-5">
+                    <h3 className="mb-4 text-xl font-light">Documents</h3>
                     <div className="space-y-2">
                       {project.documentLinks?.length ? project.documentLinks.map((document) => (
-                        <a key={`${document.name}-${document.uploadedAt}`} href={document.url} target="_blank" className="block text-blue-300 hover:text-blue-200">
+                        <a key={`${document.name}-${document.uploadedAt}`} href={document.url} target="_blank" className="block text-emerald-300 transition hover:text-emerald-200">
                           {document.name}
                         </a>
-                      )) : <p className="text-gray-500">No documents uploaded yet.</p>}
+                      )) : <p className="text-emerald-50/40">No documents uploaded yet.</p>}
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

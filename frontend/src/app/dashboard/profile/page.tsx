@@ -13,6 +13,9 @@ type User = {
   company?: string;
 };
 
+const profileInput =
+  "w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60 focus:bg-emerald-950/60";
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User>({});
   const [originalEmail, setOriginalEmail] = useState("");
@@ -63,25 +66,25 @@ export default function ProfilePage() {
           description="Update your contact details. Email changes require OTP verification for account security."
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 space-y-4">
-            <input value={user.name || ""} onChange={(event) => setUser({ ...user, name: event.target.value })} placeholder="Full name" className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3" />
-            <input value={user.email || ""} onChange={(event) => setUser({ ...user, email: event.target.value })} placeholder="Email" className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3" />
-            <input value={user.phone || ""} onChange={(event) => setUser({ ...user, phone: event.target.value })} placeholder="Phone" className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3" />
-            <input value={user.company || ""} onChange={(event) => setUser({ ...user, company: event.target.value })} placeholder="Company" className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3" />
-            <button onClick={save} className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-6 py-3 font-semibold">Save Changes</button>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="space-y-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm">
+            <input value={user.name || ""} onChange={(event) => setUser({ ...user, name: event.target.value })} placeholder="Full name" className={profileInput} />
+            <input value={user.email || ""} onChange={(event) => setUser({ ...user, email: event.target.value })} placeholder="Email" className={profileInput} />
+            <input value={user.phone || ""} onChange={(event) => setUser({ ...user, phone: event.target.value })} placeholder="Phone" className={profileInput} />
+            <input value={user.company || ""} onChange={(event) => setUser({ ...user, company: event.target.value })} placeholder="Company" className={profileInput} />
+            <button onClick={save} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Save changes</button>
           </div>
 
-          <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6">
-            <h2 className="text-2xl font-bold mb-4">Email OTP</h2>
-            <p className="text-gray-400 mb-4">
+          <div className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm">
+            <h2 className="mb-4 text-2xl font-light tracking-wide">Email OTP</h2>
+            <p className="mb-4 font-light text-emerald-50/60">
               {emailChanged ? "Request an OTP before saving a changed email address." : "OTP is only required when you change your email."}
             </p>
-            <button onClick={requestOtp} disabled={!user.email} className="border border-white/10 hover:border-blue-500 disabled:opacity-40 rounded-2xl px-6 py-3 mb-4">
+            <button onClick={requestOtp} disabled={!user.email} className="mb-4 rounded-2xl border border-emerald-200/15 px-6 py-3 text-emerald-50/80 transition hover:border-emerald-300/50 hover:text-white disabled:opacity-40">
               Send OTP
             </button>
-            {otpMessage && <p className="text-blue-300 mb-4">{otpMessage}</p>}
-            <input value={otp} onChange={(event) => setOtp(event.target.value)} placeholder="Enter OTP" className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3" />
+            {otpMessage && <p className="mb-4 text-emerald-300">{otpMessage}</p>}
+            <input value={otp} onChange={(event) => setOtp(event.target.value)} placeholder="Enter OTP" className={profileInput} />
           </div>
         </div>
       </motion.div>
