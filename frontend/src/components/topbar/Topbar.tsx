@@ -10,14 +10,14 @@ export default function Topbar({
   showLogout = false,
 }: TopbarProps) {
   return (
-    <div className="flex justify-between items-center mb-10">
+    <div className="mb-10 flex items-center justify-between">
       <div>
         {showBack && (
           <button
             onClick={() => window.history.back()}
-            className="border border-white/10 hover:border-blue-500 transition px-5 py-3 rounded-2xl"
+            className="rounded-full border border-emerald-200/20 px-5 py-3 text-sm tracking-wide text-emerald-50/80 transition hover:border-emerald-300/50 hover:text-white"
           >
-            Back
+            ← Back
           </button>
         )}
       </div>

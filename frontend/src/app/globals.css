@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
 @import "tailwindcss";
 
 html,
@@ -6,7 +8,9 @@ body {
   padding: 0;
   background: black;
   color: white;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 
 * {
@@ -26,6 +30,65 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2563eb;
+  background: #3f7d5a;
   border-radius: 999px;
+}
+
+@keyframes slowspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cur-ring {
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+.cur-ring.grow {
+  transform: translate(-50%, -50%) scale(2.1);
+  background-color: rgba(180, 230, 190, 0.08);
+  border-color: rgba(180, 230, 190, 0.7);
+}
+.cur-dot {
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(180, 230, 190, 0.9);
+}
+
+/* ---- Liquid glass (used by /preview hero) ---- */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.15) 80%,
+    rgba(255, 255, 255, 0.45) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.glass-pill {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-radius: 9999px;
+  box-shadow: none !important;
 }

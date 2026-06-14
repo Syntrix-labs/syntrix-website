@@ -3,14 +3,11 @@ type ButtonProps = {
   onClick?: () => void;
 };
 
-export default function Button({
-  children,
-  onClick,
-}: ButtonProps) {
+export default function Button({ children, onClick }: ButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-6 py-3 rounded-2xl text-white font-medium transition-all duration-300"
+      className="rounded-full border border-emerald-200/20 bg-emerald-500/15 px-6 py-3 font-medium tracking-wide text-emerald-50 backdrop-blur-sm transition-all duration-300 hover:border-emerald-300/50 hover:bg-emerald-500/30 active:scale-[0.98]"
     >
       {children}
     </button>

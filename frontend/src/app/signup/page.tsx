@@ -3,8 +3,14 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import BrandLogo from "@/components/brand/BrandLogo";
+import AuthShell, { authStagger, authItem, authInputClass } from "@/components/auth/AuthShell";
 import { apiFetch } from "@/lib/api";
+
+const signupPerks: [string, string][] = [
+  ["Start with a free call", "Map your scope, timeline, and budget before you commit."],
+  ["Built custom, never templated", "A platform shaped around your business, not a theme."],
+  ["Track it all in your dashboard", "Projects, meetings, documents, and payments in one place."],
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -24,14 +30,8 @@ export default function SignupPage() {
     try {
       const response = await apiFetch("/api/auth/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
@@ -56,42 +56,42 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-10"
-      >
-        <div className="text-center mb-10">
-          <BrandLogo className="mb-7 justify-center" markClassName="h-14 w-14 rounded-2xl" textClassName="text-blue-100" />
-
-          <h1 className="text-4xl font-bold">Create Account</h1>
-
-          <p className="text-gray-400 mt-4">
-            Join Syntrix and start building your next project.
-          </p>
-        </div>
-
-        <form onSubmit={handleSignup} className="space-y-5">
+    <AuthShell
+      heading="Start building with Syntrix."
+      tagline="Create your account to kick off your project and follow it live from your own client dashboard."
+      perks={signupPerks}
+      cardTitle="Create account"
+      cardSubtitle="Join Syntrix and start building your next project."
+    >
+      <motion.form onSubmit={handleSignup} variants={authStagger} initial="hidden" animate="show" className="space-y-5">
+        <motion.div variants={authItem}>
+          <label className="mb-2 block text-sm text-emerald-50/60">Full name</label>
           <input
             type="text"
             required
+            disabled={isSubmitting}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Full Name"
-            className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 transition"
+            placeholder="Your full name"
+            className={authInputClass}
           />
+        </motion.div>
 
+        <motion.div variants={authItem}>
+          <label className="mb-2 block text-sm text-emerald-50/60">Email</label>
           <input
             type="email"
             required
+            disabled={isSubmitting}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email Address"
-            className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-blue-500 transition"
+            placeholder="Enter your email"
+            className={authInputClass}
           />
+        </motion.div>
 
+        <motion.div variants={authItem}>
+          <label className="mb-2 block text-sm text-emerald-50/60">Password</label>
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -99,46 +99,47 @@ export default function SignupPage() {
               disabled={isSubmitting}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 pr-14 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 transition"
+              placeholder="Create a password"
+              className={`${authInputClass} pr-14`}
             />
             <button
               type="button"
               aria-label={showPassword ? "Hide password" : "Show password"}
-              title={showPassword ? "Hide password" : "Show password"}
               onClick={() => setShowPassword((value) => !value)}
               disabled={isSubmitting}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-emerald-50/50 transition hover:text-white disabled:opacity-40"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
+        </motion.div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-500 hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-300 py-4 rounded-2xl font-semibold hover:scale-[1.02]"
-          >
-            {isSubmitting ? "Creating..." : "Create Account"}
-          </button>
-        </form>
+        <motion.button
+          variants={authItem}
+          type="submit"
+          disabled={isSubmitting}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full rounded-2xl bg-emerald-500/90 py-4 font-semibold tracking-wide text-white shadow-lg shadow-emerald-500/25 transition-colors duration-300 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? "Creating..." : "Create Account"}
+        </motion.button>
+      </motion.form>
 
-        {message && (
-          <p className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {message}
-          </p>
-        )}
+      {message && (
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+        >
+          {message}
+        </motion.p>
+      )}
 
-        <p className="text-gray-500 text-sm text-center mt-8">
-          Already have an account?{" "}
-          <a
-            href="/login"
-            className="text-blue-500 hover:text-blue-400 transition"
-          >
-            Login
-          </a>
-        </p>
-      </motion.div>
-    </main>
+      <p className="mt-8 text-center text-sm text-emerald-50/50">
+        Already have an account?{" "}
+        <a href="/login" className="text-emerald-300 transition hover:text-emerald-200">Login</a>
+      </p>
+    </AuthShell>
   );
 }

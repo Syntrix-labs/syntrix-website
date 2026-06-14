@@ -3,21 +3,16 @@ type CardProps = {
   value: string;
 };
 
-export default function Card({
-  title,
-  value,
-}: CardProps) {
+export default function Card({ title, value }: CardProps) {
   return (
-    <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 hover:border-blue-500/30 transition-all duration-300">
-
-      <h2 className="text-2xl font-bold mb-4">
-        {title}
-      </h2>
-
-      <p className="text-5xl font-bold text-blue-500">
+    <div className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-8 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300/40">
+      <h2 className="mb-4 text-lg font-light tracking-wide text-emerald-50/70">{title}</h2>
+      <p
+        className="text-5xl font-extralight text-white"
+        style={{ textShadow: "0 0 26px rgba(120,210,160,0.4)" }}
+      >
         {value}
       </p>
-
     </div>
   );
 }

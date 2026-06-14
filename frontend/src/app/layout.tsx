@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Loader from "@/components/Loader";
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -87,6 +88,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
+        <Loader />
         {children}
         <script
           type="application/ld+json"

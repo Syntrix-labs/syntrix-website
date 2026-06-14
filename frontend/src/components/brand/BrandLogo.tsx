@@ -8,33 +8,35 @@ type BrandLogoProps = {
   textClassName?: string;
 };
 
+/** Text-only wordmark — no image logo anywhere. */
 export default function BrandLogo({
   href = "/",
   compact = false,
   className = "",
-  markClassName = "",
   textClassName = "",
 }: BrandLogoProps) {
-  const content = (
-    <>
-      <img
-        src="/brand/syntrix-mark.jpg"
-        alt=""
-        aria-hidden="true"
-        className={`h-10 w-10 rounded-xl object-cover ring-1 ring-white/10 shadow-lg shadow-blue-500/20 ${markClassName}`}
-      />
-      {!compact && (
-        <span className={`font-bold tracking-[0.18em] text-sm text-white ${textClassName}`}>
-          SYNTRIX LABS
+  return (
+    <Link
+      href={href}
+      aria-label="Syntrix Labs home"
+      className={`inline-flex items-center ${className}`}
+    >
+      {compact ? (
+        <span
+          className="text-lg font-light tracking-[0.2em] text-white"
+          style={{ textShadow: "0 0 16px rgba(120,210,160,0.5)" }}
+        >
+          S
+        </span>
+      ) : (
+        <span
+          className={`text-sm font-light tracking-[0.3em] text-white ${textClassName}`}
+          style={{ textShadow: "0 0 16px rgba(120,210,160,0.5)" }}
+        >
+          SYNTRIX<span style={{ color: "#a9ba9d" }}>&nbsp;LABS</span>
         </span>
       )}
       <span className="sr-only">Syntrix Labs</span>
-    </>
-  );
-
-  return (
-    <Link href={href} className={`inline-flex items-center gap-3 ${className}`} aria-label="Syntrix Labs home">
-      {content}
     </Link>
   );
 }

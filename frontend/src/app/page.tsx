@@ -1,132 +1,368 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Navbar from "@/components/navbar/Navbar";
-import { motion } from "framer-motion";
-
-const services = [
-  ["Custom Websites", "Fast, premium business websites for startups, local companies, agencies, creators, and service brands."],
-  ["Web Applications", "Client portals, dashboards, booking flows, admin panels, SaaS tools, and internal business platforms."],
-  ["Mobile App Experiences", "Modern app interfaces, product flows, authentication screens, and API-ready mobile foundations."],
-  ["Backend & API Systems", "Secure API logic for users, projects, uploads, meetings, payments, and admin operations."],
-  ["Automation & Operations", "Tracking stages, reminders, client updates, document workflows, and business process dashboards."],
-  ["Launch & Growth Support", "Deployment guidance, performance tuning, portfolio presentation, and ongoing product iteration."],
-];
-
-const portfolio = [
-  { title: "Startup Website", type: "Landing page", image: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=900&q=80" },
-  { title: "Client Dashboard", type: "Business portal", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80" },
-  { title: "Admin Panel", type: "Operations control", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80" },
-  { title: "Booking System", type: "Meeting workflow", image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80" },
-  { title: "Mobile App UI", type: "Product design", image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=900&q=80" },
-  { title: "Payment Flow", type: "Client billing", image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80" },
-];
+import ImmersiveScene from "@/components/ImmersiveScene";
+import ParticleFigure from "@/components/ParticleFigure";
+import ServiceSections from "@/components/ServiceSections";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useSpring,
+  useInView,
+} from "framer-motion";
 
 const scheduleHref = "/schedule";
 
+const stats: [number, string, string][] = [
+  [100, "%", "Custom-built — never templates"],
+  [24, "/7", "Client support & updates"],
+  [10, "+", "Project types we ship"],
+  [2, "", "Founders, fully hands-on"],
+];
+
+const reasons: [string, string][] = [
+  ["Direct with the builders", "You talk to Soham and Tahir — the people writing the code. No account managers, no telephone game."],
+  ["A modern, scalable stack", "Next.js, Node, and MongoDB — the same tools used by serious product teams, built to grow with you."],
+  ["End-to-end ownership", "Design, build, launch, and iterate. One team accountable from the first call to post-launch growth."],
+  ["Live project tracking", "Your own client dashboard shows project stages, meetings, documents, and payments in real time."],
+];
+
+const steps: [string, string, string][] = [
+  ["01", "Discovery call", "We map your goal, scope, timeline, and platform needs — before you commit to anything."],
+  ["02", "Scope & design", "A clear plan and the look & feel, so you know exactly what you're getting."],
+  ["03", "Build & track", "We build in the open. You follow every stage live from your client dashboard."],
+  ["04", "Launch & grow", "Clean handoff, deployment, and ongoing iteration as your business scales."],
+];
+
+const tech = ["Next.js", "React", "TypeScript", "Node.js", "Express", "MongoDB", "Razorpay", "Tailwind", "Vercel", "Render"];
+
+const faqs: [string, string][] = [
+  ["How long does a project take?", "Most marketing sites ship in 1–2 weeks; full web apps with dashboards and payments typically take 3–6 weeks depending on scope. We give you a firm timeline after the discovery call."],
+  ["How much does it cost?", "It depends on scope — a landing site and a full platform are very different. We quote a fixed scope and price up front, so there are no surprises."],
+  ["Can I track progress?", "Yes. Every client gets a dashboard showing project stages, meetings, uploaded documents, and payments — updated live as we build."],
+  ["What happens after launch?", "We hand off cleanly and offer ongoing support, performance tuning, and iteration. You're never left stranded."],
+  ["Do you handle payments and booking?", "Yes — we build secure booking flows and online payments (including Razorpay) directly into your platform."],
+];
+
+function Counter({ value, suffix }: { value: number; suffix: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const start = performance.now();
+    const dur = 1400;
+    let raf = 0;
+    const tick = (t: number) => {
+      const p = Math.min((t - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setN(Math.round(value * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, value]);
+  return (
+    <span ref={ref}>
+      {n}
+      {suffix}
+    </span>
+  );
+}
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-emerald-200/10">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-6 py-6 text-left"
+      >
+        <span className="text-lg font-light text-white md:text-xl">{q}</span>
+        <span
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-200/30 text-emerald-100 transition-transform duration-300"
+          style={{ transform: open ? "rotate(45deg)" : "none" }}
+        >
+          +
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <p className="max-w-2xl pb-6 font-light leading-relaxed text-emerald-50/70">{a}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+const reveal = {
+  initial: { opacity: 0, y: 36 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-90px" },
+  transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const },
+};
+
 export default function Home() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 });
+
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-black text-white pt-20">
-        <section
-          id="home"
-          className="relative min-h-[82vh] px-6 flex items-center overflow-hidden bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=85')" }}
-        >
-          <div className="absolute inset-0 bg-black/75" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.08),#000)]" />
-          <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 max-w-7xl mx-auto w-full">
-            <img
-              src="/brand/syntrix-logo.jpg"
-              alt="Syntrix Labs"
-              className="mb-8 w-full max-w-md rounded-2xl border border-white/10 shadow-2xl shadow-blue-500/20 md:max-w-xl"
+      <ImmersiveScene scrollDraw />
+
+      {/* scroll progress bar */}
+      <motion.div
+        style={{ scaleX }}
+        className="fixed left-0 right-0 top-0 z-[55] h-[2px] origin-left bg-gradient-to-r from-emerald-400 via-emerald-300 to-lime-200"
+      />
+
+      <main className="relative z-10 text-white">
+        {/* Hero */}
+        <section className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.3, ease: "easeOut" }}
+            className="relative flex flex-col items-center"
+          >
+            <div className="absolute top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-emerald-300/20 blur-3xl md:h-[28rem] md:w-[28rem]" />
+            <div
+              className="absolute top-1/2 h-56 w-56 -translate-y-1/2 rounded-full border border-emerald-200/15 md:h-72 md:w-72"
+              style={{ animation: "slowspin 26s linear infinite" }}
             />
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight max-w-5xl">
-              Custom websites, apps, and business platforms for serious startups.
+            <h1
+              className="relative text-6xl font-extralight tracking-[0.28em] text-white md:text-8xl"
+              style={{ textShadow: "0 0 50px rgba(120,210,160,0.55)" }}
+            >
+              SYNTRIX
             </h1>
-            <p className="text-gray-300 text-lg md:text-xl mt-7 max-w-3xl leading-relaxed">
-              We help clients turn ideas into polished digital products: public websites, client dashboards, admin systems, APIs, booking flows, payments, and launch-ready platforms.
+            <p className="relative mt-4 font-mono text-[11px] tracking-[0.6em] md:text-xs" style={{ color: "#a9ba9d" }}>
+              LABS · DIGITAL STUDIO
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mt-10">
-              <a href={scheduleHref} className="bg-blue-500 hover:bg-blue-600 transition px-7 py-4 rounded-2xl text-lg font-semibold shadow-lg shadow-blue-500/25">Schedule a Free Call</a>
-              <a href="#portfolio" className="border border-white/20 hover:border-blue-400 transition px-7 py-4 rounded-2xl text-lg font-semibold">View Work</a>
-            </div>
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="mt-10 max-w-2xl text-2xl font-light leading-[1.15] tracking-wide text-emerald-50/90 md:text-4xl"
+            style={{ textShadow: "0 0 30px rgba(40,80,55,0.6)" }}
+          >
+            Custom websites, apps &amp; platforms for serious startups
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.7 }}
+            className="mt-6 max-w-xl text-base font-light leading-relaxed text-emerald-50/60 md:text-lg"
+          >
+            We turn ideas into polished digital products — websites, dashboards, APIs, booking and payment flows.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1 }}
+            className="mt-10 flex flex-col gap-4 sm:flex-row"
+          >
+            <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-white shadow-lg shadow-emerald-500/30 backdrop-blur transition hover:bg-emerald-400">
+              Start your journey
+            </a>
+            <a href="#work" className="rounded-full border border-emerald-200/25 px-8 py-3.5 text-sm font-medium tracking-wide text-emerald-50 transition hover:border-emerald-200/60">
+              View work
+            </a>
+          </motion.div>
+          <p className="mt-16 font-mono text-[11px] tracking-[0.3em] text-emerald-100/40">SCROLL TO EXPLORE ↓</p>
+        </section>
+
+        {/* Figure */}
+        <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
+          <ParticleFigure />
+          <motion.div {...reveal} className="pointer-events-none absolute bottom-20 left-0 right-0 px-6 text-center">
+            <p className="mb-4 font-mono text-xs tracking-[0.5em]" style={{ color: "#a9ba9d" }}>OUR APPROACH</p>
+            <h2 className="mx-auto max-w-2xl text-3xl font-light leading-tight tracking-wide md:text-5xl" style={{ textShadow: "0 0 30px rgba(10,30,20,0.8)" }}>
+              Human insight, engineered into systems.
+            </h2>
           </motion.div>
         </section>
 
-        <section id="services" className="py-24 px-6 bg-black scroll-mt-24">
-          <div className="max-w-7xl mx-auto">
-            <div className="max-w-3xl mb-12">
-              <p className="text-blue-500 uppercase font-semibold mb-4">Services</p>
-              <h2 className="text-4xl md:text-5xl font-bold">Everything a client needs to start online and scale.</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {services.map(([title, text]) => (
-                <div key={title} className="bg-zinc-950 border border-white/10 rounded-2xl p-7 hover:border-blue-500/60 transition">
-                  <h3 className="text-2xl font-bold mb-4">{title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Services */}
+        <ServiceSections scheduleHref={scheduleHref} />
 
-        <section className="py-16 px-6 bg-zinc-950 border-y border-white/10">
-          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[["10+", "Frontend concepts"], ["24/7", "Client-first support"], ["100%", "Custom builds"], ["Global", "Remote ready"]].map(([number, label]) => (
-              <div key={label} className="border border-white/10 rounded-2xl p-6 bg-black">
-                <h3 className="text-4xl font-bold text-blue-500">{number}</h3>
-                <p className="text-gray-400 mt-3">{label}</p>
-              </div>
+        {/* Stats */}
+        <section className="px-6 py-28">
+          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4">
+            {stats.map(([value, suffix, label], i) => (
+              <motion.div
+                key={label}
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.6, delay: i * 0.08 }}
+                className="rounded-2xl border border-emerald-200/12 bg-emerald-950/20 p-6 text-center backdrop-blur-sm"
+              >
+                <div className="text-4xl font-extralight text-white md:text-5xl" style={{ textShadow: "0 0 26px rgba(120,210,160,0.4)" }}>
+                  <Counter value={value} suffix={suffix} />
+                </div>
+                <p className="mt-3 text-xs font-light leading-relaxed text-emerald-50/60 md:text-sm">{label}</p>
+              </motion.div>
             ))}
           </div>
         </section>
 
-        <section id="portfolio" className="py-24 px-6 bg-black scroll-mt-24">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-              <div>
-                <p className="text-blue-500 uppercase font-semibold mb-4">Portfolio</p>
-                <h2 className="text-4xl md:text-5xl font-bold">Work directions we can ship for clients.</h2>
-              </div>
-              <a href={scheduleHref} className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-6 py-4 font-semibold">Schedule a Call</a>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {portfolio.map((item) => (
-                <a key={item.title} href={scheduleHref} className="group overflow-hidden bg-zinc-950 border border-white/10 rounded-2xl hover:border-blue-500/60 transition">
-                  <div className="aspect-video overflow-hidden">
-                    <img src={item.image} alt={item.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                  </div>
-                  <div className="p-6">
-                    <p className="text-blue-300 text-sm mb-2">{item.type}</p>
-                    <h3 className="font-bold text-2xl">{item.title}</h3>
-                  </div>
-                </a>
+        {/* Why work with us */}
+        <section className="px-6 py-28">
+          <div className="mx-auto max-w-6xl">
+            <motion.div {...reveal} className="mb-14 max-w-2xl">
+              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>WHY SYNTRIX</p>
+              <h2 className="text-3xl font-light leading-tight tracking-wide md:text-5xl">Reasons startups choose to build with us.</h2>
+            </motion.div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {reasons.map(([title, text], i) => (
+                <motion.div
+                  key={title}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6, delay: i * 0.08 }}
+                  whileHover={{ y: -6 }}
+                  className="rounded-2xl border border-emerald-200/12 bg-emerald-950/20 p-8 backdrop-blur-sm transition-colors hover:border-emerald-300/40"
+                >
+                  <div className="mb-5 h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400/30 to-lime-300/10 ring-1 ring-emerald-200/20" />
+                  <h3 className="text-xl font-light text-white">{title}</h3>
+                  <p className="mt-3 font-light leading-relaxed text-emerald-50/65">{text}</p>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="contact" className="py-24 px-6 bg-zinc-950 scroll-mt-24">
-          <div className="max-w-5xl mx-auto text-center">
-            <p className="text-blue-500 uppercase font-semibold mb-4">Contact</p>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6">Ready to build your next digital product?</h2>
-            <p className="text-gray-400 text-lg mb-10">Book a discovery call and we will map the project scope, timeline, platform needs, and next steps before you commit to a build.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href={scheduleHref} className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-8 py-4 font-semibold">Schedule a Free Call</a>
-              <a href="/login" className="border border-white/10 hover:border-blue-500 rounded-2xl px-8 py-4 font-semibold">Client Login</a>
-            </div>
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-              <div className="bg-black border border-white/10 rounded-2xl p-5">
-                <p className="text-gray-500 text-sm">Discovery Call</p>
-                <a href={scheduleHref} className="text-blue-300">Choose a Google Meet or Zoom slot</a>
-              </div>
-              <div className="bg-black border border-white/10 rounded-2xl p-5">
-                <p className="text-gray-500 text-sm">Client Dashboard</p>
-                <a href="/login" className="text-blue-300">Access active projects and updates</a>
-              </div>
+        {/* Process */}
+        <section className="px-6 py-28">
+          <div className="mx-auto max-w-6xl">
+            <motion.div {...reveal} className="mb-14 text-center">
+              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>HOW WE WORK</p>
+              <h2 className="text-3xl font-light tracking-wide md:text-5xl">From first call to launch, in four clear steps.</h2>
+            </motion.div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
+              {steps.map(([num, title, text], i) => (
+                <motion.div
+                  key={num}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6, delay: i * 0.1 }}
+                  className="relative rounded-2xl border border-emerald-200/12 bg-emerald-950/20 p-7 backdrop-blur-sm"
+                >
+                  <p className="font-mono text-2xl font-extralight" style={{ color: "#a9ba9d" }}>{num}</p>
+                  <h3 className="mt-4 text-lg font-light text-white">{title}</h3>
+                  <p className="mt-3 text-sm font-light leading-relaxed text-emerald-50/60">{text}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
+        </section>
+
+        {/* Portfolio */}
+        <section id="work" className="px-6 py-28">
+          <div className="mx-auto max-w-6xl">
+            <motion.div {...reveal} className="mb-14 text-center">
+              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>SELECTED WORK</p>
+              <h2 className="text-3xl font-light tracking-wide md:text-5xl">Work directions we ship for clients</h2>
+            </motion.div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                ["Startup Website", "Landing page"],
+                ["Client Dashboard", "Business portal"],
+                ["Admin Panel", "Operations control"],
+                ["Booking System", "Meeting workflow"],
+                ["Mobile App UI", "Product design"],
+                ["Payment Flow", "Client billing"],
+              ].map(([title, type], i) => (
+                <motion.a
+                  key={title}
+                  href={scheduleHref}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6, delay: i * 0.06 }}
+                  whileHover={{ y: -6 }}
+                  className="group rounded-2xl border border-emerald-200/15 bg-emerald-950/20 p-7 backdrop-blur-sm transition hover:border-emerald-300/40 hover:bg-emerald-900/20"
+                >
+                  <p className="text-sm tracking-wide" style={{ color: "#a9ba9d" }}>{type}</p>
+                  <h3 className="mt-3 text-2xl font-light">{title}</h3>
+                  <p className="mt-6 text-sm font-light text-emerald-100/50 transition group-hover:text-emerald-100/80">Start a project →</p>
+                </motion.a>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Tech stack */}
+        <section className="px-6 py-28">
+          <div className="mx-auto max-w-5xl text-center">
+            <motion.p {...reveal} className="mb-10 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>BUILT WITH A MODERN STACK</motion.p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {tech.map((t, i) => (
+                <motion.span
+                  key={t}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.4, delay: i * 0.05 }}
+                  className="rounded-full border border-emerald-200/15 bg-emerald-950/20 px-5 py-2.5 text-sm font-light tracking-wide text-emerald-50/80 backdrop-blur-sm"
+                >
+                  {t}
+                </motion.span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="px-6 py-28">
+          <div className="mx-auto max-w-3xl">
+            <motion.div {...reveal} className="mb-10 text-center">
+              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>QUESTIONS</p>
+              <h2 className="text-3xl font-light tracking-wide md:text-5xl">Everything you might be wondering.</h2>
+            </motion.div>
+            <div>
+              {faqs.map(([q, a]) => (
+                <FaqItem key={q} q={q} a={a} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section id="contact" className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+          <motion.div {...reveal} className="max-w-2xl">
+            <p className="mb-5 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>BEGIN</p>
+            <h2 className="text-4xl font-light leading-tight tracking-wide md:text-6xl" style={{ textShadow: "0 0 30px rgba(40,80,55,0.6)" }}>
+              Ready to build your next digital product?
+            </h2>
+            <p className="mx-auto mt-6 max-w-lg text-base font-light leading-relaxed text-emerald-50/70 md:text-lg">
+              Book a discovery call and we&apos;ll map the scope, timeline, and platform needs before you commit.
+            </p>
+            <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+              <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-white shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400">
+                Schedule a free call
+              </a>
+              <a href="/login" className="rounded-full border border-emerald-200/25 px-8 py-3.5 text-sm font-medium tracking-wide text-emerald-50 transition hover:border-emerald-200/60">
+                Client login
+              </a>
+            </div>
+            <p className="mt-10 text-sm font-light text-emerald-50/40">Built hands-on by Soham &amp; Tahir · syntrixlabs.in</p>
+          </motion.div>
         </section>
       </main>
     </>
