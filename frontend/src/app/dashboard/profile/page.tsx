@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 type User = { _id?: string; name?: string; email?: string; phone?: string; company?: string; createdAt?: string };
@@ -18,12 +19,15 @@ export default function ProfilePage() {
   const [otpMessage, setOtpMessage] = useState("");
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet<User>("/api/auth/me", {}).then((data) => {
-      setUser(data);
-      setOriginalEmail(data.email || "");
-    });
+    apiGet<User>("/api/auth/me", {})
+      .then((data) => {
+        setUser(data);
+        setOriginalEmail(data.email || "");
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const emailChanged = Boolean(user.email && user.email !== originalEmail);
@@ -68,6 +72,14 @@ export default function ProfilePage() {
   const since = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString(undefined, { month: "short", year: "numeric" }).toUpperCase()
     : "—";
+
+  if (loading) {
+    return (
+      <DashboardShell>
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>

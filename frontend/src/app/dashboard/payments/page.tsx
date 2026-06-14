@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet } from "@/lib/api";
 
 type Payment = { _id: string; title: string; amount: number; dueDate: string; status: string; paymentUrl?: string; provider?: string; currency?: string };
@@ -36,8 +37,9 @@ function MoneyUp({ value, currency }: { value: number; currency?: string }) {
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>(fallback);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    apiGet<Payment[]>("/api/payments", fallback).then(setPayments);
+    apiGet<Payment[]>("/api/payments", fallback).then(setPayments).finally(() => setLoading(false));
   }, []);
 
   const upcoming = payments.filter((p) => p.status !== "Paid");
@@ -51,6 +53,14 @@ export default function PaymentsPage() {
     .filter((x) => !Number.isNaN(x.d.getTime()))
     .sort((a, b) => a.d.getTime() - b.d.getTime());
   const nextDue = dated.length ? dated[0].d.toLocaleDateString(undefined, { day: "numeric", month: "short" }) : upcoming[0]?.dueDate || "—";
+
+  if (loading) {
+    return (
+      <DashboardShell>
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>

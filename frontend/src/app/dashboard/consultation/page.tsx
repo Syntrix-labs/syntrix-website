@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 type Message = { _id: string; senderRole: string; message: string; createdAt?: string };
@@ -35,10 +36,13 @@ export default function ConsultationPage() {
   const [name, setName] = useState("You");
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    apiGet<Message[]>("/api/consultations", fallback).then((m) => setMessages(m.length ? m : fallback));
+    apiGet<Message[]>("/api/consultations", fallback)
+      .then((m) => setMessages(m.length ? m : fallback))
+      .finally(() => setLoading(false));
     apiGet<{ name?: string }>("/api/auth/me", {}).then((u) => u.name && setName(u.name));
   }, []);
 
@@ -76,6 +80,14 @@ export default function ConsultationPage() {
   };
 
   let lastDay = "";
+
+  if (loading) {
+    return (
+      <DashboardShell>
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>

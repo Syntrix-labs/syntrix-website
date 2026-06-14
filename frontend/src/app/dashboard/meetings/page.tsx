@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 type Meeting = {
@@ -67,10 +68,11 @@ export default function MeetingsPage() {
   const [notes, setNotes] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadMeetings = () => apiGet<Meeting[]>("/api/meetings", fallback).then(setMeetings);
   useEffect(() => {
-    loadMeetings();
+    loadMeetings().finally(() => setLoading(false));
   }, []);
 
   const book = async () => {
@@ -108,6 +110,14 @@ export default function MeetingsPage() {
   const past = meetings.filter((m) => m.status === "Completed" || m.status === "Cancelled");
   const next = upcoming[0];
   const restUpcoming = upcoming.slice(1);
+
+  if (loading) {
+    return (
+      <DashboardShell>
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>

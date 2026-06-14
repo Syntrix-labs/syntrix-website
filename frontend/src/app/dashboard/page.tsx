@@ -6,6 +6,7 @@ import DashboardShell from "@/components/layout/DashboardShell";
 import { BentoGrid, BentoCard } from "@/components/dashboard/Bento";
 import CountUp from "@/components/ui/CountUp";
 import ProgressRing from "@/components/ui/ProgressRing";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet } from "@/lib/api";
 
 type User = { name?: string };
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [name, setName] = useState("Client");
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState({ projects: 0, messages: 0, meetings: 0, payments: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     apiGet<User>("/api/auth/me", {}).then((u) => setName(u.name || "Client"));
@@ -38,7 +40,7 @@ export default function DashboardPage() {
         meetings: mtgs.filter((m) => m.status !== "Completed" && m.status !== "Cancelled").length,
         payments: pays.filter((p) => p.status !== "Paid").length,
       });
-    });
+    }).finally(() => setLoading(false));
   }, []);
 
   const active = projects.filter((p) => p.status !== "Completed");
@@ -46,6 +48,14 @@ export default function DashboardPage() {
   const overall = active.length
     ? Math.round(active.reduce((s, p) => s + progressOf(p.trackingStage), 0) / active.length)
     : 0;
+
+  if (loading) {
+    return (
+      <DashboardShell>
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>

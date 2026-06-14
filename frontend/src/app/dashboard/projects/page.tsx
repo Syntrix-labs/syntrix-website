@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
 import LaunchGauge from "@/components/dashboard/LaunchGauge";
+import { DashboardSkeleton, EmptyState } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 const steps = ["Created", "Coding Starting", "Frontend Review", "Test", "Final Review", "Publish"];
@@ -62,10 +63,11 @@ export default function ProjectsPage() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [uploadErr, setUploadErr] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
   const loadProjects = () => apiGet<Project[]>("/api/projects", fallbackProjects).then(setProjects);
   useEffect(() => {
-    loadProjects();
+    loadProjects().finally(() => setLoading(false));
   }, []);
 
   const uploadDocument = async (projectId: string) => {
@@ -91,6 +93,14 @@ export default function ProjectsPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <DashboardShell>
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
+
   return (
     <DashboardShell>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
@@ -102,7 +112,9 @@ export default function ProjectsPage() {
         />
 
         <div className="space-y-6">
-          {projects.map((project, projectIndex) => {
+          {projects.length === 0 ? (
+            <EmptyState icon="folder" title="No projects yet" hint="Projects assigned by your team will appear here." />
+          ) : projects.map((project, projectIndex) => {
             const progress = progressOf(project.trackingStage);
             const stageIndex = Math.max(0, steps.indexOf(project.trackingStage || "Created"));
             const cd = countdown(project.dueDate);
