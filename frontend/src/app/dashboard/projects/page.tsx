@@ -4,20 +4,16 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import LaunchGauge from "@/components/dashboard/LaunchGauge";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 const steps = ["Created", "Coding Starting", "Frontend Review", "Test", "Final Review", "Publish"];
-const fallbackProjects = [
-  {
-    _id: "demo",
-    title: "Your first Syntrix project",
-    description: "When admin assigns a project, the real project name, deadline, documents, and tracking stage appear here.",
-    status: "Requested",
-    trackingStage: "Created",
-    dueDate: ""
-  }
-];
+const progressOf = (stage?: string) => {
+  const i = Math.max(0, steps.indexOf(stage || "Created"));
+  return Math.round((i / (steps.length - 1)) * 100);
+};
 
+type Doc = { name: string; url: string; uploadedAt?: string };
 type Project = {
   _id: string;
   title: string;
@@ -25,12 +21,46 @@ type Project = {
   status?: string;
   trackingStage?: string;
   dueDate?: string;
-  documentLinks?: { name: string; url: string; uploadedAt?: string }[];
+  documentLinks?: Doc[];
 };
+
+const fallbackProjects: Project[] = [
+  {
+    _id: "demo",
+    title: "Your first Syntrix project",
+    description: "When admin assigns a project, the real project name, deadline, documents, and tracking stage appear here.",
+    status: "Requested",
+    trackingStage: "Created",
+    dueDate: "",
+  },
+];
+
+function fileMeta(name: string): { icon: string; color: string } {
+  const ext = name.split(".").pop()?.toLowerCase() || "";
+  if (ext === "pdf") return { icon: "file-type-pdf", color: "#f08a8a" };
+  if (["png", "jpg", "jpeg", "webp", "gif"].includes(ext)) return { icon: "photo", color: "#7fc6f0" };
+  if (ext === "zip") return { icon: "file-zip", color: "#f0c98a" };
+  if (["doc", "docx"].includes(ext)) return { icon: "file-type-doc", color: "#7fa6f0" };
+  if (["xls", "xlsx", "csv"].includes(ext)) return { icon: "file-type-xls", color: "#7fd0a0" };
+  if (["ppt", "pptx"].includes(ext)) return { icon: "file-type-ppt", color: "#f0a87f" };
+  return { icon: "file", color: "#9fb6a6" };
+}
+
+function countdown(due?: string): { text: string; color: string } | null {
+  if (!due) return null;
+  const ms = new Date(due).getTime() - Date.now();
+  if (Number.isNaN(ms)) return null;
+  const days = Math.ceil(ms / 86400000);
+  if (days < 0) return { text: `${Math.abs(days)} days overdue`, color: "#f08a8a" };
+  if (days === 0) return { text: "due today", color: "#f0c98a" };
+  return { text: `${days} days left`, color: days <= 7 ? "#f0c98a" : "#9fb6a6" };
+}
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>(fallbackProjects);
   const [files, setFiles] = useState<Record<string, File | null>>({});
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
 
   const loadProjects = () => apiGet<Project[]>("/api/projects", fallbackProjects).then(setProjects);
   useEffect(() => {
@@ -39,26 +69,23 @@ export default function ProjectsPage() {
 
   const uploadDocument = async (projectId: string) => {
     const file = files[projectId];
-    if (!file) return alert("Choose a document first");
+    if (!file) return;
+    setBusy(projectId);
 
     const form = new FormData();
     form.append("clientFile", file);
-    if (projectId !== "demo") {
-      form.append("projectId", projectId);
-    }
+    if (projectId !== "demo") form.append("projectId", projectId);
 
-    const response = await fetch(apiPath("/api/uploads"), {
-      method: "POST",
-      headers: authHeaders(),
-      body: form
-    });
-
-    if (response.ok) {
-      alert("Document uploaded. Admin can review it from the projects area.");
-      setFiles({ ...files, [projectId]: null });
-      loadProjects();
-    } else {
-      alert("Document upload failed. Please try again.");
+    try {
+      const response = await fetch(apiPath("/api/uploads"), { method: "POST", headers: authHeaders(), body: form });
+      if (response.ok) {
+        setFiles({ ...files, [projectId]: null });
+        loadProjects();
+      } else {
+        alert("Document upload failed. Please try again.");
+      }
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -69,12 +96,15 @@ export default function ProjectsPage() {
           icon="folder"
           eyebrow="Projects"
           title="Active projects"
-          description="Project name, deadline, uploaded documents, and tracking stage update from the admin panel."
+          description="Live tracking, deadline, documents, and stage updates straight from the Syntrix team."
         />
 
         <div className="space-y-6">
           {projects.map((project, projectIndex) => {
-            const index = Math.max(0, steps.indexOf(project.trackingStage || "Created"));
+            const progress = progressOf(project.trackingStage);
+            const stageIndex = Math.max(0, steps.indexOf(project.trackingStage || "Created"));
+            const cd = countdown(project.dueDate);
+            const selected = files[project._id];
             return (
               <motion.div
                 key={project._id}
@@ -82,67 +112,135 @@ export default function ProjectsPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.6, delay: projectIndex * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-7 backdrop-blur-sm"
+                className="rounded-3xl border border-emerald-200/12 bg-emerald-950/30 p-6 backdrop-blur-md md:p-7"
               >
-                <div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-                  <div>
-                    <h2 className="text-3xl font-light tracking-wide">{project.title}</h2>
-                    <p className="mt-3 font-light text-emerald-50/60">{project.description}</p>
-                  </div>
-                  <div className="rounded-2xl border border-emerald-200/10 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-50/70">
-                    Deadline: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "Admin will set"}
-                  </div>
+                {/* header */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="text-2xl font-light tracking-wide text-white">{project.title}</h2>
+                  <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] text-emerald-200">
+                    {project.status || "In progress"}
+                  </span>
+                  {cd && (
+                    <span className="ml-auto text-xs" style={{ color: cd.color }}>
+                      <i className="ti ti-clock" aria-hidden /> {cd.text}
+                    </span>
+                  )}
+                </div>
+                {project.description && <p className="mt-2 text-sm font-light text-emerald-50/55">{project.description}</p>}
+                <p className="mt-1 text-xs text-emerald-50/40">
+                  {project.dueDate ? `Due ${new Date(project.dueDate).toLocaleDateString()}` : "Timeline set by your team"}
+                </p>
+
+                {/* launch gauge */}
+                <div className="my-4">
+                  <LaunchGauge value={progress} stageLabel={project.trackingStage || "Created"} />
                 </div>
 
-                <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-6">
-                  {steps.map((step, stepIndex) => {
-                    const reached = stepIndex <= index;
+                {/* stage chips */}
+                <div className="mb-6 flex flex-wrap justify-center gap-2">
+                  {steps.map((s, i) => {
+                    const done = i < stageIndex;
+                    const current = i === stageIndex;
                     return (
-                      <motion.div
-                        key={step}
-                        initial={{ opacity: 0, y: 10 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.4, delay: stepIndex * 0.06 }}
-                        className={`rounded-2xl border p-3 text-sm transition ${
-                          reached
-                            ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-100"
-                            : "border-emerald-200/10 bg-emerald-950/40 text-emerald-50/40"
+                      <span
+                        key={s}
+                        className={`rounded-full border px-3 py-1 text-[11px] ${
+                          current
+                            ? "border-emerald-400 bg-emerald-500/25 text-white"
+                            : done
+                            ? "border-emerald-500/40 bg-emerald-500/12 text-emerald-200"
+                            : "border-emerald-200/15 text-emerald-50/40"
                         }`}
                       >
-                        {step}
-                      </motion.div>
+                        {s}
+                      </span>
                     );
                   })}
                 </div>
 
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  <div className="rounded-3xl border border-emerald-200/10 bg-emerald-950/40 p-5">
-                    <h3 className="mb-4 text-xl font-light">Document upload</h3>
-                    <div className="flex flex-col gap-4 md:flex-row">
-                      <input
-                        type="file"
-                        onChange={(event) => setFiles({ ...files, [project._id]: event.target.files?.[0] || null })}
-                        className="flex-1 rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-50/80 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-500/20 file:px-3 file:py-1.5 file:text-emerald-100"
-                      />
-                      <button
-                        onClick={() => uploadDocument(project._id)}
-                        className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]"
-                      >
-                        Add file
-                      </button>
-                    </div>
+                {/* upload + docs */}
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragId(project._id);
+                    }}
+                    onDragLeave={() => setDragId(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragId(null);
+                      const f = e.dataTransfer.files?.[0];
+                      if (f) setFiles({ ...files, [project._id]: f });
+                    }}
+                    className={`rounded-2xl border border-dashed p-6 text-center transition ${
+                      dragId === project._id ? "border-emerald-300 bg-emerald-400/10" : "border-emerald-500/30 bg-emerald-500/[0.04]"
+                    }`}
+                  >
+                    <i className="ti ti-cloud-upload text-2xl text-emerald-400" aria-hidden />
+                    {selected ? (
+                      <div className="mt-2">
+                        <p className="truncate text-sm text-emerald-50/80">{selected.name}</p>
+                        <div className="mt-3 flex justify-center gap-2">
+                          <button
+                            onClick={() => uploadDocument(project._id)}
+                            disabled={busy === project._id}
+                            className="rounded-xl bg-emerald-500/90 px-5 py-2 text-sm font-medium text-white transition hover:bg-emerald-400 disabled:opacity-60"
+                          >
+                            {busy === project._id ? "Uploading…" : "Upload"}
+                          </button>
+                          <button
+                            onClick={() => setFiles({ ...files, [project._id]: null })}
+                            className="rounded-xl border border-emerald-200/15 px-4 py-2 text-sm text-emerald-50/70 transition hover:text-white"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="mt-2 text-sm text-emerald-50/80">
+                          Drop a file or{" "}
+                          <label htmlFor={`file-${project._id}`} className="cursor-pointer text-emerald-300 underline">
+                            browse
+                          </label>
+                        </p>
+                        <p className="mt-0.5 text-xs text-emerald-50/40">PDF, images, docs, zip · up to 25 MB</p>
+                      </>
+                    )}
+                    <input
+                      id={`file-${project._id}`}
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => setFiles({ ...files, [project._id]: e.target.files?.[0] || null })}
+                    />
                   </div>
 
-                  <div className="rounded-3xl border border-emerald-200/10 bg-emerald-950/40 p-5">
-                    <h3 className="mb-4 text-xl font-light">Documents</h3>
-                    <div className="space-y-2">
-                      {project.documentLinks?.length ? project.documentLinks.map((document) => (
-                        <a key={`${document.name}-${document.uploadedAt}`} href={document.url} target="_blank" className="block text-emerald-300 transition hover:text-emerald-200">
-                          {document.name}
-                        </a>
-                      )) : <p className="text-emerald-50/40">No documents uploaded yet.</p>}
-                    </div>
+                  <div className="rounded-2xl border border-emerald-200/10 bg-emerald-950/40 p-4">
+                    <p className="mb-3 text-xs text-emerald-100/60">Documents</p>
+                    {project.documentLinks?.length ? (
+                      <div className="space-y-1">
+                        {project.documentLinks.map((doc) => {
+                          const m = fileMeta(doc.name);
+                          return (
+                            <a
+                              key={`${doc.name}-${doc.uploadedAt}`}
+                              href={doc.url}
+                              target="_blank"
+                              className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm text-emerald-50/85 transition hover:bg-emerald-200/5"
+                            >
+                              <i className={`ti ti-${m.icon}`} style={{ color: m.color }} aria-hidden />
+                              <span className="truncate">{doc.name}</span>
+                              <span className="ml-auto text-xs text-emerald-50/40">
+                                {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : ""}
+                              </span>
+                              <i className="ti ti-download text-emerald-50/40" aria-hidden />
+                            </a>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-emerald-50/40">No documents uploaded yet.</p>
+                    )}
                   </div>
                 </div>
               </motion.div>
