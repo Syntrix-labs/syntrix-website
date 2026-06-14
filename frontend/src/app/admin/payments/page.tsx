@@ -61,7 +61,7 @@ export default function AdminPaymentsPage() {
   return (
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
-        <SectionHeader eyebrow="Payments" title="Payment control" description="Create upcoming payments, add payment links, and mark completed payments for client history." />
+        <SectionHeader icon="credit-card" eyebrow="Payments" title="Payment control" description="Create upcoming payments, add payment links, and mark completed payments for client history." />
 
         <div className="mb-6 grid grid-cols-1 gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm md:grid-cols-5">
           <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Payment title" className={payInput} />

@@ -39,7 +39,7 @@ export default function ClientsPage() {
   return (
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
-        <SectionHeader eyebrow="Clients" title="Client management" description="Search, sort, and open each client to see active and pending project status." />
+        <SectionHeader icon="users" eyebrow="Clients" title="Client management" description="Search, sort, and open each client to see active and pending project status." />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by client name or email" className="mb-6 w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/40 px-5 py-4 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60 focus:bg-emerald-950/60" />
         <div className="space-y-4">
           {filtered.map((client, i) => {

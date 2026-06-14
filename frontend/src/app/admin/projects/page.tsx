@@ -80,7 +80,7 @@ export default function AdminProjectsPage() {
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader
-          eyebrow="Projects"
+          icon="folder" eyebrow="Projects"
           title="Project management"
           description="Assign projects by client account, update deadlines and tracking, and review client uploaded documents."
         />

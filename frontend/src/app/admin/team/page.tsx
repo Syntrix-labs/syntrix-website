@@ -39,7 +39,7 @@ export default function TeamPage() {
   return (
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
-        <SectionHeader eyebrow="Team" title="Team management" description="Add team members by role and position for Syntrix operations." />
+        <SectionHeader icon="users-group" eyebrow="Team" title="Team management" description="Add team members by role and position for Syntrix operations." />
         <div className="mb-6 grid grid-cols-1 gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm md:grid-cols-3">
           <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Member name" className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />
           <input value={role} onChange={(event) => setRole(event.target.value)} placeholder="Role / position" className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />

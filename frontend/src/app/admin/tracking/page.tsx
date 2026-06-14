@@ -10,7 +10,7 @@ export default function TrackingPage() {
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
         <SectionHeader
-          eyebrow="Tracking"
+          icon="route" eyebrow="Tracking"
           title="Manual project tracking"
           description="Admin members update the project stage manually. A guidelines reminder is shown for the last 5 days before the deadline."
         />

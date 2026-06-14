@@ -212,6 +212,21 @@ test("admin sends a consultation message; client reads it", async () => {
   assert.equal(all.status, 200);
 });
 
+test("client can post a consultation reply to their own thread", async () => {
+  const send = await request(app).post("/api/consultations").set("x-auth-token", client.token)
+    .send({ message: "Thanks! A question about the timeline." });
+  assert.equal(send.status, 201);
+  assert.equal(send.body.message.senderRole, "Client");
+
+  const mine = await request(app).get("/api/consultations").set("x-auth-token", client.token);
+  assert.ok(mine.body.some((m) => m.message.includes("timeline")));
+});
+
+test("consultation rejects an empty message", async () => {
+  const res = await request(app).post("/api/consultations").set("x-auth-token", client.token).send({ message: "   " });
+  assert.equal(res.status, 400);
+});
+
 // ---------- team ----------
 test("admin can create, list, update, and delete team members", async () => {
   const create = await request(app).post("/api/team").set("x-auth-token", admin.token).send({ name: "Soham", role: "Backend" });

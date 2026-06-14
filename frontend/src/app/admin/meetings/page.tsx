@@ -60,7 +60,7 @@ export default function AdminMeetingsPage() {
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader
-          eyebrow="Meetings"
+          icon="calendar" eyebrow="Meetings"
           title="Meeting requests and schedule"
           description="Clients request a time from their dashboard. Admin confirms, adds a meeting link, and marks finished calls as completed."
         />

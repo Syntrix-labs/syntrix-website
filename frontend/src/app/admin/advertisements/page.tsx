@@ -34,7 +34,7 @@ export default function AdvertisementsPage() {
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
         <SectionHeader
-          eyebrow="Advertisement"
+          icon="photo" eyebrow="Advertisement"
           title="Landing page portfolio uploads"
           description="Upload project image URLs and links so the landing page portfolio can update without code."
         />

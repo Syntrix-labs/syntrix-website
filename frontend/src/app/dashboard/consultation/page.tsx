@@ -59,13 +59,17 @@ export default function ConsultationPage() {
     };
     setMessages((m) => [...m, optimistic]);
     try {
-      await fetch(apiPath("/api/consultations"), {
+      const res = await fetch(apiPath("/api/consultations"), {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ senderRole: "Client", message: text }),
+        body: JSON.stringify({ message: text }),
       });
+      if (res.ok) {
+        const fresh = await apiGet<Message[]>("/api/consultations", []);
+        if (fresh.length) setMessages(fresh);
+      }
     } catch {
-      /* kept optimistically; persistence finalized in the API pass */
+      /* message stays shown optimistically if the request failed */
     } finally {
       setSending(false);
     }

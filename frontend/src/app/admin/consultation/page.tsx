@@ -40,7 +40,7 @@ export default function AdminConsultationPage() {
   return (
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
-        <SectionHeader eyebrow="Consultation" title="Client consultation messages" description="Send structured updates and consultation notes to client dashboards." />
+        <SectionHeader icon="message-2" eyebrow="Consultation" title="Client consultation messages" description="Send structured updates and consultation notes to client dashboards." />
 
         <div className="mb-6 grid grid-cols-1 gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm md:grid-cols-[260px_1fr_auto]">
           <select value={clientId} onChange={(event) => setClientId(event.target.value)} className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition focus:border-emerald-400/60">

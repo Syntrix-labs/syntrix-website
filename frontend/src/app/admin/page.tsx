@@ -45,7 +45,7 @@ export default function AdminPage() {
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader
-          eyebrow="Admin Dashboard"
+          icon="layout-dashboard" eyebrow="Admin Dashboard"
           title="Syntrix Control Panel"
           description="Manage client accounts, projects, meetings, payments, team operations, tracking, and landing page portfolio updates."
         />
