@@ -1,3 +1,6 @@
+# Uploaded files (runtime, not source)
+backend/uploads/
+
 # Logs
 logs
 *.log

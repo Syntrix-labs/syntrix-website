@@ -197,10 +197,14 @@ async function connectDatabase() {
   }
 }
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Start Server (only when run directly, not when imported by tests)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 
-connectDatabase();
+  connectDatabase();
+}
+
+module.exports = { app, connectDatabase };

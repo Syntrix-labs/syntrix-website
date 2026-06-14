@@ -116,7 +116,7 @@ router.post('/login', authLimiter, async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: '1h' },
+      { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
         res.json({ success: true, token, isAdmin: isAdminEmail(user.email) });
