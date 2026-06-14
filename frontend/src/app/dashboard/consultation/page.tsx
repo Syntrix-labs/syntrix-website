@@ -15,6 +15,7 @@ export default function ConsultationPage() {
     <DashboardShell>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
         <SectionHeader
+          icon="message-2"
           eyebrow="Consultation"
           title="Client consultation"
           description="All consultation messages are connected for admin-to-client updates."

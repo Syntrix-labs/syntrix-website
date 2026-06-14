@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import BrandLogo from "@/components/brand/BrandLogo";
+import DashboardAura from "@/components/dashboard/DashboardAura";
 import { apiGet } from "@/lib/api";
 
 const clientItems = [
@@ -81,12 +82,10 @@ export default function DashboardShell({ type = "client", children }: { type?: "
   const initial = (userName || (type === "admin" ? "A" : "C")).charAt(0).toUpperCase();
 
   return (
-    <main
-      className="min-h-screen bg-[#04140d] text-white md:flex"
-      style={{ backgroundImage: "radial-gradient(120% 80% at 80% -10%, rgba(40,120,80,0.18), transparent 60%)" }}
-    >
+    <main className="relative min-h-screen bg-[#04140d] text-white md:flex">
+      <DashboardAura />
       <aside
-        className={`${collapsed ? "md:w-24" : "md:w-72"} sticky top-0 z-40 flex flex-col border-r border-emerald-200/10 bg-emerald-950/30 p-5 backdrop-blur-md transition-all duration-300 md:min-h-screen md:p-7`}
+        className={`${collapsed ? "md:w-24" : "md:w-72"} sticky top-0 z-40 flex flex-col border-r border-emerald-200/10 bg-emerald-950/40 p-5 backdrop-blur-md transition-all duration-300 md:min-h-screen md:p-7`}
       >
         <div className="mb-8 flex items-center justify-between gap-3">
           <BrandLogo href={type === "admin" ? "/admin" : "/dashboard"} compact={collapsed} />
@@ -148,7 +147,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
         </div>
       </aside>
 
-      <section className="flex-1 p-6 md:p-10 xl:p-12">{children}</section>
+      <section className="relative z-10 flex-1 p-6 md:p-10 xl:p-12">{children}</section>
     </main>
   );
 }

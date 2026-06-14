@@ -66,6 +66,7 @@ export default function MeetingsPage() {
     <DashboardShell>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader
+          icon="calendar"
           eyebrow="Meetings"
           title="Book meetings and track history"
           description="Request a meeting in your timezone. After Syntrix accepts it, the confirmed meeting and link appear here automatically."

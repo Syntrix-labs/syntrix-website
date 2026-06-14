@@ -61,6 +61,7 @@ export default function ProfilePage() {
     <DashboardShell>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader
+          icon="user"
           eyebrow="Profile"
           title="Edit your information"
           description="Update your contact details. Email changes require OTP verification for account security."

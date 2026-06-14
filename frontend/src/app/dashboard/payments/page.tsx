@@ -17,6 +17,7 @@ export default function PaymentsPage() {
     <DashboardShell>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
         <SectionHeader
+          icon="credit-card"
           eyebrow="Payments"
           title="Payment information"
           description="Upcoming payments and history are controlled by admin. The pay button appears when a payment is ready."
