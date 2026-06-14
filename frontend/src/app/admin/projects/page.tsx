@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 const trackingStages = ["Created", "Coding Starting", "Frontend Review", "Test", "Final Review", "Publish"];
@@ -41,14 +42,16 @@ export default function AdminProjectsPage() {
   const [documents, setDocuments] = useState<DocumentUpload[]>([]);
   const [form, setForm] = useState({ title: "", clientEmail: "", description: "", dueDate: "" });
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const load = () => {
-    apiGet<Project[]>("/api/projects/admin/all", fallbackProjects).then(setProjects);
-    apiGet<DocumentUpload[]>("/api/uploads/admin/all", []).then(setDocuments);
-  };
+  const load = () =>
+    Promise.all([
+      apiGet<Project[]>("/api/projects/admin/all", fallbackProjects).then(setProjects),
+      apiGet<DocumentUpload[]>("/api/uploads/admin/all", []).then(setDocuments),
+    ]);
 
   useEffect(() => {
-    load();
+    load().finally(() => setLoading(false));
   }, []);
 
   const add = async () => {
@@ -77,6 +80,14 @@ export default function AdminProjectsPage() {
     });
     if (response.ok) load();
   };
+
+  if (loading) {
+    return (
+      <DashboardShell type="admin">
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell type="admin">

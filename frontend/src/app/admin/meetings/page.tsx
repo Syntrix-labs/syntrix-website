@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 type Meeting = {
@@ -35,13 +36,12 @@ const fallbackMeetings: Meeting[] = [
 export default function AdminMeetingsPage() {
   const [meetings, setMeetings] = useState<Meeting[]>(fallbackMeetings);
   const [links, setLinks] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
-  const loadMeetings = () => {
-    apiGet<Meeting[]>("/api/meetings/admin/all", fallbackMeetings).then(setMeetings);
-  };
+  const loadMeetings = () => apiGet<Meeting[]>("/api/meetings/admin/all", fallbackMeetings).then(setMeetings);
 
   useEffect(() => {
-    loadMeetings();
+    loadMeetings().finally(() => setLoading(false));
   }, []);
 
   const updateMeeting = async (id: string, body: Partial<Meeting>) => {
@@ -55,6 +55,14 @@ export default function AdminMeetingsPage() {
       loadMeetings();
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardShell type="admin">
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell type="admin">

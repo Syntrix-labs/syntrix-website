@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StatCard from "@/components/ui/StatCard";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet } from "@/lib/api";
 
 type Summary = {
@@ -36,10 +37,19 @@ const cards = [
 
 export default function AdminPage() {
   const [summary, setSummary] = useState<Summary>(fallback);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet<Summary>("/api/admin/summary", fallback).then(setSummary);
+    apiGet<Summary>("/api/admin/summary", fallback).then(setSummary).finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return (
+      <DashboardShell type="admin">
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell type="admin">

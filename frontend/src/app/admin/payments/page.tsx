@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 type Payment = {
@@ -30,10 +31,11 @@ export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>(fallbackPayments);
   const [form, setForm] = useState({ title: "", amount: "", dueDate: "", clientEmail: "", paymentUrl: "" });
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const loadPayments = () => apiGet<Payment[]>("/api/payments/admin/all", fallbackPayments).then(setPayments);
   useEffect(() => {
-    loadPayments();
+    loadPayments().finally(() => setLoading(false));
   }, []);
 
   const createPayment = async () => {
@@ -59,6 +61,14 @@ export default function AdminPaymentsPage() {
     });
     loadPayments();
   };
+
+  if (loading) {
+    return (
+      <DashboardShell type="admin">
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell type="admin">

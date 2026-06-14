@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { DashboardSkeleton, EmptyState } from "@/components/dashboard/States";
 import { apiGet } from "@/lib/api";
 
 type ClientProject = { _id: string; title: string; status?: string; trackingStage?: string; dueDate?: string };
@@ -25,9 +26,10 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>(fallback);
   const [query, setQuery] = useState("");
   const [openClient, setOpenClient] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet<Client[]>("/api/admin/clients", fallback).then(setClients);
+    apiGet<Client[]>("/api/admin/clients", fallback).then(setClients).finally(() => setLoading(false));
   }, []);
 
   const filtered = useMemo(() => (
@@ -36,13 +38,23 @@ export default function ClientsPage() {
       .sort((a, b) => a.name.localeCompare(b.name))
   ), [clients, query]);
 
+  if (loading) {
+    return (
+      <DashboardShell type="admin">
+        <DashboardSkeleton />
+      </DashboardShell>
+    );
+  }
+
   return (
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader icon="users" eyebrow="Clients" title="Client management" description="Search, sort, and open each client to see active and pending project status." />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by client name or email" className="mb-6 w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/40 px-5 py-4 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60 focus:bg-emerald-950/60" />
         <div className="space-y-4">
-          {filtered.map((client, i) => {
+          {filtered.length === 0 ? (
+            <EmptyState icon="users" title="No clients found" hint="Clients who sign up will appear here." />
+          ) : filtered.map((client, i) => {
             const open = openClient === client._id;
             return (
               <motion.div
