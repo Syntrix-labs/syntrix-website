@@ -78,11 +78,11 @@ export default function MeetingsPage() {
             <Panel title="Meeting History" items={history} />
           </div>
 
-          <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 h-fit">
-            <h2 className="text-2xl font-bold mb-5">Book Meeting</h2>
-            <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4" />
-            <input type="time" value={time} onChange={(event) => setTime(event.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4" />
-            <select value={timezone} onChange={(event) => setTimezone(event.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4">
+          <div className="h-fit rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm">
+            <h2 className="mb-5 text-2xl font-light tracking-wide">Book a meeting</h2>
+            <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mb-4 w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition focus:border-emerald-400/60" />
+            <input type="time" value={time} onChange={(event) => setTime(event.target.value)} className="mb-4 w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition focus:border-emerald-400/60" />
+            <select value={timezone} onChange={(event) => setTimezone(event.target.value)} className="mb-4 w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition focus:border-emerald-400/60">
               <option value="Asia/Kolkata">India - IST</option>
               <option value="UTC">UTC</option>
               <option value="America/New_York">New York</option>
@@ -90,8 +90,8 @@ export default function MeetingsPage() {
               <option value="Asia/Dubai">Dubai</option>
               <option value="Asia/Singapore">Singapore</option>
             </select>
-            <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="What do you want to discuss?" className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 mb-4 min-h-28" />
-            <button onClick={book} className="w-full bg-blue-500 hover:bg-blue-600 rounded-2xl py-3 font-semibold">Request Schedule</button>
+            <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="What do you want to discuss?" className="mb-4 min-h-28 w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />
+            <button onClick={book} className="w-full rounded-2xl bg-emerald-500/90 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Request schedule</button>
           </div>
         </div>
       </motion.div>
@@ -101,27 +101,34 @@ export default function MeetingsPage() {
 
 function Panel({ title, items }: { title: string; items: Meeting[] }) {
   return (
-    <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6">
-      <h2 className="text-2xl font-bold mb-5">{title}</h2>
+    <div className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm">
+      <h2 className="mb-5 text-2xl font-light tracking-wide">{title}</h2>
       <div className="space-y-4">
-        {items.length ? items.map((meeting) => (
-          <div key={meeting._id} className="bg-black border border-white/10 rounded-2xl p-5">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        {items.length ? items.map((meeting, i) => (
+          <motion.div
+            key={meeting._id}
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.5, delay: i * 0.06 }}
+            className="rounded-2xl border border-emerald-200/10 bg-emerald-950/40 p-5"
+          >
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
               <div>
-                <h3 className="font-bold text-xl">{meeting.title}</h3>
-                <p className="text-gray-400 mt-2">{meeting.date} at {meeting.time} ({meeting.timezone || "Asia/Kolkata"})</p>
-                <p className="text-gray-500 mt-1">{meeting.notes}</p>
+                <h3 className="text-xl font-light">{meeting.title}</h3>
+                <p className="mt-2 font-light text-emerald-50/60">{meeting.date} at {meeting.time} ({meeting.timezone || "Asia/Kolkata"})</p>
+                <p className="mt-1 text-sm text-emerald-50/40">{meeting.notes}</p>
                 {meeting.meetingLink && meeting.meetingLink.startsWith("http") && (
-                  <a href={meeting.meetingLink} target="_blank" className="inline-block text-blue-300 mt-3">Join meeting</a>
+                  <a href={meeting.meetingLink} target="_blank" className="mt-3 inline-block text-emerald-300 transition hover:text-emerald-200">Join meeting</a>
                 )}
                 {meeting.meetingLink && !meeting.meetingLink.startsWith("http") && (
-                  <p className="text-blue-300 mt-3">{meeting.meetingLink}</p>
+                  <p className="mt-3 text-emerald-300">{meeting.meetingLink}</p>
                 )}
               </div>
-              <span className="text-blue-300 bg-blue-500/10 px-3 py-2 h-fit rounded-full text-sm">{meeting.status}</span>
+              <span className="h-fit rounded-full bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{meeting.status}</span>
             </div>
-          </div>
-        )) : <p className="text-gray-500">No records yet.</p>}
+          </motion.div>
+        )) : <p className="text-emerald-50/40">No records yet.</p>}
       </div>
     </div>
   );

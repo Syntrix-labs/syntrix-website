@@ -40,20 +40,27 @@ export default function TeamPage() {
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader eyebrow="Team" title="Team management" description="Add team members by role and position for Syntrix operations." />
-        <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Member name" className="bg-black border border-white/10 rounded-2xl px-4 py-3" />
-          <input value={role} onChange={(event) => setRole(event.target.value)} placeholder="Role / position" className="bg-black border border-white/10 rounded-2xl px-4 py-3" />
-          <button onClick={addMember} className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-6 py-3 font-semibold">Add Team Member</button>
+        <div className="mb-6 grid grid-cols-1 gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm md:grid-cols-3">
+          <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Member name" className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />
+          <input value={role} onChange={(event) => setRole(event.target.value)} placeholder="Role / position" className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />
+          <button onClick={addMember} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Add team member</button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {team.map((member) => (
-            <div key={member._id || member.name} className="bg-zinc-900 border border-white/10 rounded-3xl p-6 flex justify-between gap-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {team.map((member, i) => (
+            <motion.div
+              key={member._id || member.name}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.5, delay: i * 0.06 }}
+              className="flex justify-between gap-5 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm"
+            >
               <div>
-                <h2 className="text-2xl font-bold">{member.name}</h2>
-                <p className="text-gray-400 mt-1">{member.role}</p>
+                <h2 className="text-2xl font-light tracking-wide">{member.name}</h2>
+                <p className="mt-1 font-light text-emerald-50/60">{member.role}</p>
               </div>
-              <span className="text-blue-300 bg-blue-500/10 px-4 py-2 rounded-full h-fit">{member.status}</span>
-            </div>
+              <span className="h-fit rounded-full bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">{member.status}</span>
+            </motion.div>
           ))}
         </div>
       </motion.div>

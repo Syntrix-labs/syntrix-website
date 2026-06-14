@@ -182,7 +182,24 @@ app.use((error, req, res, next) => {
 
 async function connectDatabase() {
   if (isPlaceholderMongoUri(mongoUri)) {
-    console.warn('MongoDB is not configured yet. Set MONGO_URI in backend/.env when you want database features.');
+    // In production, never auto-create a throwaway DB — require a real one.
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('MongoDB is not configured. Set MONGO_URI to enable database features.');
+      return;
+    }
+
+    // Dev convenience: spin up an ephemeral in-memory MongoDB so the app is
+    // fully functional locally with zero setup. Data resets on restart.
+    try {
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      const mem = await MongoMemoryServer.create();
+      await mongoose.connect(mem.getUri());
+      console.log('No MONGO_URI set — started an in-memory MongoDB for local dev.');
+      console.log('Data is temporary and resets on restart. Set MONGO_URI in backend/.env for a persistent database.');
+    } catch (error) {
+      console.warn('Could not start in-memory MongoDB:', error.message);
+      console.warn('Set MONGO_URI in backend/.env to enable database features.');
+    }
     return;
   }
 
@@ -197,10 +214,14 @@ async function connectDatabase() {
   }
 }
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Start Server (only when run directly, not when imported by tests)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 
-connectDatabase();
+  connectDatabase();
+}
+
+module.exports = { app, connectDatabase };

@@ -40,37 +40,44 @@ export default function ClientsPage() {
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader eyebrow="Clients" title="Client management" description="Search, sort, and open each client to see active and pending project status." />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by client name or email" className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 mb-6 outline-none focus:border-blue-500" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by client name or email" className="mb-6 w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/40 px-5 py-4 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60 focus:bg-emerald-950/60" />
         <div className="space-y-4">
-          {filtered.map((client) => {
+          {filtered.map((client, i) => {
             const open = openClient === client._id;
             return (
-              <div key={client._id} className="bg-zinc-900 border border-white/10 rounded-3xl p-6">
-                <button onClick={() => setOpenClient(open ? "" : client._id)} className="w-full text-left flex flex-col md:flex-row justify-between gap-4">
+              <motion.div
+                key={client._id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.5, delay: i * 0.05 }}
+                className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm"
+              >
+                <button onClick={() => setOpenClient(open ? "" : client._id)} className="flex w-full flex-col justify-between gap-4 text-left md:flex-row">
                   <div>
-                    <h2 className="text-2xl font-bold">{client.name}</h2>
-                    <p className="text-gray-400 mt-1">{client.email}</p>
+                    <h2 className="text-2xl font-light tracking-wide">{client.name}</h2>
+                    <p className="mt-1 font-light text-emerald-50/60">{client.email}</p>
                   </div>
                   <div className="flex flex-wrap gap-3">
-                    <span className="bg-green-500/10 text-green-300 px-4 py-2 rounded-full">Active: {client.activeProjects || 0}</span>
-                    <span className="bg-yellow-500/10 text-yellow-300 px-4 py-2 rounded-full">Pending: {client.pendingProjects || 0}</span>
-                    <span className="bg-blue-500/10 text-blue-300 px-4 py-2 rounded-full">Payments: {client.upcomingPayments || 0}</span>
+                    <span className="rounded-full bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">Active: {client.activeProjects || 0}</span>
+                    <span className="rounded-full bg-amber-500/10 px-4 py-2 text-sm text-amber-200">Pending: {client.pendingProjects || 0}</span>
+                    <span className="rounded-full bg-emerald-400/10 px-4 py-2 text-sm text-emerald-200">Payments: {client.upcomingPayments || 0}</span>
                   </div>
                 </button>
                 {open && (
-                  <div className="mt-5 border-t border-white/10 pt-5">
-                    <h3 className="font-bold mb-3">Projects</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="mt-5 border-t border-emerald-200/10 pt-5">
+                    <h3 className="mb-3 font-light text-emerald-50/80">Projects</h3>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {client.projects?.length ? client.projects.map((project) => (
-                        <div key={project._id} className="bg-black border border-white/10 rounded-2xl p-4">
-                          <p className="font-semibold">{project.title}</p>
-                          <p className="text-gray-400 text-sm mt-1">{project.status} • {project.trackingStage || "Created"}</p>
+                        <div key={project._id} className="rounded-2xl border border-emerald-200/10 bg-emerald-950/40 p-4">
+                          <p className="font-light">{project.title}</p>
+                          <p className="mt-1 text-sm text-emerald-50/50">{project.status} • {project.trackingStage || "Created"}</p>
                         </div>
-                      )) : <p className="text-gray-500">No projects assigned yet.</p>}
+                      )) : <p className="text-emerald-50/40">No projects assigned yet.</p>}
                     </div>
                   </div>
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>

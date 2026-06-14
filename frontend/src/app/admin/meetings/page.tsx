@@ -66,34 +66,41 @@ export default function AdminMeetingsPage() {
         />
 
         <div className="space-y-5">
-          {meetings.map((meeting) => (
-            <div key={meeting._id} className="bg-zinc-900 border border-white/10 rounded-3xl p-6">
-              <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-5">
+          {meetings.map((meeting, i) => (
+            <motion.div
+              key={meeting._id}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.5, delay: i * 0.06 }}
+              className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm"
+            >
+              <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
                 <div>
-                  <p className="text-blue-400 text-sm mb-2">{meeting.client?.name || "Client"} • {meeting.client?.email}</p>
-                  <h2 className="text-2xl font-bold">{meeting.title}</h2>
-                  <p className="text-gray-400 mt-2">{meeting.date} at {meeting.time} ({meeting.timezone || "Asia/Kolkata"})</p>
-                  <p className="text-gray-500 mt-2">{meeting.notes || "No notes added."}</p>
-                  {meeting.meetingLink && <a className="text-blue-300 mt-3 inline-block" href={meeting.meetingLink} target="_blank">Open meeting link</a>}
+                  <p className="mb-2 text-sm font-medium text-emerald-300">{meeting.client?.name || "Client"} • {meeting.client?.email}</p>
+                  <h2 className="text-2xl font-light tracking-wide">{meeting.title}</h2>
+                  <p className="mt-2 font-light text-emerald-50/60">{meeting.date} at {meeting.time} ({meeting.timezone || "Asia/Kolkata"})</p>
+                  <p className="mt-2 text-sm text-emerald-50/45">{meeting.notes || "No notes added."}</p>
+                  {meeting.meetingLink && <a className="mt-3 inline-block text-emerald-300 transition hover:text-emerald-200" href={meeting.meetingLink} target="_blank">Open meeting link</a>}
                 </div>
 
-                <div className="min-w-full xl:min-w-[360px] space-y-3">
-                  <span className="inline-flex bg-blue-500/10 text-blue-300 px-4 py-2 rounded-full text-sm">{meeting.status}</span>
+                <div className="min-w-full space-y-3 xl:min-w-[360px]">
+                  <span className="inline-flex rounded-full bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">{meeting.status}</span>
                   <input
                     value={links[meeting._id] ?? meeting.meetingLink ?? ""}
                     onChange={(event) => setLinks({ ...links, [meeting._id]: event.target.value })}
                     placeholder="Paste Google Meet / Zoom link"
-                    className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-blue-500"
+                    className="w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60"
                   />
                   <div className="grid grid-cols-2 gap-3">
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Confirmed", meetingLink: links[meeting._id] || meeting.meetingLink })} className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-4 py-3 font-semibold">Confirm</button>
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Completed" })} className="border border-white/10 hover:border-green-500 rounded-2xl px-4 py-3">Complete</button>
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="border border-white/10 hover:border-red-500 rounded-2xl px-4 py-3">Cancel</button>
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Requested" })} className="border border-white/10 hover:border-yellow-500 rounded-2xl px-4 py-3">Reopen</button>
+                    <button onClick={() => updateMeeting(meeting._id, { status: "Confirmed", meetingLink: links[meeting._id] || meeting.meetingLink })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Confirm</button>
+                    <button onClick={() => updateMeeting(meeting._id, { status: "Completed" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-emerald-300/50">Complete</button>
+                    <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-red-400/50 hover:text-red-200">Cancel</button>
+                    <button onClick={() => updateMeeting(meeting._id, { status: "Requested" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-amber-400/50 hover:text-amber-200">Reopen</button>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.div>

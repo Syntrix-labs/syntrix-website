@@ -23,6 +23,9 @@ const fallbackPayments: Payment[] = [
   { _id: "demo", title: "Website milestone", amount: 0, dueDate: "Admin will set", status: "Upcoming", client: { name: "Demo Client" } }
 ];
 
+const payInput =
+  "rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60";
+
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>(fallbackPayments);
   const [form, setForm] = useState({ title: "", amount: "", dueDate: "", clientEmail: "", paymentUrl: "" });
@@ -60,25 +63,32 @@ export default function AdminPaymentsPage() {
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader eyebrow="Payments" title="Payment control" description="Create upcoming payments, add payment links, and mark completed payments for client history." />
 
-        <div className="bg-zinc-900 border border-white/10 rounded-3xl p-6 mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-          <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Payment title" className="bg-black border border-white/10 rounded-2xl px-4 py-3" />
-          <input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} placeholder="Amount" type="number" className="bg-black border border-white/10 rounded-2xl px-4 py-3" />
-          <input value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} type="date" className="bg-black border border-white/10 rounded-2xl px-4 py-3" />
-          <input value={form.clientEmail} onChange={(event) => setForm({ ...form, clientEmail: event.target.value })} placeholder="Client email" className="bg-black border border-white/10 rounded-2xl px-4 py-3" />
-          <button onClick={createPayment} className="bg-blue-500 hover:bg-blue-600 rounded-2xl px-5 py-3 font-semibold">Add Payment</button>
-          <input value={form.paymentUrl} onChange={(event) => setForm({ ...form, paymentUrl: event.target.value })} placeholder="Payment URL" className="md:col-span-5 bg-black border border-white/10 rounded-2xl px-4 py-3" />
+        <div className="mb-6 grid grid-cols-1 gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm md:grid-cols-5">
+          <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Payment title" className={payInput} />
+          <input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} placeholder="Amount" type="number" className={payInput} />
+          <input value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} type="date" className={payInput} />
+          <input value={form.clientEmail} onChange={(event) => setForm({ ...form, clientEmail: event.target.value })} placeholder="Client email" className={payInput} />
+          <button onClick={createPayment} className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Add payment</button>
+          <input value={form.paymentUrl} onChange={(event) => setForm({ ...form, paymentUrl: event.target.value })} placeholder="Payment URL" className={`${payInput} md:col-span-5`} />
         </div>
 
         <div className="space-y-4">
-          {payments.map((payment) => (
-            <div key={payment._id} className="bg-zinc-900 border border-white/10 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {payments.map((payment, i) => (
+            <motion.div
+              key={payment._id}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.5, delay: i * 0.06 }}
+              className="flex flex-col justify-between gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm md:flex-row md:items-center"
+            >
               <div>
-                <h2 className="text-2xl font-bold">{payment.title}</h2>
-                <p className="text-gray-400 mt-1">{payment.client?.name || "Client"} • {payment.project?.title || "General"}</p>
-                <p className="text-blue-300 mt-1">{payment.currency || "INR"} {payment.amount} • Due: {payment.dueDate || "Not set"} • {payment.status} • {payment.provider || "Manual"}</p>
+                <h2 className="text-2xl font-light tracking-wide">{payment.title}</h2>
+                <p className="mt-1 font-light text-emerald-50/60">{payment.client?.name || "Client"} • {payment.project?.title || "General"}</p>
+                <p className="mt-1 text-sm text-emerald-300">{payment.currency || "INR"} {payment.amount} • Due: {payment.dueDate || "Not set"} • {payment.status} • {payment.provider || "Manual"}</p>
               </div>
-              <button onClick={() => markPaid(payment._id)} className="border border-white/10 hover:border-green-500 rounded-2xl px-5 py-3">Mark Paid</button>
-            </div>
+              <button onClick={() => markPaid(payment._id)} className="rounded-2xl border border-emerald-200/15 px-5 py-3 text-emerald-50/80 transition hover:border-emerald-300/50 hover:text-white">Mark paid</button>
+            </motion.div>
           ))}
         </div>
       </motion.div>
