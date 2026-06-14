@@ -16,6 +16,7 @@ export default function TeamPage() {
   const [team, setTeam] = useState<TeamMember[]>(fallback);
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
+  const [msg, setMsg] = useState("");
 
   const loadTeam = () => apiGet<TeamMember[]>("/api/team", fallback).then(setTeam);
   useEffect(() => {
@@ -23,7 +24,11 @@ export default function TeamPage() {
   }, []);
 
   const addMember = async () => {
-    if (!name || !role) return alert("Add member name and role.");
+    if (!name || !role) {
+      setMsg("Add a member name and role.");
+      return;
+    }
+    setMsg("");
     const response = await fetch(apiPath("/api/team"), {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
@@ -33,6 +38,8 @@ export default function TeamPage() {
       setName("");
       setRole("");
       loadTeam();
+    } else {
+      setMsg("Could not add the member. Please try again.");
     }
   };
 
@@ -44,6 +51,7 @@ export default function TeamPage() {
           <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Member name" className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />
           <input value={role} onChange={(event) => setRole(event.target.value)} placeholder="Role / position" className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />
           <button onClick={addMember} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Add team member</button>
+          {msg && <p className="text-sm text-emerald-200 md:col-span-3">{msg}</p>}
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {team.map((member, i) => (

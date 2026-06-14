@@ -40,6 +40,7 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>(fallbackProjects);
   const [documents, setDocuments] = useState<DocumentUpload[]>([]);
   const [form, setForm] = useState({ title: "", clientEmail: "", description: "", dueDate: "" });
+  const [msg, setMsg] = useState("");
 
   const load = () => {
     apiGet<Project[]>("/api/projects/admin/all", fallbackProjects).then(setProjects);
@@ -59,12 +60,13 @@ export default function AdminProjectsPage() {
 
     if (response.ok) {
       setForm({ title: "", clientEmail: "", description: "", dueDate: "" });
+      setMsg("");
       load();
       return;
     }
 
     const data = await response.json();
-    alert(data.message || "Project could not be assigned.");
+    setMsg(data.message || "Project could not be assigned — check the client email.");
   };
 
   const updateProject = async (projectId: string, updates: Partial<Project>) => {
@@ -92,6 +94,7 @@ export default function AdminProjectsPage() {
             <input value={form.clientEmail} onChange={(event) => setForm({ ...form, clientEmail: event.target.value })} placeholder="Client email" className={adminInput} />
             <input value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} type="date" className={adminInput} />
             <button onClick={add} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Assign project</button>
+            {msg && <p className="text-sm text-emerald-200 md:col-span-4">{msg}</p>}
             <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Project description" className={`${adminInput} min-h-24 md:col-span-4`} />
           </div>
         </div>

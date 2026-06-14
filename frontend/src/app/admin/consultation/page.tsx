@@ -14,6 +14,7 @@ export default function AdminConsultationPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState("");
   const [message, setMessage] = useState("");
+  const [msg, setMsg] = useState("");
 
   const load = () => {
     apiGet<Message[]>("/api/consultations/admin/all", []).then(setMessages);
@@ -25,7 +26,11 @@ export default function AdminConsultationPage() {
   }, []);
 
   const send = async () => {
-    if (!clientId || !message) return alert("Choose client and write a message.");
+    if (!clientId || !message) {
+      setMsg("Choose a client and write a message.");
+      return;
+    }
+    setMsg("");
     const response = await fetch(apiPath("/api/consultations"), {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
@@ -34,6 +39,8 @@ export default function AdminConsultationPage() {
     if (response.ok) {
       setMessage("");
       load();
+    } else {
+      setMsg("Could not send the message. Please try again.");
     }
   };
 
@@ -49,6 +56,7 @@ export default function AdminConsultationPage() {
           </select>
           <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Write consultation update" className="rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60" />
           <button onClick={send} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Send</button>
+          {msg && <p className="text-sm text-emerald-200 md:col-span-3">{msg}</p>}
         </div>
 
         <div className="space-y-4">

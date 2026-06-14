@@ -61,6 +61,7 @@ export default function ProjectsPage() {
   const [files, setFiles] = useState<Record<string, File | null>>({});
   const [dragId, setDragId] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [uploadErr, setUploadErr] = useState<Record<string, string>>({});
 
   const loadProjects = () => apiGet<Project[]>("/api/projects", fallbackProjects).then(setProjects);
   useEffect(() => {
@@ -80,9 +81,10 @@ export default function ProjectsPage() {
       const response = await fetch(apiPath("/api/uploads"), { method: "POST", headers: authHeaders(), body: form });
       if (response.ok) {
         setFiles({ ...files, [projectId]: null });
+        setUploadErr((e) => ({ ...e, [projectId]: "" }));
         loadProjects();
       } else {
-        alert("Document upload failed. Please try again.");
+        setUploadErr((e) => ({ ...e, [projectId]: "Upload failed. Please try again." }));
       }
     } finally {
       setBusy(null);
@@ -213,6 +215,7 @@ export default function ProjectsPage() {
                       className="hidden"
                       onChange={(e) => setFiles({ ...files, [project._id]: e.target.files?.[0] || null })}
                     />
+                    {uploadErr[project._id] && <p className="mt-2 text-xs text-red-300">{uploadErr[project._id]}</p>}
                   </div>
 
                   <div className="rounded-2xl border border-emerald-200/10 bg-emerald-950/40 p-4">

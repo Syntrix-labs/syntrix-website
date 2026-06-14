@@ -29,6 +29,7 @@ const payInput =
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>(fallbackPayments);
   const [form, setForm] = useState({ title: "", amount: "", dueDate: "", clientEmail: "", paymentUrl: "" });
+  const [msg, setMsg] = useState("");
 
   const loadPayments = () => apiGet<Payment[]>("/api/payments/admin/all", fallbackPayments).then(setPayments);
   useEffect(() => {
@@ -43,9 +44,10 @@ export default function AdminPaymentsPage() {
     });
     if (response.ok) {
       setForm({ title: "", amount: "", dueDate: "", clientEmail: "", paymentUrl: "" });
+      setMsg("");
       loadPayments();
     } else {
-      alert("Payment could not be created. Check client email.");
+      setMsg("Payment could not be created — check the client email.");
     }
   };
 
@@ -70,6 +72,7 @@ export default function AdminPaymentsPage() {
           <input value={form.clientEmail} onChange={(event) => setForm({ ...form, clientEmail: event.target.value })} placeholder="Client email" className={payInput} />
           <button onClick={createPayment} className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Add payment</button>
           <input value={form.paymentUrl} onChange={(event) => setForm({ ...form, paymentUrl: event.target.value })} placeholder="Payment URL" className={`${payInput} md:col-span-5`} />
+          {msg && <p className="text-sm text-emerald-200 md:col-span-5">{msg}</p>}
         </div>
 
         <div className="space-y-4">
