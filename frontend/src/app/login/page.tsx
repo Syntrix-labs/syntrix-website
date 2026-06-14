@@ -1,10 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell, { authStagger, authItem, authInputClass } from "@/components/auth/AuthShell";
 import NameParticleTransition from "@/components/NameParticleTransition";
+import BrandLoader from "@/components/BrandLoader";
 import { apiFetch, apiGet } from "@/lib/api";
 
 export default function LoginPage() {
@@ -17,6 +18,13 @@ export default function LoginPage() {
   const [loginSucceeded, setLoginSucceeded] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [transition, setTransition] = useState<{ name: string; destination: string } | null>(null);
+  const [intro, setIntro] = useState(true);
+
+  // Always play the brand loader when arriving at the login page.
+  useEffect(() => {
+    const t = setTimeout(() => setIntro(false), 1800);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +71,21 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthShell cardTitle="Welcome back" cardSubtitle="Login to access your dashboard and projects.">
+    <>
+      <AnimatePresence>
+        {intro && (
+          <motion.div
+            key="login-intro"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+            className="fixed inset-0 z-[90]"
+          >
+            <BrandLoader />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AuthShell cardTitle="Welcome back" cardSubtitle="Login to access your dashboard and projects.">
       <motion.form onSubmit={handleLogin} variants={authStagger} initial="hidden" animate="show" className="space-y-5">
         <motion.div variants={authItem}>
           <label className="mb-2 block text-sm text-emerald-50/60">Email</label>
@@ -135,6 +157,7 @@ export default function LoginPage() {
         Don&apos;t have an account?{" "}
         <a href="/signup" className="text-emerald-300 transition hover:text-emerald-200">Sign up</a>
       </p>
-    </AuthShell>
+      </AuthShell>
+    </>
   );
 }
