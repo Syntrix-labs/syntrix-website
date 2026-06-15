@@ -264,6 +264,30 @@ test("admin can create, list, update, and delete team members", async () => {
   assert.equal(del.body.success, true);
 });
 
+// ---------- team meetings (internal) ----------
+test("admin can create, list, and delete a team meeting", async () => {
+  const create = await request(app).post("/api/team-meetings").set("x-auth-token", admin.token)
+    .send({ title: "Sprint sync", date: "2026-10-05", time: "10:00", agenda: "planning" });
+  assert.equal(create.status, 201);
+  const id = create.body.meeting._id;
+
+  const list = await request(app).get("/api/team-meetings").set("x-auth-token", admin.token);
+  assert.ok(list.body.some((m) => m._id === id));
+
+  const del = await request(app).delete(`/api/team-meetings/${id}`).set("x-auth-token", admin.token);
+  assert.equal(del.body.success, true);
+});
+
+test("team meeting requires title, date, time", async () => {
+  const res = await request(app).post("/api/team-meetings").set("x-auth-token", admin.token).send({ title: "x" });
+  assert.equal(res.status, 400);
+});
+
+test("non-admin cannot list team meetings", async () => {
+  const res = await request(app).get("/api/team-meetings").set("x-auth-token", client.token);
+  assert.equal(res.status, 403);
+});
+
 // ---------- advertisements ----------
 test("admin publishes an ad; it appears on the public endpoint", async () => {
   const create = await request(app).post("/api/advertisements").set("x-auth-token", admin.token)
