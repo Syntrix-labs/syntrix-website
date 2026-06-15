@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar/Navbar";
 import ImmersiveScene from "@/components/ImmersiveScene";
 import ParticleFigure from "@/components/ParticleFigure";
 import ServiceSections from "@/components/ServiceSections";
+import OurWork from "@/components/OurWork";
 import {
   motion,
   AnimatePresence,
@@ -272,39 +273,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Portfolio */}
+        {/* Our work */}
         <section id="work" className="px-6 py-28">
-          <div className="mx-auto max-w-6xl">
-            <motion.div {...reveal} className="mb-14 text-center">
-              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>SELECTED WORK</p>
-              <h2 className="text-3xl font-light tracking-wide md:text-5xl">Work directions we ship for clients</h2>
-            </motion.div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                ["Startup Website", "Landing page"],
-                ["Client Dashboard", "Business portal"],
-                ["Admin Panel", "Operations control"],
-                ["Booking System", "Meeting workflow"],
-                ["Mobile App UI", "Product design"],
-                ["Payment Flow", "Client billing"],
-              ].map(([title, type], i) => (
-                <motion.a
-                  key={title}
-                  href={scheduleHref}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.6, delay: i * 0.06 }}
-                  whileHover={{ y: -6 }}
-                  className="group rounded-2xl border border-emerald-200/15 bg-emerald-950/20 p-7 backdrop-blur-sm transition hover:border-emerald-300/40 hover:bg-emerald-900/20"
-                >
-                  <p className="text-sm tracking-wide" style={{ color: "#a9ba9d" }}>{type}</p>
-                  <h3 className="mt-3 text-2xl font-light">{title}</h3>
-                  <p className="mt-6 text-sm font-light text-emerald-100/50 transition group-hover:text-emerald-100/80">Start a project →</p>
-                </motion.a>
-              ))}
-            </div>
-          </div>
+          <OurWork scheduleHref={scheduleHref} />
         </section>
 
         {/* Tech stack */}

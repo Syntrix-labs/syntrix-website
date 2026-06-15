@@ -47,6 +47,9 @@ export default function AdminProjectsPage() {
   const [form, setForm] = useState({ title: "", clientEmail: "", description: "", dueDate: "" });
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editId, setEditId] = useState("");
+  const [editForm, setEditForm] = useState({ title: "", description: "", dueDate: "" });
+  const [confirmDel, setConfirmDel] = useState("");
 
   const load = () =>
     Promise.all([
@@ -77,12 +80,27 @@ export default function AdminProjectsPage() {
   };
 
   const updateProject = async (projectId: string, updates: Partial<Project>) => {
-    const response = await fetch(apiPath(`/api/projects/${projectId}`), {
+    setProjects((prev) => prev.map((p) => (p._id === projectId ? { ...p, ...updates } : p))); // instant
+    await fetch(apiPath(`/api/projects/${projectId}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify(updates)
     });
-    if (response.ok) load();
+  };
+
+  const deleteProject = async (projectId: string) => {
+    setProjects((prev) => prev.filter((p) => p._id !== projectId)); // instant
+    setConfirmDel("");
+    await fetch(apiPath(`/api/projects/${projectId}`), { method: "DELETE", headers: authHeaders() });
+  };
+
+  const startEdit = (p: Project) => {
+    setEditId(p._id);
+    setEditForm({ title: p.title || "", description: p.description || "", dueDate: p.dueDate ? String(p.dueDate).slice(0, 10) : "" });
+  };
+  const saveEdit = (id: string) => {
+    updateProject(id, editForm);
+    setEditId("");
   };
 
   if (loading) {
@@ -126,15 +144,37 @@ export default function AdminProjectsPage() {
                 transition={{ duration: 0.5, delay: i * 0.06 }}
                 className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm"
               >
+                <div className="mb-4 flex justify-end gap-2">
+                  <button onClick={() => startEdit(project)} aria-label="Edit project" className="rounded-xl border border-emerald-200/15 p-2 text-emerald-50/70 transition hover:border-emerald-300/50 hover:text-white"><i className="ti ti-edit" aria-hidden /></button>
+                  {confirmDel === project._id ? (
+                    <button onClick={() => deleteProject(project._id)} className="rounded-xl border border-red-400/50 bg-red-500/10 px-3 py-2 text-xs text-red-200">Confirm delete?</button>
+                  ) : (
+                    <button onClick={() => setConfirmDel(project._id)} aria-label="Delete project" className="rounded-xl border border-emerald-200/15 p-2 text-emerald-50/40 transition hover:border-red-400/50 hover:text-red-300"><i className="ti ti-trash" aria-hidden /></button>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
                   <div>
-                    <h2 className="text-2xl font-light tracking-wide">{project.title}</h2>
-                    <p className="mt-1 font-light text-emerald-50/60">Client: {project.client?.name || "Unassigned"} {project.client?.email ? `(${project.client.email})` : ""}</p>
-                    <p className="mt-2 text-sm text-emerald-50/45">{project.description}</p>
-                    <p className="mt-3 text-emerald-300">Deadline: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "Not set"}</p>
-                    <div className="mt-4 max-w-[280px]">
-                      <LaunchGauge value={progressOf(project.trackingStage)} stageLabel={project.trackingStage || "Created"} />
-                    </div>
+                    {editId === project._id ? (
+                      <div className="space-y-3">
+                        <input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} placeholder="Title" className={`${adminInput} w-full`} />
+                        <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} placeholder="Description" className={`${adminInput} min-h-20 w-full`} />
+                        <input type="date" value={editForm.dueDate} onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })} className={`${adminInput} w-full`} />
+                        <div className="flex gap-2">
+                          <button onClick={() => saveEdit(project._id)} className="rounded-xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-400">Save</button>
+                          <button onClick={() => setEditId("")} className="rounded-xl border border-emerald-200/15 px-4 py-2.5 text-sm text-emerald-50/70 transition hover:text-white">Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h2 className="text-2xl font-light tracking-wide">{project.title}</h2>
+                        <p className="mt-1 font-light text-emerald-50/60">Client: {project.client?.name || "Unassigned"} {project.client?.email ? `(${project.client.email})` : ""}</p>
+                        <p className="mt-2 text-sm text-emerald-50/45">{project.description}</p>
+                        <p className="mt-3 text-emerald-300">Deadline: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "Not set"}</p>
+                        <div className="mt-4 max-w-[280px]">
+                          <LaunchGauge value={progressOf(project.trackingStage)} stageLabel={project.trackingStage || "Created"} />
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="space-y-3">

@@ -4,6 +4,7 @@ const advertisementSchema = new mongoose.Schema({
   title: { type: String, required: true },
   imageUrl: { type: String, required: true },
   projectUrl: { type: String, required: true },
+  appUrl: { type: String },
   isPublished: { type: Boolean, default: true }
 }, { timestamps: true });
 

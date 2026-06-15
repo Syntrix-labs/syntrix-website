@@ -54,12 +54,12 @@ export default function AdminPaymentsPage() {
   };
 
   const markPaid = async (id: string) => {
+    setPayments((prev) => prev.map((p) => (p._id === id ? { ...p, status: "Paid" } : p))); // instant
     await fetch(apiPath(`/api/payments/${id}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify({ status: "Paid" })
     });
-    loadPayments();
   };
 
   const dueSum = payments.filter((p) => p.status !== "Paid").reduce((s, p) => s + (p.amount || 0), 0);
@@ -112,7 +112,11 @@ export default function AdminPaymentsPage() {
                 <p className="mt-1 font-light text-emerald-50/60">{payment.client?.name || "Client"} • {payment.project?.title || "General"}</p>
                 <p className="mt-1 text-sm text-emerald-300">{payment.currency || "INR"} {payment.amount} • Due: {payment.dueDate || "Not set"} • {payment.status} • {payment.provider || "Manual"}</p>
               </div>
-              <button onClick={() => markPaid(payment._id)} className="rounded-2xl border border-emerald-200/15 px-5 py-3 text-emerald-50/80 transition hover:border-emerald-300/50 hover:text-white">Mark paid</button>
+              {payment.status === "Paid" ? (
+                <span className="flex items-center gap-2 rounded-2xl bg-emerald-500/15 px-5 py-3 text-sm text-emerald-300"><i className="ti ti-check" aria-hidden /> Paid</span>
+              ) : (
+                <button onClick={() => markPaid(payment._id)} className="rounded-2xl border border-emerald-200/15 px-5 py-3 text-emerald-50/80 transition hover:border-emerald-300/50 hover:text-white">Mark paid</button>
+              )}
             </motion.div>
           ))}
         </div>

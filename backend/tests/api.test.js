@@ -122,6 +122,27 @@ test("GET /api/admin/clients lists clients for admin", async () => {
   assert.ok(res.body.some((u) => u.email === client.email));
 });
 
+test("admin can edit a client's details", async () => {
+  const res = await request(app).put(`/api/admin/clients/${client.id}`).set("x-auth-token", admin.token).send({ phone: "9990001234" });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.client.phone, "9990001234");
+});
+
+test("admin can delete a client and cascade their data", async () => {
+  const su = await request(app).post("/api/auth/signup").send({ name: "Temp", email: "temp-del@syntrix.test", password: "password123" });
+  const me = await request(app).get("/api/auth/me").set("x-auth-token", su.body.token);
+  const del = await request(app).delete(`/api/admin/clients/${me.body._id}`).set("x-auth-token", admin.token);
+  assert.equal(del.status, 200);
+  assert.equal(del.body.success, true);
+  const list = await request(app).get("/api/admin/clients").set("x-auth-token", admin.token);
+  assert.ok(!list.body.some((u) => u.email === "temp-del@syntrix.test"));
+});
+
+test("non-admin cannot delete a client", async () => {
+  const res = await request(app).delete(`/api/admin/clients/${client.id}`).set("x-auth-token", client.token);
+  assert.equal(res.status, 403);
+});
+
 // ---------- projects ----------
 test("client cannot create a project (admin only)", async () => {
   const res = await request(app).post("/api/projects").set("x-auth-token", client.token).send({ title: "Nope" });

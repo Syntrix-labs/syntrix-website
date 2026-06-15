@@ -19,4 +19,9 @@ router.put('/:id', authMiddleware, requireAdmin, async (req, res) => {
   res.json({ success: true, advertisement: ad });
 });
 
+router.delete('/:id', authMiddleware, requireAdmin, async (req, res) => {
+  await Advertisement.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
+});
+
 module.exports = router;

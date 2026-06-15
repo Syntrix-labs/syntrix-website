@@ -120,6 +120,44 @@ app.get('/api/admin/clients', requireDatabase, authMiddleware, requireAdmin, asy
   res.json(results);
 });
 
+app.put('/api/admin/clients/:id', requireDatabase, authMiddleware, requireAdmin, async (req, res) => {
+  const User = require('./models/User');
+  const allowed = ['name', 'email', 'phone', 'company'];
+  const updates = {};
+  allowed.forEach((field) => { if (req.body[field] !== undefined) updates[field] = req.body[field]; });
+  const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password');
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'Client not found' });
+  }
+  res.json({ success: true, client: user });
+});
+
+app.delete('/api/admin/clients/:id', requireDatabase, authMiddleware, requireAdmin, async (req, res) => {
+  const User = require('./models/User');
+  const Project = require('./models/Project');
+  const Payment = require('./models/Payment');
+  const Meeting = require('./models/Meeting');
+  const Consultation = require('./models/Consultation');
+  const DocumentUpload = require('./models/DocumentUpload');
+  const id = req.params.id;
+
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'Client not found' });
+  }
+
+  await Promise.all([
+    Project.deleteMany({ client: id }),
+    Payment.deleteMany({ client: id }),
+    Meeting.deleteMany({ client: id }),
+    Consultation.deleteMany({ client: id }),
+    DocumentUpload.deleteMany({ client: id }),
+    User.findByIdAndDelete(id)
+  ]);
+
+  res.json({ success: true });
+});
+
 app.get('/api/admin/summary', requireDatabase, authMiddleware, requireAdmin, async (req, res) => {
   const User = require('./models/User');
   const Project = require('./models/Project');

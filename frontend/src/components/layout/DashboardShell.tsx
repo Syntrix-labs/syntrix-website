@@ -25,7 +25,6 @@ const adminItems = [
   { label: "Meetings", href: "/admin/meetings" },
   { label: "Payments", href: "/admin/payments" },
   { label: "Team", href: "/admin/team" },
-  { label: "Tracking", href: "/admin/tracking" },
   { label: "Advertisement", href: "/admin/advertisements" },
 ];
 

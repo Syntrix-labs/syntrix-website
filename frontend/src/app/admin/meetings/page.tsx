@@ -45,15 +45,18 @@ export default function AdminMeetingsPage() {
   }, []);
 
   const updateMeeting = async (id: string, body: Partial<Meeting>) => {
-    const response = await fetch(apiPath(`/api/meetings/${id}`), {
+    setMeetings((prev) => prev.map((m) => (m._id === id ? { ...m, ...body } : m))); // instant
+    await fetch(apiPath(`/api/meetings/${id}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify(body)
     });
+  };
 
-    if (response.ok) {
-      loadMeetings();
-    }
+  const isMissed = (m: Meeting) => {
+    if (m.status !== "Requested") return false;
+    const d = new Date(`${m.date}T${(m.time || "").length === 5 ? m.time : "00:00"}`);
+    return !Number.isNaN(d.getTime()) && d.getTime() < Date.now();
   };
 
   const pending = meetings.filter((m) => m.status === "Requested");
@@ -84,18 +87,45 @@ export default function AdminMeetingsPage() {
                 </div>
 
                 <div className="min-w-full space-y-3 xl:min-w-[360px]">
-                  <input
-                    value={links[meeting._id] ?? meeting.meetingLink ?? ""}
-                    onChange={(event) => setLinks({ ...links, [meeting._id]: event.target.value })}
-                    placeholder="Paste Google Meet / Zoom link"
-                    className="w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60"
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Confirmed", meetingLink: links[meeting._id] || meeting.meetingLink })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Confirm</button>
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Completed" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-emerald-300/50">Complete</button>
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-red-400/50 hover:text-red-200">Cancel</button>
-                    <button onClick={() => updateMeeting(meeting._id, { status: "Requested" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-amber-400/50 hover:text-amber-200">Reopen</button>
-                  </div>
+                  {isMissed(meeting) ? (
+                    <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.08] p-4">
+                      <p className="text-sm text-amber-100">Sorry, this request's time passed before it was confirmed.</p>
+                      <p className="mt-1 text-xs text-amber-100/70">Ask the client to request another time.</p>
+                      <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="mt-3 rounded-xl border border-amber-400/40 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-500/10">Dismiss request</button>
+                    </div>
+                  ) : meeting.status === "Requested" ? (
+                    <>
+                      <input
+                        value={links[meeting._id] ?? meeting.meetingLink ?? ""}
+                        onChange={(event) => setLinks({ ...links, [meeting._id]: event.target.value })}
+                        placeholder="Paste Google Meet / Zoom link"
+                        className="w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60"
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => updateMeeting(meeting._id, { status: "Confirmed", meetingLink: links[meeting._id] || meeting.meetingLink })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Confirm</button>
+                        <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-red-400/50 hover:text-red-200">Decline</button>
+                      </div>
+                    </>
+                  ) : meeting.status === "Confirmed" ? (
+                    <>
+                      <input
+                        value={links[meeting._id] ?? meeting.meetingLink ?? ""}
+                        onChange={(event) => setLinks({ ...links, [meeting._id]: event.target.value })}
+                        placeholder="Update meeting link"
+                        className="w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60"
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => updateMeeting(meeting._id, { meetingLink: links[meeting._id] || meeting.meetingLink })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-emerald-300/50">Save link</button>
+                        <button onClick={() => updateMeeting(meeting._id, { status: "Completed" })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Complete</button>
+                        <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="col-span-2 rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-red-400/50 hover:text-red-200">Cancel meeting</button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-2xl border border-emerald-200/10 bg-emerald-950/40 p-4">
+                      <span className={`text-sm ${meeting.status === "Completed" ? "text-emerald-300" : "text-red-200"}`}>{meeting.status}</span>
+                      <button onClick={() => updateMeeting(meeting._id, { status: "Requested" })} className="rounded-xl border border-emerald-200/15 px-4 py-2 text-sm transition hover:border-amber-400/50 hover:text-amber-200">Reopen</button>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
