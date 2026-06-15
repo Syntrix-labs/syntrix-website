@@ -74,20 +74,28 @@ export default function ProjectsPage() {
     const file = files[projectId];
     if (!file) return;
     setBusy(projectId);
+    const fileName = file.name;
 
     const form = new FormData();
     form.append("clientFile", file);
     if (projectId !== "demo") form.append("projectId", projectId);
 
+    // instant: show the file in the documents list right away
+    setProjects((prev) => prev.map((p) => (p._id === projectId ? { ...p, documentLinks: [...(p.documentLinks || []), { name: fileName, url: "#", uploadedAt: new Date().toISOString() }] } : p)));
+    setFiles({ ...files, [projectId]: null });
+    setUploadErr((e) => ({ ...e, [projectId]: "" }));
+
     try {
       const response = await fetch(apiPath("/api/uploads"), { method: "POST", headers: authHeaders(), body: form });
       if (response.ok) {
-        setFiles({ ...files, [projectId]: null });
-        setUploadErr((e) => ({ ...e, [projectId]: "" }));
-        loadProjects();
+        loadProjects(); // reconcile with the real document URL
       } else {
         setUploadErr((e) => ({ ...e, [projectId]: "Upload failed. Please try again." }));
+        setProjects((prev) => prev.map((p) => (p._id === projectId ? { ...p, documentLinks: (p.documentLinks || []).filter((d) => d.url !== "#") } : p)));
       }
+    } catch {
+      setUploadErr((e) => ({ ...e, [projectId]: "Upload failed. Please try again." }));
+      setProjects((prev) => prev.map((p) => (p._id === projectId ? { ...p, documentLinks: (p.documentLinks || []).filter((d) => d.url !== "#") } : p)));
     } finally {
       setBusy(null);
     }

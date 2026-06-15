@@ -82,23 +82,28 @@ export default function MeetingsPage() {
     }
     setBusy(true);
     setMsg("");
+    const payload = { title: "Client consultation", date, time, timezone, notes };
+    const temp: Meeting = { _id: `temp-${Date.now()}`, status: "Requested", ...payload };
+    setMeetings((prev) => [...prev.filter((m) => m._id !== "demo"), temp]); // instant
+    setDate("");
+    setTime("");
+    setNotes("");
     try {
       const res = await fetch(apiPath("/api/meetings/book"), {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ title: "Client consultation", date, time, timezone, notes }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setMsg("Request sent — we'll confirm it shortly.");
-        setDate("");
-        setTime("");
-        setNotes("");
         loadMeetings();
       } else {
         setMsg("Could not send the request. Please try again.");
+        setMeetings((prev) => prev.filter((m) => m._id !== temp._id));
       }
     } catch {
       setMsg("Server error. Please try again in a moment.");
+      setMeetings((prev) => prev.filter((m) => m._id !== temp._id));
     } finally {
       setBusy(false);
     }
