@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { DashboardSkeleton } from "@/components/dashboard/States";
+import { DashboardSkeleton, EmptyState } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 type Payment = {
@@ -62,6 +62,10 @@ export default function AdminPaymentsPage() {
     loadPayments();
   };
 
+  const dueSum = payments.filter((p) => p.status !== "Paid").reduce((s, p) => s + (p.amount || 0), 0);
+  const paidSum = payments.filter((p) => p.status === "Paid").reduce((s, p) => s + (p.amount || 0), 0);
+  const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+
   if (loading) {
     return (
       <DashboardShell type="admin">
@@ -75,6 +79,12 @@ export default function AdminPaymentsPage() {
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
         <SectionHeader icon="credit-card" eyebrow="Payments" title="Payment control" description="Create upcoming payments, add payment links, and mark completed payments for client history." />
 
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.08] p-4"><p className="text-xs text-amber-100/70">Total due</p><p className="mt-1 text-2xl font-light text-amber-100">{inr(dueSum)}</p></div>
+          <div className="rounded-2xl border border-emerald-200/12 bg-emerald-950/30 p-4 backdrop-blur-sm"><p className="text-xs text-emerald-100/60">Collected</p><p className="mt-1 text-2xl font-light text-white">{inr(paidSum)}</p></div>
+          <div className="rounded-2xl border border-emerald-200/12 bg-emerald-950/30 p-4 backdrop-blur-sm"><p className="text-xs text-emerald-100/60">Invoices</p><p className="mt-1 text-2xl font-light text-white">{payments.length}</p></div>
+        </div>
+
         <div className="mb-6 grid grid-cols-1 gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm md:grid-cols-5">
           <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Payment title" className={payInput} />
           <input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} placeholder="Amount" type="number" className={payInput} />
@@ -86,7 +96,9 @@ export default function AdminPaymentsPage() {
         </div>
 
         <div className="space-y-4">
-          {payments.map((payment, i) => (
+          {payments.length === 0 ? (
+            <EmptyState icon="credit-card" title="No payments yet" hint="Create one above to bill a client." />
+          ) : payments.map((payment, i) => (
             <motion.div
               key={payment._id}
               initial={{ opacity: 0, y: 16 }}

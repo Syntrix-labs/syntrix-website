@@ -65,12 +65,18 @@ export default function ClientsPage() {
                 transition={{ duration: 0.5, delay: i * 0.05 }}
                 className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm"
               >
-                <button onClick={() => setOpenClient(open ? "" : client._id)} className="flex w-full flex-col justify-between gap-4 text-left md:flex-row">
-                  <div>
-                    <h2 className="text-2xl font-light tracking-wide">{client.name}</h2>
-                    <p className="mt-1 font-light text-emerald-50/60">{client.email}</p>
+                <button onClick={() => setOpenClient(open ? "" : client._id)} className="flex w-full flex-col justify-between gap-4 text-left md:flex-row md:items-center">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-400/22 text-lg font-light text-emerald-100">
+                      {(client.name || "?").charAt(0).toUpperCase()}
+                    </span>
+                    <div>
+                      <h2 className="text-xl font-light tracking-wide">{client.name}</h2>
+                      <p className="mt-0.5 font-light text-emerald-50/55">{client.email}</p>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <i className={`ti ti-chevron-${open ? "up" : "down"} order-last text-emerald-50/40`} aria-hidden />
                     <span className="rounded-full bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">Active: {client.activeProjects || 0}</span>
                     <span className="rounded-full bg-amber-500/10 px-4 py-2 text-sm text-amber-200">Pending: {client.pendingProjects || 0}</span>
                     <span className="rounded-full bg-emerald-400/10 px-4 py-2 text-sm text-emerald-200">Payments: {client.upcomingPayments || 0}</span>

@@ -43,6 +43,11 @@ export default function TeamPage() {
     }
   };
 
+  const removeMember = async (id: string) => {
+    await fetch(apiPath(`/api/team/${id}`), { method: "DELETE", headers: authHeaders() });
+    loadTeam();
+  };
+
   return (
     <DashboardShell type="admin">
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
@@ -61,13 +66,25 @@ export default function TeamPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-30px" }}
               transition={{ duration: 0.5, delay: i * 0.06 }}
-              className="flex justify-between gap-5 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-6 backdrop-blur-sm"
+              className="group flex items-center gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-5 backdrop-blur-sm"
             >
-              <div>
-                <h2 className="text-2xl font-light tracking-wide">{member.name}</h2>
-                <p className="mt-1 font-light text-emerald-50/60">{member.role}</p>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-400/22 text-lg font-light text-emerald-100">
+                {(member.name || "?").charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <h2 className="truncate text-xl font-light tracking-wide">{member.name}</h2>
+                <p className="mt-0.5 truncate font-light text-emerald-50/55">{member.role}</p>
               </div>
-              <span className="h-fit rounded-full bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">{member.status}</span>
+              <span className="ml-auto h-fit rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-300">{member.status}</span>
+              {member._id && !["soham", "tahir"].includes(member._id) && (
+                <button
+                  onClick={() => removeMember(member._id)}
+                  aria-label={`Remove ${member.name}`}
+                  className="text-emerald-50/30 transition hover:text-red-300"
+                >
+                  <i className="ti ti-trash" aria-hidden />
+                </button>
+              )}
             </motion.div>
           ))}
         </div>

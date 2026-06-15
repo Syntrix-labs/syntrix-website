@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { EmptyState } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 type Ad = { _id: string; title: string; imageUrl: string; projectUrl: string };
@@ -44,6 +45,9 @@ export default function AdvertisementsPage() {
           <input value={projectUrl} onChange={(e) => setProjectUrl(e.target.value)} placeholder="Project URL" className={adInput} />
           <button onClick={publish} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Publish</button>
         </div>
+        {ads.length === 0 && (
+          <EmptyState icon="photo" title="No portfolio items yet" hint="Add a project above to feature it on the landing page." />
+        )}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {ads.map((a, i) => (
             <motion.a

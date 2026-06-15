@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { DashboardSkeleton } from "@/components/dashboard/States";
+import LaunchGauge from "@/components/dashboard/LaunchGauge";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
 const trackingStages = ["Created", "Coding Starting", "Frontend Review", "Test", "Final Review", "Publish"];
@@ -12,6 +13,9 @@ const statuses = ["Pending", "Planning", "In Progress", "In Review", "Completed"
 
 const adminInput =
   "rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60";
+
+const progressOf = (s?: string) =>
+  Math.round((Math.max(0, trackingStages.indexOf(s || "Created")) / (trackingStages.length - 1)) * 100);
 
 type Project = {
   _id: string;
@@ -128,6 +132,9 @@ export default function AdminProjectsPage() {
                     <p className="mt-1 font-light text-emerald-50/60">Client: {project.client?.name || "Unassigned"} {project.client?.email ? `(${project.client.email})` : ""}</p>
                     <p className="mt-2 text-sm text-emerald-50/45">{project.description}</p>
                     <p className="mt-3 text-emerald-300">Deadline: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "Not set"}</p>
+                    <div className="mt-4 max-w-[280px]">
+                      <LaunchGauge value={progressOf(project.trackingStage)} stageLabel={project.trackingStage || "Created"} />
+                    </div>
                   </div>
 
                   <div className="space-y-3">
