@@ -46,6 +46,25 @@ export default function ConsultationPage() {
     apiGet<{ name?: string }>("/api/auth/me", {}).then((u) => u.name && setName(u.name));
   }, []);
 
+  // Live updates: poll for new messages every few seconds while the chat is open.
+  useEffect(() => {
+    const id = setInterval(() => {
+      apiGet<Message[]>("/api/consultations", []).then((fresh) => {
+        if (!fresh.length) return;
+        setMessages((prev) => {
+          const server = prev.filter((m) => !String(m._id).startsWith("local-"));
+          const unchanged = server.length === fresh.length && server[server.length - 1]?._id === fresh[fresh.length - 1]?._id;
+          if (unchanged) return prev;
+          const pending = prev.filter(
+            (m) => String(m._id).startsWith("local-") && !fresh.some((f) => f.message === m.message && f.senderRole === m.senderRole)
+          );
+          return [...fresh, ...pending];
+        });
+      });
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);

@@ -32,6 +32,19 @@ export default function AdminConsultationPage() {
     load().finally(() => setLoading(false));
   }, []);
 
+  // Live updates: poll for new messages while the page is open.
+  useEffect(() => {
+    const id = setInterval(() => {
+      apiGet<Message[]>("/api/consultations/admin/all", []).then((fresh) => {
+        setMessages((prev) => {
+          const unchanged = prev.length === fresh.length && prev[0]?._id === fresh[0]?._id;
+          return unchanged ? prev : fresh;
+        });
+      });
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
+
   const thread = messages
     .filter((m) => clientIdOf(m) === selected)
     .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
