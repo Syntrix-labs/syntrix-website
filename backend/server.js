@@ -111,7 +111,11 @@ app.get('/api/admin/clients', requireDatabase, authMiddleware, requireStaff, asy
   const User = require('./models/User');
   const Project = require('./models/Project');
   const Payment = require('./models/Payment');
-  const clients = await User.find().select('-password').sort({ createdAt: -1 });
+  const { isAdminEmail } = require('./utils/adminAccess');
+  // Clients section lists genuine clients only — team members (role 'team')
+  // and admins (email in ADMIN_EMAILS) belong to the Team area, not here.
+  const allUsers = await User.find({ role: { $ne: 'team' } }).select('-password').sort({ createdAt: -1 });
+  const clients = allUsers.filter((u) => !isAdminEmail(u.email));
   const results = await Promise.all(clients.map(async (client) => {
     const activeProjects = await Project.countDocuments({ client: client._id, status: { $ne: 'Completed' } });
     const pendingProjects = await Project.countDocuments({ client: client._id, status: { $in: ['Planning', 'Pending'] } });

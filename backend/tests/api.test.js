@@ -290,17 +290,48 @@ test("non-admin cannot list team meetings", async () => {
 });
 
 // ---------- team member accounts (role: team) ----------
-test("adding a team member with email provisions a team account (temp pw 1234)", async () => {
+test("adding a team member with email provisions a team account (temp pw 123456)", async () => {
   const add = await request(app).post("/api/team").set("x-auth-token", admin.token)
     .send({ name: "Mate Dev", role: "Developer", email: "mate@syntrix.test" });
   assert.equal(add.status, 201);
   assert.equal(add.body.accountCreated, true);
 
-  const login = await request(app).post("/api/auth/login").send({ email: "mate@syntrix.test", password: "1234" });
+  const login = await request(app).post("/api/auth/login").send({ email: "mate@syntrix.test", password: "123456" });
   assert.equal(login.status, 200);
   assert.equal(login.body.isTeam, true);
   assert.equal(login.body.isAdmin, false);
   teamToken = login.body.token;
+});
+
+test("team member only sees client meetings they are assigned to", async () => {
+  // Admin schedules a client meeting and invites the team member to join.
+  const assigned = await request(app).post("/api/meetings").set("x-auth-token", admin.token)
+    .send({ client: client.id, title: "Kickoff", date: "2026-07-01", time: "15:00", assignees: ["MATE@syntrix.test"] });
+  assert.equal(assigned.status, 201);
+  assert.deepEqual(assigned.body.meeting.assignees, ["mate@syntrix.test"]); // normalized
+
+  // A second meeting the team member is NOT invited to.
+  await request(app).post("/api/meetings").set("x-auth-token", admin.token)
+    .send({ client: client.id, title: "Private", date: "2026-07-02", time: "16:00" });
+
+  const mine = await request(app).get("/api/meetings/assigned").set("x-auth-token", teamToken);
+  assert.equal(mine.status, 200);
+  const titles = mine.body.map((m) => m.title);
+  assert.ok(titles.includes("Kickoff"));
+  assert.ok(!titles.includes("Private"));
+
+  // Admin sees all meetings on the same endpoint.
+  const adminView = await request(app).get("/api/meetings/assigned").set("x-auth-token", admin.token);
+  assert.ok(adminView.body.length >= 2);
+});
+
+test("clients list excludes admins and team members", async () => {
+  const res = await request(app).get("/api/admin/clients").set("x-auth-token", admin.token);
+  assert.equal(res.status, 200);
+  const emails = res.body.map((u) => u.email);
+  assert.ok(emails.includes(client.email)); // real client stays
+  assert.ok(!emails.includes("admin@syntrix.test")); // admin excluded
+  assert.ok(!emails.includes("mate@syntrix.test")); // team member excluded
 });
 
 test("team member can use staff endpoints", async () => {

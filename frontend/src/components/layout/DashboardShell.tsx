@@ -21,6 +21,7 @@ const adminItems = [
   { label: "Dashboard", href: "/admin" },
   { label: "Clients", href: "/admin/clients" },
   { label: "Projects", href: "/admin/projects" },
+  { label: "Pending projects", href: "/admin/pending-projects" },
   { label: "Consultation", href: "/admin/consultation" },
   { label: "Meetings", href: "/admin/meetings" },
   { label: "Payments", href: "/admin/payments" },

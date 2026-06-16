@@ -6,8 +6,16 @@ const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/adminMiddleware');
 const { sendMail } = require('../utils/mailer');
+const { adminEmails } = require('../utils/adminAccess');
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
+
+// Friendly display name from an email when there's no account yet
+// (e.g. "soham.mondal2989@gmail.com" -> "Soham").
+const nameFromEmail = (email) => {
+  const local = String(email || '').split('@')[0].split(/[._+-]/)[0];
+  return local ? local.charAt(0).toUpperCase() + local.slice(1) : String(email || '');
+};
 
 async function sendWelcomeEmail({ name, role, email, tempPassword }) {
   if (!isValidEmail(email)) {
@@ -65,8 +73,26 @@ async function sendWelcomeEmail({ name, role, email, tempPassword }) {
 }
 
 router.get('/', authMiddleware, requireAdmin, async (req, res) => {
+  const emails = adminEmails();
   const members = await TeamMember.find().sort({ createdAt: -1 });
-  res.json(members);
+
+  // Admins (from ADMIN_EMAILS) always appear at the top of the team.
+  // First listed admin is the Founder, the rest are Co-Founders.
+  const adminUsers = await User.find({ email: { $in: emails } }).select('name email');
+  const nameByEmail = {};
+  adminUsers.forEach((u) => { nameByEmail[String(u.email).toLowerCase()] = u.name; });
+  const adminEntries = emails.map((email, i) => ({
+    _id: `admin:${email}`,
+    name: nameByEmail[email] || nameFromEmail(email),
+    role: i === 0 ? 'Founder' : 'Co-Founder',
+    email,
+    status: 'Active',
+    isAdmin: true
+  }));
+
+  // Don't list someone twice if an admin was also added as a team member.
+  const visibleMembers = members.filter((m) => !emails.includes(String(m.email || '').toLowerCase()));
+  res.json([...adminEntries, ...visibleMembers]);
 });
 
 router.post('/', authMiddleware, requireAdmin, async (req, res) => {
@@ -88,7 +114,7 @@ router.post('/', authMiddleware, requireAdmin, async (req, res) => {
         await existing.save();
       }
     } else {
-      tempPassword = '1234';
+      tempPassword = '123456';
       const hashed = await bcrypt.hash(tempPassword, await bcrypt.genSalt(10));
       await User.create({ name: req.body.name, email, password: hashed, role: 'team' });
     }

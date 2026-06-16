@@ -6,6 +6,16 @@ const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware'); // We reuse your bouncer!
 const requireAdmin = require('../middleware/adminMiddleware');
 
+// Soonest deadline first ("least time" on top). Projects without a dueDate,
+// and completed projects, sink to the bottom.
+function byDeadline(a, b) {
+  const done = (p) => (p.status === 'Completed' ? 1 : 0);
+  if (done(a) !== done(b)) return done(a) - done(b);
+  const at = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+  const bt = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+  return at - bt;
+}
+
 // @route   POST /api/projects
 // @desc    Create a new project linked to the logged-in user
 router.post('/', authMiddleware, requireAdmin, async (req, res) => {
@@ -53,8 +63,9 @@ router.get('/', authMiddleware, async (req, res) => {
   try {
     // 1. Tell MongoDB to find only projects where the client ID matches the token ID
     // We also use .sort() to put the newest projects at the top of the list
-    const projects = await Project.find({ client: req.user.id }).sort({ createdAt: -1 });
-    
+    const projects = await Project.find({ client: req.user.id });
+    projects.sort(byDeadline);
+
     // 2. Send the array of projects back
     res.json(projects);
 
@@ -68,7 +79,8 @@ router.get('/', authMiddleware, async (req, res) => {
 // @desc    Get all projects for admin panel
 router.get('/admin/all', authMiddleware, requireAdmin, async (req, res) => {
   try {
-    const projects = await Project.find().populate('client', 'name email').sort({ createdAt: -1 });
+    const projects = await Project.find().populate('client', 'name email');
+    projects.sort(byDeadline);
     res.json(projects);
   } catch (error) {
     console.error('Fetch Admin Projects Error:', error);

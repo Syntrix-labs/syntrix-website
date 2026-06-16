@@ -9,7 +9,10 @@ const meetingSchema = new mongoose.Schema({
   status: { type: String, enum: ['Requested', 'Confirmed', 'Completed', 'Cancelled'], default: 'Requested' },
   meetingLink: String,
   meetingPlatform: { type: String, enum: ['Google Meet', 'Zoom', 'Phone', 'Other'], default: 'Google Meet' },
-  notes: String
+  notes: String,
+  // Emails of team members the admin invited to join this client meeting.
+  // Admins can always join; these are the additional staff who can see it.
+  assignees: [{ type: String }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Meeting', meetingSchema);

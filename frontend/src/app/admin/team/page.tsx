@@ -6,11 +6,11 @@ import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
-type TeamMember = { _id: string; name: string; role: string; status: string; email?: string };
+type TeamMember = { _id: string; name: string; role: string; status: string; email?: string; isAdmin?: boolean };
 
 const fallback: TeamMember[] = [
-  { _id: "soham", name: "Soham", role: "Backend Developer", status: "Active" },
-  { _id: "tahir", name: "Tahir", role: "Frontend Developer", status: "Online" },
+  { _id: "admin:tahir", name: "Tahir", role: "Founder", status: "Active", isAdmin: true },
+  { _id: "admin:soham", name: "Soham", role: "Co-Founder", status: "Active", isAdmin: true },
 ];
 
 const inputCls = "rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-50/85 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60";
@@ -87,18 +87,21 @@ export default function TeamPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.5, delay: i * 0.06 }}
-            className="flex items-center gap-4 rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-5 backdrop-blur-sm"
+            className={`flex items-center gap-4 rounded-3xl border p-5 backdrop-blur-sm ${member.isAdmin ? "border-amber-300/25 bg-amber-400/[0.04]" : "border-emerald-200/12 bg-emerald-950/25"}`}
           >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-400/22 text-lg font-light text-emerald-100">
+            <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-light ${member.isAdmin ? "bg-amber-300/20 text-amber-100 ring-1 ring-amber-300/40" : "bg-emerald-400/22 text-emerald-100"}`}>
               {(member.name || "?").charAt(0).toUpperCase()}
             </span>
             <div className="min-w-0">
-              <h2 className="truncate text-xl font-light tracking-wide">{member.name}</h2>
-              <p className="mt-0.5 truncate font-light text-emerald-50/55">{member.role}</p>
+              <h2 className="flex items-center gap-2 truncate text-xl font-light tracking-wide">
+                {member.name}
+                {member.isAdmin && <i className="ti ti-crown text-sm text-amber-300" aria-label="Admin" />}
+              </h2>
+              <p className={`mt-0.5 truncate font-light ${member.isAdmin ? "text-amber-200/80" : "text-emerald-50/55"}`}>{member.role}</p>
               {member.email && <p className="truncate text-xs text-emerald-50/40">{member.email}</p>}
             </div>
-            <span className="ml-auto h-fit rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-300">{member.status}</span>
-            {member._id && !["soham", "tahir"].includes(member._id) && !member._id.startsWith("temp-") && (
+            <span className={`ml-auto h-fit rounded-full px-3 py-1.5 text-xs ${member.isAdmin ? "bg-amber-400/10 text-amber-200" : "bg-emerald-500/10 text-emerald-300"}`}>{member.isAdmin ? "Admin" : member.status}</span>
+            {member._id && !member.isAdmin && !member._id.startsWith("admin:") && !member._id.startsWith("temp-") && (
               <button onClick={() => removeMember(member._id)} aria-label={`Remove ${member.name}`} className="text-emerald-50/30 transition hover:text-red-300">
                 <i className="ti ti-trash" aria-hidden />
               </button>
