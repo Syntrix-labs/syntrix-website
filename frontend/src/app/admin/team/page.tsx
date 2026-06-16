@@ -6,7 +6,7 @@ import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 
-type TeamMember = { _id: string; name: string; role: string; status: string };
+type TeamMember = { _id: string; name: string; role: string; status: string; email?: string };
 type TeamMeeting = { _id: string; title: string; date: string; time: string; agenda?: string; link?: string };
 
 const fallback: TeamMember[] = [
@@ -21,6 +21,7 @@ export default function TeamPage() {
   const [meetings, setMeetings] = useState<TeamMeeting[]>([]);
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
+  const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
   const [meet, setMeet] = useState({ title: "", date: "", time: "", agenda: "", link: "" });
   const [meetMsg, setMeetMsg] = useState("");
@@ -38,17 +39,23 @@ export default function TeamPage() {
       return;
     }
     setMsg("");
-    const temp: TeamMember = { _id: `temp-${Date.now()}`, name, role, status: "Active" };
+    const temp: TeamMember = { _id: `temp-${Date.now()}`, name, role, email, status: "Active" };
     setTeam((prev) => [...prev, temp]);
     setName("");
     setRole("");
+    setEmail("");
     const res = await fetch(apiPath("/api/team"), {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ name: temp.name, role: temp.role, status: "Active" }),
+      body: JSON.stringify({ name: temp.name, role: temp.role, email: temp.email, status: "Active" }),
     });
-    if (res.ok) loadTeam();
-    else setMsg("Could not add the member. Please try again.");
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setMsg(data.emailed ? "Member added — welcome email sent ✉️" : temp.email ? "Member added. (Email not configured, so no welcome email was sent.)" : "Member added.");
+      loadTeam();
+    } else {
+      setMsg("Could not add the member. Please try again.");
+    }
   };
 
   const removeMember = async (id: string) => {
@@ -92,6 +99,7 @@ export default function TeamPage() {
           <div className="grid grid-cols-1 gap-3">
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Member name" className={inputCls} />
             <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role / position" className={inputCls} />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email (sends a welcome message)" className={inputCls} />
             <button onClick={addMember} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Add member</button>
             {msg && <p className="text-sm text-emerald-200">{msg}</p>}
           </div>
@@ -158,6 +166,7 @@ export default function TeamPage() {
             <div className="min-w-0">
               <h2 className="truncate text-xl font-light tracking-wide">{member.name}</h2>
               <p className="mt-0.5 truncate font-light text-emerald-50/55">{member.role}</p>
+              {member.email && <p className="truncate text-xs text-emerald-50/40">{member.email}</p>}
             </div>
             <span className="ml-auto h-fit rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-300">{member.status}</span>
             {member._id && !["soham", "tahir"].includes(member._id) && !member._id.startsWith("temp-") && (

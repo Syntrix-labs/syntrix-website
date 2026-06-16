@@ -11,6 +11,10 @@ const teamMemberSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  email: {
+    type: String,
+    trim: true
+  },
   status: {
     type: String,
     enum: ['Active', 'Online', 'Offline'],
