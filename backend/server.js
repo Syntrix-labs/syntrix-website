@@ -255,8 +255,53 @@ async function connectDatabase() {
 
 // Start Server (only when run directly, not when imported by tests)
 if (require.main === module) {
+  const http = require('http');
+  const { Server } = require('socket.io');
+  const jwt = require('jsonwebtoken');
+  const User = require('./models/User');
+  const { isAdminEmail } = require('./utils/adminAccess');
+
+  const server = http.createServer(app);
+  const io = new Server(server, {
+    cors: { origin: allowedOrigins, credentials: true }
+  });
+
+  // Authenticate each socket with the same JWT used for the REST API.
+  io.use(async (socket, next) => {
+    try {
+      const token = socket.handshake.auth && socket.handshake.auth.token;
+      if (!token) return next(new Error('No auth token'));
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.user && decoded.user.id;
+      socket.data.userId = userId;
+      try {
+        const user = await User.findById(userId).select('email');
+        socket.data.isAdmin = isAdminEmail(user && user.email);
+      } catch {
+        socket.data.isAdmin = false;
+      }
+      return next();
+    } catch (error) {
+      return next(new Error('Socket authentication failed'));
+    }
+  });
+
+  io.on('connection', (socket) => {
+    if (socket.data.userId) {
+      socket.join(`user:${socket.data.userId}`); // a client's own consultation room
+    }
+    // Admins can join a specific client's room to watch that conversation live.
+    socket.on('join', (clientId) => {
+      if (socket.data.isAdmin && clientId) {
+        socket.join(`user:${clientId}`);
+      }
+    });
+  });
+
+  app.set('io', io); // so routes can emit (req.app.get('io'))
+
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 

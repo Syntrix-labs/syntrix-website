@@ -6,6 +6,7 @@ import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { DashboardSkeleton, EmptyState } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
+import { connectSocket, type Socket } from "@/lib/socket";
 
 type Message = { _id: string; senderRole: "Admin" | "Client"; message: string; createdAt?: string; client?: { _id?: string; name?: string; email?: string } };
 type Client = { _id: string; name: string; email: string };
@@ -21,6 +22,7 @@ export default function AdminConsultationPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   const load = () =>
     Promise.all([
@@ -32,7 +34,23 @@ export default function AdminConsultationPage() {
     load().finally(() => setLoading(false));
   }, []);
 
-  // Live updates: poll for new messages while the page is open.
+  // Real-time: socket pushes new messages instantly (falls back to polling).
+  useEffect(() => {
+    const socket = connectSocket();
+    if (!socket) return;
+    socketRef.current = socket;
+    socket.on("consultation:new", (msg: Message) => {
+      setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [msg, ...prev]));
+    });
+    return () => { socket.disconnect(); socketRef.current = null; };
+  }, []);
+
+  // Join the selected client's room so their replies arrive live.
+  useEffect(() => {
+    if (selected) socketRef.current?.emit("join", selected);
+  }, [selected]);
+
+  // Fallback: poll for new messages while the page is open.
   useEffect(() => {
     const id = setInterval(() => {
       apiGet<Message[]>("/api/consultations/admin/all", []).then((fresh) => {

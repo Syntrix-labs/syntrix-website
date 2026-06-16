@@ -44,6 +44,13 @@ router.post('/', authMiddleware, async (req, res) => {
     senderRole: admin ? 'Admin' : 'Client',
     message: text,
   });
+
+  // Real-time: push to everyone watching this client's conversation.
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${clientId}`).emit('consultation:new', message.toObject());
+  }
+
   res.status(201).json({ success: true, message });
 });
 

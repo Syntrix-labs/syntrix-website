@@ -6,6 +6,7 @@ import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
+import { connectSocket } from "@/lib/socket";
 
 type Message = { _id: string; senderRole: string; message: string; createdAt?: string };
 
@@ -46,7 +47,23 @@ export default function ConsultationPage() {
     apiGet<{ name?: string }>("/api/auth/me", {}).then((u) => u.name && setName(u.name));
   }, []);
 
-  // Live updates: poll for new messages every few seconds while the chat is open.
+  // Real-time: push new messages instantly over a socket (falls back to polling).
+  useEffect(() => {
+    const socket = connectSocket();
+    if (!socket) return;
+    socket.on("consultation:new", (msg: Message) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === msg._id)) return prev;
+        const withoutLocal = prev.filter(
+          (m) => !(String(m._id).startsWith("local-") && m.message === msg.message && m.senderRole === msg.senderRole)
+        );
+        return [...withoutLocal, msg];
+      });
+    });
+    return () => { socket.disconnect(); };
+  }, []);
+
+  // Fallback: poll for new messages every few seconds while the chat is open.
   useEffect(() => {
     const id = setInterval(() => {
       apiGet<Message[]>("/api/consultations", []).then((fresh) => {
