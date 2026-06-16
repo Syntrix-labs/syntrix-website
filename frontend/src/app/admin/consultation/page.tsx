@@ -21,8 +21,13 @@ export default function AdminConsultationPage() {
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [name, setName] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    apiGet<{ name?: string }>("/api/auth/me", {}).then((u) => u.name && setName(u.name));
+  }, []);
 
   const load = () =>
     Promise.all([
@@ -107,7 +112,7 @@ export default function AdminConsultationPage() {
       <SectionHeader
         icon="message-2"
         eyebrow="Consultation"
-        title="Client messages"
+        title={name ? `Welcome back, ${name.split(" ")[0]}` : "Client messages"}
         description="Pick a client and message them directly. Their replies appear here too."
       />
 
