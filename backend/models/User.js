@@ -10,9 +10,14 @@ const userSchema = new mongoose.Schema({
     required: true, 
     unique: true 
   },
-  password: { 
-    type: String, 
-    required: true 
+  password: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    enum: ['client', 'team'],
+    default: 'client'
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,

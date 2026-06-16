@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 const TeamMeeting = require('../models/TeamMeeting');
 const authMiddleware = require('../middleware/authMiddleware');
-const requireAdmin = require('../middleware/adminMiddleware');
+const requireStaff = require('../middleware/staffMiddleware');
 
-router.get('/', authMiddleware, requireAdmin, async (req, res) => {
+router.get('/', authMiddleware, requireStaff, async (req, res) => {
   const meetings = await TeamMeeting.find().sort({ date: 1, time: 1 });
   res.json(meetings);
 });
 
-router.post('/', authMiddleware, requireAdmin, async (req, res) => {
+router.post('/', authMiddleware, requireStaff, async (req, res) => {
   const title = typeof req.body.title === 'string' ? req.body.title.trim() : '';
   if (!title || !req.body.date || !req.body.time) {
     return res.status(400).json({ success: false, message: 'Title, date and time are required' });
@@ -25,7 +25,7 @@ router.post('/', authMiddleware, requireAdmin, async (req, res) => {
   res.status(201).json({ success: true, meeting });
 });
 
-router.delete('/:id', authMiddleware, requireAdmin, async (req, res) => {
+router.delete('/:id', authMiddleware, requireStaff, async (req, res) => {
   await TeamMeeting.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });

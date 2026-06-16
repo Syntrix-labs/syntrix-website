@@ -3,7 +3,7 @@ const router = express.Router();
 const Consultation = require('../models/Consultation');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
-const requireAdmin = require('../middleware/adminMiddleware');
+const requireStaff = require('../middleware/staffMiddleware');
 const { isAdminEmail } = require('../utils/adminAccess');
 
 router.get('/', authMiddleware, async (req, res) => {
@@ -11,14 +11,14 @@ router.get('/', authMiddleware, async (req, res) => {
   res.json(messages);
 });
 
-router.get('/admin/all', authMiddleware, requireAdmin, async (req, res) => {
+router.get('/admin/all', authMiddleware, requireStaff, async (req, res) => {
   const messages = await Consultation.find()
     .populate('client', 'name email')
     .sort({ createdAt: -1 });
   res.json(messages);
 });
 
-router.get('/admin/:clientId', authMiddleware, requireAdmin, async (req, res) => {
+router.get('/admin/:clientId', authMiddleware, requireStaff, async (req, res) => {
   const messages = await Consultation.find({ client: req.params.clientId }).sort({ createdAt: 1 });
   res.json(messages);
 });
@@ -31,17 +31,17 @@ router.post('/', authMiddleware, async (req, res) => {
     return res.status(400).json({ success: false, message: 'Message is required' });
   }
 
-  const me = await User.findById(req.user.id).select('email');
-  const admin = isAdminEmail(me?.email);
+  const me = await User.findById(req.user.id).select('email role');
+  const staff = isAdminEmail(me?.email) || me?.role === 'team';
 
-  const clientId = admin ? req.body.client : req.user.id;
-  if (admin && !clientId) {
+  const clientId = staff ? req.body.client : req.user.id;
+  if (staff && !clientId) {
     return res.status(400).json({ success: false, message: 'Select a client to message' });
   }
 
   const message = await Consultation.create({
     client: clientId,
-    senderRole: admin ? 'Admin' : 'Client',
+    senderRole: staff ? 'Admin' : 'Client',
     message: text,
   });
 

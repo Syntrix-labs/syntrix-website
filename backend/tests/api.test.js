@@ -27,6 +27,7 @@ let projectId = "";
 let meetingId = "";
 let paymentId = "";
 let teamId = "";
+let teamToken = "";
 
 test.before(async () => {
   mongod = await MongoMemoryServer.create();
@@ -286,6 +287,35 @@ test("team meeting requires title, date, time", async () => {
 test("non-admin cannot list team meetings", async () => {
   const res = await request(app).get("/api/team-meetings").set("x-auth-token", client.token);
   assert.equal(res.status, 403);
+});
+
+// ---------- team member accounts (role: team) ----------
+test("adding a team member with email provisions a team account (temp pw 1234)", async () => {
+  const add = await request(app).post("/api/team").set("x-auth-token", admin.token)
+    .send({ name: "Mate Dev", role: "Developer", email: "mate@syntrix.test" });
+  assert.equal(add.status, 201);
+  assert.equal(add.body.accountCreated, true);
+
+  const login = await request(app).post("/api/auth/login").send({ email: "mate@syntrix.test", password: "1234" });
+  assert.equal(login.status, 200);
+  assert.equal(login.body.isTeam, true);
+  assert.equal(login.body.isAdmin, false);
+  teamToken = login.body.token;
+});
+
+test("team member can use staff endpoints", async () => {
+  assert.equal((await request(app).get("/api/consultations/admin/all").set("x-auth-token", teamToken)).status, 200);
+  assert.equal((await request(app).get("/api/meetings/admin/all").set("x-auth-token", teamToken)).status, 200);
+  assert.equal((await request(app).get("/api/team-meetings").set("x-auth-token", teamToken)).status, 200);
+  assert.equal((await request(app).get("/api/admin/clients").set("x-auth-token", teamToken)).status, 200);
+});
+
+test("team member is blocked from admin-only endpoints", async () => {
+  assert.equal((await request(app).get("/api/admin/summary").set("x-auth-token", teamToken)).status, 403);
+  assert.equal((await request(app).post("/api/projects").set("x-auth-token", teamToken).send({ title: "x" })).status, 403);
+  assert.equal((await request(app).post("/api/payments").set("x-auth-token", teamToken).send({ title: "x", amount: 1 })).status, 403);
+  assert.equal((await request(app).post("/api/team").set("x-auth-token", teamToken).send({ name: "x", role: "y" })).status, 403);
+  assert.equal((await request(app).post("/api/advertisements").set("x-auth-token", teamToken).send({ title: "x", imageUrl: "x", projectUrl: "x" })).status, 403);
 });
 
 // ---------- advertisements ----------

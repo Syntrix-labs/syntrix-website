@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const TeamMember = require('../models/TeamMember');
+const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/adminMiddleware');
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
 
-async function sendWelcomeEmail({ name, role, email }) {
+async function sendWelcomeEmail({ name, role, email, tempPassword }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !isValidEmail(email)) {
     return false;
   }
@@ -18,6 +20,14 @@ async function sendWelcomeEmail({ name, role, email }) {
   });
 
   const firstName = String(name || 'there').split(' ')[0];
+  const loginHtml = tempPassword ? `
+        <div style="margin:0 0 24px;padding:16px 18px;background:#0c2a1d;border:1px solid #2c6b4f;border-radius:12px">
+          <p style="margin:0 0 8px;font-size:13px;color:#bdebcf">Your account is ready — sign in at <a href="https://syntrixlabs.in/login" style="color:#34d399">syntrixlabs.in/login</a>:</p>
+          <p style="margin:0;font-size:14px;color:#eafff2">Email: <strong>${email}</strong></p>
+          <p style="margin:4px 0 0;font-size:14px;color:#eafff2">Temporary password: <strong>${tempPassword}</strong></p>
+          <p style="margin:8px 0 0;font-size:12px;color:#9fb6a6">Please reset your password after your first login.</p>
+        </div>` : '';
+  const loginText = tempPassword ? `\nYour account is ready — sign in at https://syntrixlabs.in/login\nEmail: ${email}\nTemporary password: ${tempPassword}\n(Please reset it after your first login.)\n` : '';
   const html = `
   <div style="margin:0;padding:24px;background:#04140d;font-family:Helvetica,Arial,sans-serif">
     <div style="max-width:560px;margin:0 auto;background:#0a1f16;border:1px solid #16352a;border-radius:16px;overflow:hidden">
@@ -34,6 +44,7 @@ async function sendWelcomeEmail({ name, role, email }) {
           You're joining a team that ships premium websites, apps, and platforms for ambitious
           startups. We can't wait to build great things together.
         </p>
+        ${loginHtml}
         <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#cfe8d6">
           We'll be in touch shortly with your next steps. If you have any questions in the meantime,
           just reply to this email.
@@ -48,7 +59,7 @@ async function sendWelcomeEmail({ name, role, email }) {
     </div>
   </div>`;
 
-  const text = `Welcome to the team, ${firstName}!\n\nWe're thrilled to have you on board at Syntrix Labs as our new ${role || 'team member'}. Congratulations and welcome aboard!\n\nWe'll be in touch shortly with your next steps.\n\nWarm regards,\nThe Syntrix Labs Team\nsyntrixlabs.in`;
+  const text = `Welcome to the team, ${firstName}!\n\nWe're thrilled to have you on board at Syntrix Labs as our new ${role || 'team member'}. Congratulations and welcome aboard!\n${loginText}\nWe'll be in touch shortly with your next steps.\n\nWarm regards,\nThe Syntrix Labs Team\nsyntrixlabs.in`;
 
   await transporter.sendMail({
     from: `Syntrix Labs <${process.env.EMAIL_USER}>`,
@@ -66,21 +77,38 @@ router.get('/', authMiddleware, requireAdmin, async (req, res) => {
 });
 
 router.post('/', authMiddleware, requireAdmin, async (req, res) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : undefined;
   const member = await TeamMember.create({
     name: req.body.name,
     role: req.body.role,
-    email: typeof req.body.email === 'string' ? req.body.email.trim() : undefined,
+    email,
     status: req.body.status || 'Active'
   });
 
+  // Auto-provision a team account (role 'team') so they can sign in.
+  let tempPassword;
+  if (email && isValidEmail(email)) {
+    const existing = await User.findOne({ email });
+    if (existing) {
+      if (existing.role !== 'team') {
+        existing.role = 'team';
+        await existing.save();
+      }
+    } else {
+      tempPassword = '1234';
+      const hashed = await bcrypt.hash(tempPassword, await bcrypt.genSalt(10));
+      await User.create({ name: req.body.name, email, password: hashed, role: 'team' });
+    }
+  }
+
   let emailed = false;
   try {
-    emailed = await sendWelcomeEmail({ name: member.name, role: member.role, email: member.email });
+    emailed = await sendWelcomeEmail({ name: member.name, role: member.role, email: member.email, tempPassword });
   } catch (error) {
     console.error('Welcome email failed:', error.message);
   }
 
-  res.status(201).json({ success: true, member, emailed });
+  res.status(201).json({ success: true, member, emailed, accountCreated: Boolean(tempPassword) });
 });
 
 router.put('/:id', authMiddleware, requireAdmin, async (req, res) => {

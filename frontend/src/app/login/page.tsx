@@ -44,7 +44,7 @@ export default function LoginPage() {
       if (data.success) {
         localStorage.setItem("token", data.token);
         const next = new URLSearchParams(window.location.search).get("next");
-        const destination = next === "meetings" ? "/dashboard/meetings" : data.isAdmin ? "/admin" : "/dashboard";
+        const destination = next === "meetings" ? "/dashboard/meetings" : data.isAdmin ? "/admin" : data.isTeam ? "/admin/consultation" : "/dashboard";
         setLoginSucceeded(true);
         const me = await apiGet<{ name?: string }>("/api/auth/me", {});
         setTransition({ name: me.name || "Welcome", destination });

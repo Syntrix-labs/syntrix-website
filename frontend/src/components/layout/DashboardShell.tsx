@@ -25,60 +25,77 @@ const adminItems = [
   { label: "Meetings", href: "/admin/meetings" },
   { label: "Payments", href: "/admin/payments" },
   { label: "Team", href: "/admin/team" },
+  { label: "Team meetings", href: "/admin/team-meetings" },
   { label: "Advertisement", href: "/admin/advertisements" },
 ];
+
+// Pages a team member is allowed to use.
+const teamItems = [
+  { label: "Consultation", href: "/admin/consultation" },
+  { label: "Client meetings", href: "/admin/meetings" },
+  { label: "Team meetings", href: "/admin/team-meetings" },
+];
+const teamPaths = teamItems.map((i) => i.href);
 
 export default function DashboardShell({ type = "client", children }: { type?: "client" | "admin"; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const [adminReady, setAdminReady] = useState(type !== "admin");
+  const [role, setRole] = useState<"admin" | "team" | null>(null);
   const [userName, setUserName] = useState("");
-  const items = type === "admin" ? adminItems : clientItems;
 
+  // Resolve who the user is for admin-area pages.
   useEffect(() => {
-    if (type !== "admin") {
-      setAdminReady(true);
-    }
-
+    if (type !== "admin") return;
     const token = localStorage.getItem("token");
     if (!token) {
-      if (type === "admin") router.replace("/login");
+      router.replace("/login");
       return;
     }
-
     let cancelled = false;
-    apiGet<{ isAdmin?: boolean; name?: string }>("/api/auth/me", { isAdmin: false }).then((user) => {
+    apiGet<{ isAdmin?: boolean; isTeam?: boolean; name?: string }>("/api/auth/me", { isAdmin: false }).then((u) => {
       if (cancelled) return;
-      setUserName(user.name || "");
-      if (type === "admin") {
-        if (user.isAdmin) setAdminReady(true);
-        else router.replace("/dashboard");
-      }
+      setUserName(u.name || "");
+      if (u.isAdmin) setRole("admin");
+      else if (u.isTeam) setRole("team");
+      else router.replace("/dashboard");
     });
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [router, type]);
+
+  useEffect(() => {
+    if (type === "client") {
+      apiGet<{ name?: string }>("/api/auth/me", {}).then((u) => setUserName(u.name || ""));
+    }
+  }, [type]);
+
+  // Keep team members out of admin-only pages.
+  useEffect(() => {
+    if (type === "admin" && role === "team" && !teamPaths.includes(pathname)) {
+      router.replace("/admin/consultation");
+    }
+  }, [type, role, pathname, router]);
 
   const logout = () => {
     localStorage.removeItem("token");
     window.location.href = "/";
   };
 
-  if (type === "admin" && !adminReady) {
+  if (type === "admin" && role === null) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#04140d] px-6 text-white">
         <div className="flex items-center gap-3 rounded-2xl border border-emerald-200/15 bg-emerald-950/30 px-6 py-5 text-sm text-emerald-50/80 backdrop-blur-sm">
           <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
-          Checking admin access…
+          Checking access…
         </div>
       </main>
     );
   }
 
+  const items = type === "admin" ? (role === "team" ? teamItems : adminItems) : clientItems;
+  const homeHref = role === "team" ? "/admin/consultation" : type === "admin" ? "/admin" : "/dashboard";
   const initial = (userName || (type === "admin" ? "A" : "C")).charAt(0).toUpperCase();
+  const panelLabel = role === "team" ? "Team member" : type === "admin" ? "Admin panel" : "Client portal";
 
   return (
     <main className="relative min-h-screen bg-[#04140d] text-white md:flex">
@@ -87,7 +104,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
         className={`${collapsed ? "md:w-24" : "md:w-72"} sticky top-0 z-40 flex flex-col border-r border-emerald-200/10 bg-emerald-950/40 p-5 backdrop-blur-md transition-all duration-300 md:min-h-screen md:p-7`}
       >
         <div className="mb-8 flex items-center justify-between gap-3">
-          <BrandLogo href={type === "admin" ? "/admin" : "/dashboard"} compact={collapsed} />
+          <BrandLogo href={homeHref} compact={collapsed} />
           <button
             onClick={() => setCollapsed((value) => !value)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -122,7 +139,6 @@ export default function DashboardShell({ type = "client", children }: { type?: "
           })}
         </nav>
 
-        {/* user + logout */}
         <div className="mt-auto hidden pt-8 md:block">
           <div className={`flex items-center gap-3 rounded-2xl border border-emerald-200/10 bg-emerald-950/40 p-3 ${collapsed ? "justify-center" : ""}`}>
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/40 to-emerald-600/30 text-sm font-medium text-white ring-1 ring-emerald-200/20">
@@ -131,9 +147,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
             {!collapsed && (
               <div className="min-w-0">
                 <p className="truncate text-sm font-light text-white">{userName || (type === "admin" ? "Admin" : "Client")}</p>
-                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-100/40">
-                  {type === "admin" ? "Admin panel" : "Client portal"}
-                </p>
+                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-100/40">{panelLabel}</p>
               </div>
             )}
           </div>

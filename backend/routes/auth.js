@@ -77,7 +77,8 @@ router.post('/signup', authLimiter, async (req, res) => {
       success: true,
       message: 'User registered successfully!',
       token,
-      isAdmin: isAdminEmail(user.email)
+      isAdmin: isAdminEmail(user.email),
+      isTeam: user.role === 'team'
     });
 
   } catch (error) {
@@ -119,7 +120,7 @@ router.post('/login', authLimiter, async (req, res) => {
       { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
-        res.json({ success: true, token, isAdmin: isAdminEmail(user.email) });
+        res.json({ success: true, token, isAdmin: isAdminEmail(user.email), isTeam: user.role === 'team' });
       }
     );
 
@@ -140,7 +141,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     }
 
     const userObject = user.toObject();
-    res.json({ ...userObject, isAdmin: isAdminEmail(user.email) });
+    res.json({ ...userObject, isAdmin: isAdminEmail(user.email), isTeam: user.role === 'team' });
   } catch (error) {
     console.error(error.message);
     res.status(500).send('Server Error');

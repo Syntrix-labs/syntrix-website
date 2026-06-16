@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const path = require('path');
 const authMiddleware = require('./middleware/authMiddleware');
 const requireAdmin = require('./middleware/adminMiddleware');
+const requireStaff = require('./middleware/staffMiddleware');
 const sanitizeInput = require('./middleware/sanitizeInput');
 const { apiLimiter } = require('./middleware/rateLimiters');
 
@@ -106,7 +107,7 @@ app.use('/api/advertisements', requireDatabase, require('./routes/advertisements
 app.use('/api/team', requireDatabase, require('./routes/team'));
 app.use('/api/team-meetings', requireDatabase, require('./routes/teamMeetings'));
 
-app.get('/api/admin/clients', requireDatabase, authMiddleware, requireAdmin, async (req, res) => {
+app.get('/api/admin/clients', requireDatabase, authMiddleware, requireStaff, async (req, res) => {
   const User = require('./models/User');
   const Project = require('./models/Project');
   const Payment = require('./models/Payment');
@@ -275,10 +276,10 @@ if (require.main === module) {
       const userId = decoded.user && decoded.user.id;
       socket.data.userId = userId;
       try {
-        const user = await User.findById(userId).select('email');
-        socket.data.isAdmin = isAdminEmail(user && user.email);
+        const user = await User.findById(userId).select('email role');
+        socket.data.isStaff = isAdminEmail(user && user.email) || (user && user.role === 'team');
       } catch {
-        socket.data.isAdmin = false;
+        socket.data.isStaff = false;
       }
       return next();
     } catch (error) {
@@ -292,7 +293,7 @@ if (require.main === module) {
     }
     // Admins can join a specific client's room to watch that conversation live.
     socket.on('join', (clientId) => {
-      if (socket.data.isAdmin && clientId) {
+      if (socket.data.isStaff && clientId) {
         socket.join(`user:${clientId}`);
       }
     });
