@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware'); // Import the middleware
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { getTransporter } = require('../utils/mailer');
 const { isAdminEmail } = require('../utils/adminAccess');
 const { authLimiter, passwordResetLimiter } = require('../middleware/rateLimiters');
 
@@ -163,13 +163,7 @@ router.post('/profile/request-otp', authMiddleware, passwordResetLimiter, async 
     await user.save();
 
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      const transporter = nodemailer.createTransport({
-        service: 'Gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
+      const transporter = getTransporter();
 
       await transporter.sendMail({
         from: `${process.env.EMAIL_USER}`,
@@ -246,13 +240,7 @@ router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
     const resetUrl = `${clientUrl.split(',')[0]}/reset-password/${resetToken}`;
 
     // 4. Configure Nodemailer to send the email
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail', // We will configure this in your .env
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    const transporter = getTransporter();
 
     const message = {
       from: `${process.env.EMAIL_USER}`,

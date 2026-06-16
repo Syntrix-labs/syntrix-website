@@ -1,23 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const TeamMember = require('../models/TeamMember');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/adminMiddleware');
+const { getTransporter } = require('../utils/mailer');
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
 
 async function sendWelcomeEmail({ name, role, email, tempPassword }) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !isValidEmail(email)) {
+  const transporter = getTransporter();
+  if (!transporter || !isValidEmail(email)) {
     return false;
   }
-
-  const transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-  });
 
   const firstName = String(name || 'there').split(' ')[0];
   const loginHtml = tempPassword ? `
