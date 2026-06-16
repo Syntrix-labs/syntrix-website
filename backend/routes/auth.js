@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware'); // Import the middleware
 const crypto = require('crypto');
-const { getTransporter } = require('../utils/mailer');
+const { sendMail } = require('../utils/mailer');
 const { isAdminEmail } = require('../utils/adminAccess');
 const { authLimiter, passwordResetLimiter } = require('../middleware/rateLimiters');
 
@@ -162,20 +162,20 @@ router.post('/profile/request-otp', authMiddleware, passwordResetLimiter, async 
     user.emailOtpExpire = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      const transporter = getTransporter();
-
-      await transporter.sendMail({
-        from: `${process.env.EMAIL_USER}`,
+    let otpSent = false;
+    try {
+      otpSent = await sendMail({
         to: typeof req.body.email === 'string' && isValidEmail(normalizeEmail(req.body.email)) ? normalizeEmail(req.body.email) : user.email,
         subject: 'Syntrix Labs - Profile verification OTP',
         text: `Your Syntrix profile verification OTP is: ${otp}`
       });
+    } catch (mailError) {
+      console.error('OTP email failed:', mailError.message);
     }
 
     res.json({
       success: true,
-      message: process.env.EMAIL_USER && process.env.EMAIL_PASS ? 'OTP sent to email' : 'OTP generated. Configure email credentials to send it automatically.',
+      message: otpSent ? 'OTP sent to email' : 'OTP generated. Configure email to send it automatically.',
       devOtp: process.env.NODE_ENV === 'production' ? undefined : otp
     });
   } catch (error) {
@@ -239,17 +239,16 @@ router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
     const resetUrl = `${clientUrl.split(',')[0]}/reset-password/${resetToken}`;
 
-    // 4. Configure Nodemailer to send the email
-    const transporter = getTransporter();
-
-    const message = {
-      from: `${process.env.EMAIL_USER}`,
+    // 4. Send the reset email (HTTPS provider on Render, SMTP fallback locally)
+    const sent = await sendMail({
       to: user.email,
       subject: 'Syntrix Labs - Password Reset',
-      text: `You requested a password reset. Open this link to set a new password:\n\n${resetUrl}`
-    };
-
-    await transporter.sendMail(message);
+      text: `You requested a password reset. Open this link to set a new password:\n\n${resetUrl}`,
+      html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Click here to set a new password</a></p><p>Or open: ${resetUrl}</p>`
+    });
+    if (!sent) {
+      throw new Error('Email provider not configured');
+    }
     res.status(200).json({ success: true, message: 'Email sent' });
 
   } catch (error) {

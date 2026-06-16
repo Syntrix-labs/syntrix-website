@@ -5,13 +5,12 @@ const TeamMember = require('../models/TeamMember');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/adminMiddleware');
-const { getTransporter } = require('../utils/mailer');
+const { sendMail } = require('../utils/mailer');
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
 
 async function sendWelcomeEmail({ name, role, email, tempPassword }) {
-  const transporter = getTransporter();
-  if (!transporter || !isValidEmail(email)) {
+  if (!isValidEmail(email)) {
     return false;
   }
 
@@ -57,14 +56,12 @@ async function sendWelcomeEmail({ name, role, email, tempPassword }) {
 
   const text = `Welcome to the team, ${firstName}!\n\nWe're thrilled to have you on board at Syntrix Labs as our new ${role || 'team member'}. Congratulations and welcome aboard!\n${loginText}\nWe'll be in touch shortly with your next steps.\n\nWarm regards,\nThe Syntrix Labs Team\nsyntrixlabs.in`;
 
-  await transporter.sendMail({
-    from: `Syntrix Labs <${process.env.EMAIL_USER}>`,
+  return await sendMail({
     to: email,
     subject: 'Welcome to the Syntrix Labs team 🎉',
     text,
     html
   });
-  return true;
 }
 
 router.get('/', authMiddleware, requireAdmin, async (req, res) => {
