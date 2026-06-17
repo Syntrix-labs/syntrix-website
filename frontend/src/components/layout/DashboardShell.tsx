@@ -27,6 +27,7 @@ const adminItems = [
   { label: "Payments", href: "/admin/payments" },
   { label: "Team", href: "/admin/team" },
   { label: "Team meetings", href: "/admin/team-meetings" },
+  { label: "Contracts", href: "/admin/contracts" },
   { label: "Advertisement", href: "/admin/advertisements" },
 ];
 

@@ -10,19 +10,34 @@ const nodemailer = require('nodemailer');
  * Returns true if an email was dispatched, false if no provider is configured.
  * Throws if a configured provider fails (callers can catch).
  */
-async function sendMail({ to, subject, html, text }) {
+async function sendMail({ to, subject, html, text, attachments }) {
   if (!to) return false;
+
+  // attachments: [{ filename, path }] or [{ filename, content: Buffer }]
+  const loadAttachment = (att) => {
+    const buffer = att.content
+      ? (Buffer.isBuffer(att.content) ? att.content : Buffer.from(att.content))
+      : require('fs').readFileSync(att.path);
+    return { filename: att.filename, buffer };
+  };
 
   // 1) Resend over HTTPS — works on Render.
   if (process.env.RESEND_API_KEY) {
     const from = process.env.MAIL_FROM || 'Syntrix Labs <onboarding@resend.dev>';
+    const payload = { from, to: [to], subject, html, text };
+    if (attachments && attachments.length) {
+      payload.attachments = attachments.map((att) => {
+        const { filename, buffer } = loadAttachment(att);
+        return { filename, content: buffer.toString('base64') };
+      });
+    }
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ from, to: [to], subject, html, text }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
       const body = await res.text();
@@ -49,6 +64,10 @@ async function sendMail({ to, subject, html, text }) {
       subject,
       html,
       text,
+      attachments: (attachments || []).map((att) => {
+        const { filename, buffer } = loadAttachment(att);
+        return { filename, content: buffer };
+      }),
     });
     return true;
   }

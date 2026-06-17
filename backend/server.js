@@ -106,6 +106,7 @@ app.use('/api/consultations', requireDatabase, require('./routes/consultations')
 app.use('/api/advertisements', requireDatabase, require('./routes/advertisements'));
 app.use('/api/team', requireDatabase, require('./routes/team'));
 app.use('/api/team-meetings', requireDatabase, require('./routes/teamMeetings'));
+app.use('/api/contracts', requireDatabase, require('./routes/contracts'));
 
 app.get('/api/admin/clients', requireDatabase, authMiddleware, requireStaff, async (req, res) => {
   const User = require('./models/User');

@@ -16,12 +16,20 @@ export default function Navbar() {
         <a href="/#work" className="transition hover:text-white">Portfolio</a>
         <a href="/contact" className="transition hover:text-white">Contact</a>
       </div>
-      <a
-        href="/schedule"
-        className="rounded-full border border-emerald-300/40 bg-emerald-500/20 px-5 py-2 text-sm tracking-wide text-emerald-50 backdrop-blur-sm transition hover:bg-emerald-500/40"
-      >
-        Schedule
-      </a>
+      <div className="flex items-center gap-3">
+        <a
+          href="/login"
+          className="rounded-full border border-emerald-200/25 px-5 py-2 text-sm tracking-wide text-emerald-50/80 backdrop-blur-sm transition hover:border-emerald-300/50 hover:text-white"
+        >
+          Login
+        </a>
+        <a
+          href="/schedule"
+          className="rounded-full border border-emerald-300/40 bg-emerald-500/20 px-5 py-2 text-sm tracking-wide text-emerald-50 backdrop-blur-sm transition hover:bg-emerald-500/40"
+        >
+          Schedule
+        </a>
+      </div>
     </nav>
   );
 }

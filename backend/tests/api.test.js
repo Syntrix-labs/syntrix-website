@@ -15,6 +15,11 @@ const { MongoMemoryServer } = require("mongodb-memory-server");
 process.env.JWT_SECRET = "test-secret-key";
 process.env.ADMIN_EMAILS = "admin@syntrix.test";
 process.env.NODE_ENV = "test";
+// Neutralize email so tests never send real mail. dotenv won't override these
+// already-set (empty) vars, so the mailer treats no provider as configured.
+process.env.RESEND_API_KEY = "";
+process.env.EMAIL_USER = "";
+process.env.EMAIL_PASS = "";
 
 let mongod;
 let app;
@@ -371,4 +376,74 @@ test("client uploads a document", async () => {
 
   const mine = await request(app).get("/api/uploads").set("x-auth-token", client.token);
   assert.ok(mine.body.some((d) => d.originalName === "note.txt"));
+});
+
+// ---------- contracts ----------
+let contractId = "";
+
+test("non-admin cannot list contracts", async () => {
+  const res = await request(app).get("/api/contracts").set("x-auth-token", client.token);
+  assert.equal(res.status, 403);
+});
+
+test("contract generation rejects an unknown type", async () => {
+  const res = await request(app).post("/api/contracts/generate").set("x-auth-token", admin.token)
+    .send({ type: "nonsense", name: "X" });
+  assert.equal(res.status, 400);
+});
+
+test("admin generates a client contract (PDF stored, no email configured)", async () => {
+  const res = await request(app).post("/api/contracts/generate").set("x-auth-token", admin.token)
+    .send({ type: "client", name: "Acme Pvt Ltd", email: "ops@acme.test", scope: "a marketing website", fee: 150000, timeline: "6 weeks" });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.success, true);
+  assert.equal(res.body.contract.type, "client");
+  assert.equal(res.body.contract.status, "Draft"); // no RESEND/SMTP in tests
+  assert.equal(res.body.emailed, false);
+  assert.ok(res.body.contract.fileName.endsWith(".pdf"));
+});
+
+test("admin generates a member contract linked to an existing user by email", async () => {
+  const res = await request(app).post("/api/contracts/generate").set("x-auth-token", admin.token)
+    .send({ type: "member-contractor", email: client.email, role: "Frontend Developer", fee: 40000, sendEmail: false });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.contract.type, "member-contractor");
+  assert.equal(res.body.contract.partyName, "Test Client"); // resolved from the user
+  contractId = res.body.contract._id;
+});
+
+test("admin generates a member contract with a per-deal share", async () => {
+  const res = await request(app).post("/api/contracts/generate").set("x-auth-token", admin.token)
+    .send({ type: "member-employee", name: "Share Hire", role: "Engineer", compType: "both", fee: 50000, share: "20% of each deal's value", sendEmail: false });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.contract.details.compType, "both");
+  assert.equal(res.body.contract.details.share, "20% of each deal's value");
+});
+
+test("admin lists contracts", async () => {
+  const res = await request(app).get("/api/contracts").set("x-auth-token", admin.token);
+  assert.equal(res.status, 200);
+  assert.ok(res.body.length >= 2);
+});
+
+test("the linked user sees their own contract via /mine", async () => {
+  const res = await request(app).get("/api/contracts/mine").set("x-auth-token", client.token);
+  assert.equal(res.status, 200);
+  assert.ok(res.body.some((c) => c._id === contractId));
+});
+
+test("admin can download the generated PDF", async () => {
+  const res = await request(app).get(`/api/contracts/${contractId}/download`).set("x-auth-token", admin.token);
+  assert.equal(res.status, 200);
+  assert.match(res.headers["content-type"], /application\/pdf/);
+});
+
+test("admin can mark a contract signed, then delete it", async () => {
+  const signed = await request(app).put(`/api/contracts/${contractId}/status`).set("x-auth-token", admin.token).send({ status: "Signed" });
+  assert.equal(signed.status, 200);
+  assert.equal(signed.body.contract.status, "Signed");
+
+  const del = await request(app).delete(`/api/contracts/${contractId}`).set("x-auth-token", admin.token);
+  assert.equal(del.status, 200);
+  assert.equal(del.body.success, true);
 });
