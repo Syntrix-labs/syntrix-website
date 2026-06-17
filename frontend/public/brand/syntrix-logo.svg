@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" width="1200" height="500">
+    <rect width="1200" height="500" fill="#04140d"/>
+    <g transform="translate(600,150)">
+      <g fill="none" stroke="#a9ba9d" stroke-width="2.2" stroke-opacity="0.95">
+        <circle cx="0.00" cy="0.00" r="46"/><circle cx="0.00" cy="-46.00" r="46"/><circle cx="39.84" cy="-23.00" r="46"/><circle cx="39.84" cy="23.00" r="46"/><circle cx="0.00" cy="46.00" r="46"/><circle cx="-39.84" cy="23.00" r="46"/><circle cx="-39.84" cy="-23.00" r="46"/>
+      </g>
+    </g>
+    <text x="600" y="360" fill="#eafff2" font-family="Helvetica, Arial, sans-serif" font-size="86" font-weight="300" letter-spacing="34" text-anchor="middle">SYNTRIX</text>
+    <line x1="500" y1="410" x2="700" y2="410" stroke="#1d9e75" stroke-width="3"/>
+    <text x="600" y="452" fill="#a9ba9d" font-family="Helvetica, Arial, sans-serif" font-size="22" letter-spacing="10" text-anchor="middle">LABS · DIGITAL STUDIO</text>
+  </svg>
