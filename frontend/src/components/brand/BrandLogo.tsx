@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SyntrixMark from "@/components/brand/SyntrixMark";
 
 type BrandLogoProps = {
   href?: string;
@@ -8,7 +9,7 @@ type BrandLogoProps = {
   textClassName?: string;
 };
 
-/** Text-only wordmark — no image logo anywhere. */
+/** Seed of Life mark (inline SVG) + wordmark. */
 export default function BrandLogo({
   href = "/",
   compact = false,
@@ -19,16 +20,13 @@ export default function BrandLogo({
     <Link
       href={href}
       aria-label="Syntrix Labs home"
-      className={`inline-flex items-center ${className}`}
+      className={`inline-flex items-center gap-2.5 ${className}`}
     >
-      {compact ? (
-        <span
-          className="text-lg font-light tracking-[0.2em] text-white"
-          style={{ textShadow: "0 0 16px rgba(120,210,160,0.5)" }}
-        >
-          S
-        </span>
-      ) : (
+      <SyntrixMark
+        size={compact ? 26 : 22}
+        className="shrink-0 drop-shadow-[0_0_12px_rgba(120,210,160,0.45)]"
+      />
+      {!compact && (
         <span
           className={`text-sm font-light tracking-[0.3em] text-white ${textClassName}`}
           style={{ textShadow: "0 0 16px rgba(120,210,160,0.5)" }}

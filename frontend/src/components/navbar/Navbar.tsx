@@ -1,3 +1,5 @@
+import SyntrixMark from "@/components/brand/SyntrixMark";
+
 export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex h-20 w-full items-center justify-between bg-gradient-to-b from-black/50 to-transparent px-6 md:px-10">
@@ -7,14 +9,7 @@ export default function Navbar() {
         className="flex items-center gap-3 text-sm font-light tracking-[0.32em] text-white transition hover:opacity-80"
         style={{ textShadow: "0 0 18px rgba(120,210,160,0.5)" }}
       >
-        <img
-          src="/brand/syntrix-mark.png"
-          alt=""
-          aria-hidden="true"
-          width={30}
-          height={30}
-          className="drop-shadow-[0_0_12px_rgba(120,210,160,0.45)]"
-        />
+        <SyntrixMark size={30} className="drop-shadow-[0_0_12px_rgba(120,210,160,0.45)]" />
         <span>SYNTRIX<span style={{ color: "#a9ba9d" }}>&nbsp;LABS</span></span>
       </a>
       <div className="hidden gap-8 text-sm tracking-wide text-emerald-50/80 md:flex">
