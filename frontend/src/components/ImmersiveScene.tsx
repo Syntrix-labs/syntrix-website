@@ -53,14 +53,10 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
     resize();
     window.addEventListener("resize", resize);
 
-    // Custom cursor only on real mouse devices; never hide it on touch.
+    // Use the normal system cursor (no custom dot+ring). We still track the
+    // mouse below for the subtle parallax light — just no fake cursor.
     const prevCursor = document.body.style.cursor;
-    if (finePointer) {
-      document.body.style.cursor = "none";
-      cursorEl?.style.removeProperty("display");
-    } else if (cursorEl) {
-      cursorEl.style.display = "none";
-    }
+    if (cursorEl) cursorEl.style.display = "none";
 
     // --- Flower of Life centers (unit vectors * R) ---
     const cen: [number, number][] = [[0, 0]];
