@@ -73,7 +73,7 @@ export default function TeamPage() {
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Member name" className={inputCls} />
           <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role / position" className={inputCls} />
           <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email (creates their account)" className={inputCls} />
-          <button onClick={addMember} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98] md:col-span-3">Add member</button>
+          <button onClick={addMember} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0a1020] transition hover:bg-emerald-400 active:scale-[0.98] md:col-span-3">Add member</button>
           {msg && <p className="text-sm text-emerald-200 md:col-span-3">{msg}</p>}
         </div>
         <p className="mt-3 text-xs text-emerald-50/40">New members get a team account (consultation, client meetings, and team meetings) with a temporary password.</p>

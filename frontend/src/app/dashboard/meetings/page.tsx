@@ -158,7 +158,7 @@ export default function MeetingsPage() {
                   <a
                     href={next.meetingLink}
                     target="_blank"
-                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-[#0d0d0d] transition hover:bg-emerald-400"
+                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-[#0a1020] transition hover:bg-emerald-400"
                   >
                     <i className="ti ti-video" aria-hidden /> Join meeting
                   </a>
@@ -197,7 +197,7 @@ export default function MeetingsPage() {
             <button
               onClick={book}
               disabled={busy}
-              className="w-full rounded-2xl bg-emerald-500/90 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60"
+              className="w-full rounded-2xl bg-emerald-500/90 py-3 font-medium tracking-wide text-[#0a1020] transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60"
             >
               {busy ? "Sending…" : "Request schedule"}
             </button>

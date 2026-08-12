@@ -305,7 +305,7 @@ export default function ContractsPage() {
             <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} className="accent-emerald-500" />
             Email the PDF to the counterparty
           </label>
-          <button onClick={generate} disabled={busy} className="ml-auto rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60">
+          <button onClick={generate} disabled={busy} className="ml-auto rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0a1020] transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60">
             {busy ? "Generating…" : "Generate contract"}
           </button>
         </div>

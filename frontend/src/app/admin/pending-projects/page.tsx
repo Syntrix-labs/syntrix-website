@@ -106,7 +106,7 @@ export default function PendingProjectsPage() {
                     <select value={project.status || "Planning"} onChange={(e) => updateProject(project._id, { status: e.target.value })} className={`${adminInput} w-40`}>
                       {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
-                    <button onClick={() => updateProject(project._id, { status: "In Progress" })} className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98]">Activate</button>
+                    <button onClick={() => updateProject(project._id, { status: "In Progress" })} className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-[#0a1020] transition hover:bg-emerald-400 active:scale-[0.98]">Activate</button>
                   </div>
                 </motion.div>
               );

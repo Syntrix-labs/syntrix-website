@@ -56,7 +56,7 @@ export default function TeamMeetingsPage() {
           <input type="time" value={meet.time} onChange={(e) => setMeet({ ...meet, time: e.target.value })} className={inputCls} />
           <input value={meet.agenda} onChange={(e) => setMeet({ ...meet, agenda: e.target.value })} placeholder="Agenda (optional)" className={`${inputCls} sm:col-span-2`} />
           <input value={meet.link} onChange={(e) => setMeet({ ...meet, link: e.target.value })} placeholder="Meeting link (optional)" className={`${inputCls} sm:col-span-2`} />
-          <button onClick={schedule} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98] sm:col-span-2">Schedule team meeting</button>
+          <button onClick={schedule} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0a1020] transition hover:bg-emerald-400 active:scale-[0.98] sm:col-span-2">Schedule team meeting</button>
           {msg && <p className="text-sm text-emerald-200 sm:col-span-2">{msg}</p>}
         </div>
       </div>

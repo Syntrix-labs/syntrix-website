@@ -139,10 +139,10 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
       smx += (mx - smx) * 0.06;
       smy += (my - smy) * 0.06;
 
-      // background gradient: near-black -> warm charcoal (brand is black + cream)
+      // background gradient: deep navy -> lighter navy (midnight navy + cream)
       const k = prog * 0.65;
-      const top = [L(13, 30, k), L(13, 29, k), L(13, 26, k)];
-      const bot = [L(10, 40, k), L(10, 38, k), L(9, 33, k)];
+      const top = [L(10, 20, k), L(16, 30, k), L(32, 52, k)];
+      const bot = [L(8, 24, k), L(13, 36, k), L(28, 64, k)];
       const g = ctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, `rgb(${top[0] | 0},${top[1] | 0},${top[2] | 0})`);
       g.addColorStop(1, `rgb(${bot[0] | 0},${bot[1] | 0},${bot[2] | 0})`);
@@ -153,8 +153,8 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
       const lx = W * (L(0.5, 0.68, prog) + (smx - 0.5) * 0.12);
       const ly = H * (0.45 + (smy - 0.5) * 0.1);
       const vl = ctx.createRadialGradient(lx, ly, 0, lx, ly, W * 0.62);
-      vl.addColorStop(0, `rgba(240,235,224,${0.05 + prog * 0.22})`);
-      vl.addColorStop(1, "rgba(240,235,224,0)");
+      vl.addColorStop(0, `rgba(143,180,255,${0.05 + prog * 0.22})`);
+      vl.addColorStop(1, "rgba(143,180,255,0)");
       ctx.fillStyle = vl;
       ctx.fillRect(0, 0, W, H);
 

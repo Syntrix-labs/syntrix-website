@@ -145,7 +145,7 @@ export default function SocialPage() {
               const on = platforms.includes(p.id);
               return (
                 <button key={p.id} onClick={() => togglePlatform(p.id)}
-                  className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition ${on ? "border-emerald-400/60 bg-emerald-500/15 text-[#0d0d0d]" : "border-emerald-200/15 text-emerald-50/55 hover:text-[#0d0d0d]"}`}>
+                  className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition ${on ? "border-emerald-400/60 bg-emerald-500/15 text-[#0a1020]" : "border-emerald-200/15 text-emerald-50/55 hover:text-[#0a1020]"}`}>
                   <i className={`ti ti-${p.icon}`} aria-hidden /> {p.label}
                 </button>
               );
@@ -163,7 +163,7 @@ export default function SocialPage() {
           </div>
 
           <button onClick={generate} disabled={busy}
-            className="md:col-span-2 rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50">
+            className="md:col-span-2 rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0a1020] transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50">
             <i className="ti ti-sparkles" aria-hidden /> {busy ? "Working…" : "Generate draft"}
           </button>
           {msg && <p className="md:col-span-2 text-sm text-emerald-200">{msg}</p>}
@@ -220,7 +220,7 @@ export default function SocialPage() {
                   {post.status === "draft" && (
                     <button onClick={() => act(post._id, "approve")} disabled={busy} className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-4 py-2 text-sm text-sky-100 transition hover:bg-sky-500/20 disabled:opacity-50"><i className="ti ti-check" aria-hidden /> Approve</button>
                   )}
-                  <button onClick={() => act(post._id, "publish")} disabled={busy} className="rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-[#0d0d0d] transition hover:bg-emerald-400 disabled:opacity-50"><i className="ti ti-send" aria-hidden /> Publish now</button>
+                  <button onClick={() => act(post._id, "publish")} disabled={busy} className="rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-[#0a1020] transition hover:bg-emerald-400 disabled:opacity-50"><i className="ti ti-send" aria-hidden /> Publish now</button>
                 </div>
               )}
             </motion.div>

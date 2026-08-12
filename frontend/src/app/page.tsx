@@ -175,7 +175,7 @@ export default function Home() {
             transition={{ duration: 1, delay: 1 }}
             className="mt-10 flex flex-col gap-4 sm:flex-row"
           >
-            <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-[#0d0d0d] shadow-lg shadow-emerald-500/30 backdrop-blur transition hover:bg-emerald-400">
+            <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-[#0a1020] shadow-lg shadow-emerald-500/30 backdrop-blur transition hover:bg-emerald-400">
               Start your journey
             </a>
             <a href="#work" className="rounded-full border border-emerald-200/25 px-8 py-3.5 text-sm font-medium tracking-wide text-emerald-50 transition hover:border-emerald-200/60">
@@ -325,7 +325,7 @@ export default function Home() {
               Book a discovery call and we&apos;ll map the scope, timeline, and platform needs before you commit.
             </p>
             <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-              <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-[#0d0d0d] shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400">
+              <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-[#0a1020] shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400">
                 Schedule a free call
               </a>
               <a href="/login" className="rounded-full border border-emerald-200/25 px-8 py-3.5 text-sm font-medium tracking-wide text-emerald-50 transition hover:border-emerald-200/60">
