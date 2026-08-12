@@ -57,6 +57,7 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
     // mouse below for the subtle parallax light — just no fake cursor.
     const prevCursor = document.body.style.cursor;
     if (cursorEl) cursorEl.style.display = "none";
+    if (dotRef.current) dotRef.current.style.display = "none";
 
     // --- Flower of Life centers (unit vectors * R) ---
     const cen: [number, number][] = [[0, 0]];
