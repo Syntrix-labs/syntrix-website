@@ -9,7 +9,7 @@ type BrandLogoProps = {
   textClassName?: string;
 };
 
-/** Syntrix "S" mark (inline SVG) + wordmark. */
+/** Seed of Life mark (inline SVG) + wordmark. */
 export default function BrandLogo({
   href = "/",
   compact = false,
@@ -24,14 +24,14 @@ export default function BrandLogo({
     >
       <SyntrixMark
         size={compact ? 26 : 22}
-        className="shrink-0 drop-shadow-[0_0_12px_rgba(240,236,226,0.35)]"
+        className="shrink-0 drop-shadow-[0_0_12px_rgba(120,210,160,0.45)]"
       />
       {!compact && (
         <span
           className={`text-sm font-light tracking-[0.3em] text-white ${textClassName}`}
-          style={{ textShadow: "0 0 16px rgba(240,236,226,0.35)" }}
+          style={{ textShadow: "0 0 16px rgba(120,210,160,0.5)" }}
         >
-          SYNTRIX<span style={{ color: "#b7b1a0" }}>&nbsp;LABS</span>
+          SYNTRIX<span style={{ color: "#a9ba9d" }}>&nbsp;LABS</span>
         </span>
       )}
       <span className="sr-only">Syntrix Labs</span>

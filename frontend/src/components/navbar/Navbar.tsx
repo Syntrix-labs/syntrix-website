@@ -7,10 +7,10 @@ export default function Navbar() {
         href="/"
         aria-label="Syntrix Labs home"
         className="flex items-center gap-3 text-sm font-light tracking-[0.32em] text-white transition hover:opacity-80"
-        style={{ textShadow: "0 0 18px rgba(240,236,226,0.35)" }}
+        style={{ textShadow: "0 0 18px rgba(120,210,160,0.5)" }}
       >
-        <SyntrixMark size={30} className="drop-shadow-[0_0_12px_rgba(240,236,226,0.35)]" />
-        <span>SYNTRIX<span style={{ color: "#b7b1a0" }}>&nbsp;LABS</span></span>
+        <SyntrixMark size={30} className="drop-shadow-[0_0_12px_rgba(120,210,160,0.45)]" />
+        <span>SYNTRIX<span style={{ color: "#a9ba9d" }}>&nbsp;LABS</span></span>
       </a>
       <div className="hidden gap-8 text-sm tracking-wide text-emerald-50/80 md:flex">
         <a href="/" className="transition hover:text-white">Home</a>
