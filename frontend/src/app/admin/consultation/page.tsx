@@ -184,7 +184,7 @@ export default function AdminConsultationPage() {
                     placeholder={`Message ${selectedClient?.name || ""}…`}
                     className="flex-1 rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-50/90 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60"
                   />
-                  <button onClick={send} disabled={!draft.trim() || sending} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/90 text-white transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50">
+                  <button onClick={send} disabled={!draft.trim() || sending} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/90 text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50">
                     <i className="ti ti-send" aria-hidden />
                   </button>
                 </div>

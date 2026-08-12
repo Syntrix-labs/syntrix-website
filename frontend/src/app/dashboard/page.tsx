@@ -157,7 +157,7 @@ function StatTile({ index, icon, label, value, href }: { index: number; icon: st
           <i className={`ti ti-${icon}`} aria-hidden />
         </div>
         <p className="text-sm text-emerald-100/60">{label}</p>
-        <p className="mt-1 text-4xl font-extralight text-white" style={{ textShadow: "0 0 26px rgba(120,210,160,0.35)" }}>
+        <p className="mt-1 text-4xl font-extralight text-white" style={{ textShadow: "0 0 26px rgba(240, 235, 224,0.35)" }}>
           <CountUp value={value} />
         </p>
       </a>

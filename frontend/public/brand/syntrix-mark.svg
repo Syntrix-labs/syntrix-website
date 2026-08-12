@@ -1,3 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="512" height="512">
-    <g fill="none" stroke="#a9ba9d" stroke-width="1.4" stroke-opacity="0.95"><circle cx="100.00" cy="100.00" r="34" /><circle cx="100.00" cy="66.00" r="34" /><circle cx="129.44" cy="83.00" r="34" /><circle cx="129.44" cy="117.00" r="34" /><circle cx="100.00" cy="134.00" r="34" /><circle cx="70.56" cy="117.00" r="34" /><circle cx="70.56" cy="83.00" r="34" /></g>
-  </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Syntrix mark">
+  <rect width="512" height="512" rx="96" fill="#0d0d0d"/>
+  <mask id="s">
+    <rect width="512" height="512" fill="black"/>
+    <circle cx="256" cy="256" r="150" fill="white"/>
+    <rect x="-40" y="220" width="592" height="46" fill="black" transform="rotate(-45 256 256)"/>
+  </mask>
+  <rect width="512" height="512" fill="#f2efe6" mask="url(#s)"/>
+</svg>

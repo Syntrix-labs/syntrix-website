@@ -39,11 +39,15 @@ const teamItems = [
 ];
 const teamPaths = teamItems.map((i) => i.href);
 
+// Social automation lives in the marketing head's (MD Khalid) dashboard.
+const socialItem = { label: "Social", href: "/admin/social" };
+
 export default function DashboardShell({ type = "client", children }: { type?: "client" | "admin"; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [role, setRole] = useState<"admin" | "team" | null>(null);
+  const [isMktHead, setIsMktHead] = useState(false);
   const [userName, setUserName] = useState("");
 
   // Resolve who the user is for admin-area pages.
@@ -55,9 +59,10 @@ export default function DashboardShell({ type = "client", children }: { type?: "
       return;
     }
     let cancelled = false;
-    apiGet<{ isAdmin?: boolean; isTeam?: boolean; name?: string }>("/api/auth/me", { isAdmin: false }).then((u) => {
+    apiGet<{ isAdmin?: boolean; isTeam?: boolean; isMarketingHead?: boolean; name?: string }>("/api/auth/me", { isAdmin: false }).then((u) => {
       if (cancelled) return;
       setUserName(u.name || "");
+      setIsMktHead(Boolean(u.isMarketingHead));
       if (u.isAdmin) setRole("admin");
       else if (u.isTeam) setRole("team");
       else router.replace("/dashboard");
@@ -71,12 +76,13 @@ export default function DashboardShell({ type = "client", children }: { type?: "
     }
   }, [type]);
 
-  // Keep team members out of admin-only pages.
+  // Keep team members out of admin-only pages. The marketing head also gets /admin/social.
   useEffect(() => {
-    if (type === "admin" && role === "team" && !teamPaths.includes(pathname)) {
+    const allowed = isMktHead ? [...teamPaths, socialItem.href] : teamPaths;
+    if (type === "admin" && role === "team" && !allowed.includes(pathname)) {
       router.replace("/admin/consultation");
     }
-  }, [type, role, pathname, router]);
+  }, [type, role, pathname, router, isMktHead]);
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -85,7 +91,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
 
   if (type === "admin" && role === null) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#04140d] px-6 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#0d0d0d] px-6 text-white">
         <div className="flex items-center gap-3 rounded-2xl border border-emerald-200/15 bg-emerald-950/30 px-6 py-5 text-sm text-emerald-50/80 backdrop-blur-sm">
           <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
           Checking access…
@@ -94,13 +100,16 @@ export default function DashboardShell({ type = "client", children }: { type?: "
     );
   }
 
-  const items = type === "admin" ? (role === "team" ? teamItems : adminItems) : clientItems;
+  const baseItems = type === "admin" ? (role === "team" ? teamItems : adminItems) : clientItems;
+  // Social is shown to admins (owner) and to the marketing head (MD Khalid).
+  const showSocial = type === "admin" && (role === "admin" || isMktHead);
+  const items = showSocial ? [...baseItems, socialItem] : baseItems;
   const homeHref = role === "team" ? "/admin/consultation" : type === "admin" ? "/admin" : "/dashboard";
   const initial = (userName || (type === "admin" ? "A" : "C")).charAt(0).toUpperCase();
   const panelLabel = role === "team" ? "Team member" : type === "admin" ? "Admin panel" : "Client portal";
 
   return (
-    <main className="relative min-h-screen bg-[#04140d] text-white md:flex">
+    <main className="relative min-h-screen bg-[#0d0d0d] text-white md:flex">
       <DashboardAura />
       <aside
         className={`${collapsed ? "md:w-24" : "md:w-72"} sticky top-0 z-40 flex flex-col border-r border-emerald-200/10 bg-emerald-950/40 p-5 backdrop-blur-md transition-all duration-300 md:min-h-screen md:p-7`}

@@ -33,7 +33,7 @@ const products: Product[] = [
     name: "Client Dashboard",
     contains: "auth · tracking · uploads · live status",
     glow: "#34d399",
-    ring: "rgba(52,211,153,0.45)",
+    ring: "rgba(231, 225, 210,0.45)",
   },
   {
     sku: "#03",

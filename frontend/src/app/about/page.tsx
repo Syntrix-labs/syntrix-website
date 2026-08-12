@@ -22,7 +22,7 @@ export default function AboutPage() {
         <section className="relative flex flex-col items-center justify-center overflow-hidden pt-24 pb-8">
           <ParticleShape shape="team" />
           <div className="relative z-10 -mt-12 px-6 text-center">
-            <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: "#a9ba9d" }}>About Syntrix Labs</p>
+            <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: "#b7b1a0" }}>About Syntrix Labs</p>
             <h1 className="max-w-4xl text-4xl font-light leading-tight tracking-wide md:text-6xl" style={{ textShadow: "0 0 30px rgba(10,30,20,0.85)" }}>
               A studio built by Soham &amp; Tahir.
             </h1>

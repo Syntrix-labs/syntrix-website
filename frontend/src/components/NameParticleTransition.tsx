@@ -150,7 +150,7 @@ export default function NameParticleTransition({ name, onComplete }: Props) {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[100] flex items-center justify-center"
-      style={{ background: "radial-gradient(circle at 50% 45%, #0c2a1d, #04140d 72%)" }}
+      style={{ background: "radial-gradient(circle at 50% 45%, #141310, #0d0d0d 72%)" }}
     >
       <canvas ref={canvasRef} aria-hidden className="absolute inset-0 h-full w-full" />
       <motion.p

@@ -27,7 +27,7 @@ const reveal = {
   transition: { duration: 0.8, ease },
 };
 
-const accent = "#a9ba9d";
+const accent = "#b7b1a0";
 
 // shared stagger helpers
 const stagger = (gap = 0.1, delay = 0.1): Variants => ({
@@ -321,8 +321,8 @@ function GrowthMock() {
         <svg viewBox="0 0 300 110" className="h-28 w-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(110,231,183,0.45)" />
-              <stop offset="100%" stopColor="rgba(110,231,183,0)" />
+              <stop offset="0%" stopColor="rgba(231, 225, 210,0.45)" />
+              <stop offset="100%" stopColor="rgba(231, 225, 210,0)" />
             </linearGradient>
           </defs>
           <motion.path
@@ -336,7 +336,7 @@ function GrowthMock() {
           <motion.path
             d="M0,95 L40,82 L80,86 L120,60 L160,64 L200,38 L240,30 L300,8"
             fill="none"
-            stroke="rgba(167,243,208,0.9)"
+            stroke="rgba(231, 225, 210,0.9)"
             strokeWidth="2"
             initial={{ pathLength: 0 }}
             whileInView={{ pathLength: 1 }}

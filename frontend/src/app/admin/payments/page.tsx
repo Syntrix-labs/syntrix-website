@@ -90,7 +90,7 @@ export default function AdminPaymentsPage() {
           <input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} placeholder="Amount" type="number" className={payInput} />
           <input value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} type="date" className={payInput} />
           <input value={form.clientEmail} onChange={(event) => setForm({ ...form, clientEmail: event.target.value })} placeholder="Client email" className={payInput} />
-          <button onClick={createPayment} className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Add payment</button>
+          <button onClick={createPayment} className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98]">Add payment</button>
           <input value={form.paymentUrl} onChange={(event) => setForm({ ...form, paymentUrl: event.target.value })} placeholder="Payment URL" className={`${payInput} md:col-span-5`} />
           {msg && <p className="text-sm text-emerald-200 md:col-span-5">{msg}</p>}
         </div>

@@ -120,7 +120,7 @@ export default function AdminMeetingsPage() {
                   <div className="flex items-center gap-3">
                     <span className={`rounded-full px-3 py-1 text-xs ${meeting.status === "Confirmed" ? "bg-emerald-500/15 text-emerald-200" : "bg-amber-500/15 text-amber-100"}`}>{meeting.status}</span>
                     {meeting.meetingLink && meeting.meetingLink.startsWith("http") ? (
-                      <a href={meeting.meetingLink} target="_blank" className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Join meeting</a>
+                      <a href={meeting.meetingLink} target="_blank" className="rounded-2xl bg-emerald-500/90 px-5 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98]">Join meeting</a>
                     ) : (
                       <span className="rounded-2xl border border-emerald-200/15 px-5 py-3 text-sm text-emerald-50/40">Link coming soon</span>
                     )}
@@ -200,7 +200,7 @@ export default function AdminMeetingsPage() {
                         className="w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/80 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60"
                       />
                       <div className="grid grid-cols-2 gap-3">
-                        <button onClick={() => updateMeeting(meeting._id, { status: "Confirmed", meetingLink: links[meeting._id] || meeting.meetingLink })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Confirm</button>
+                        <button onClick={() => updateMeeting(meeting._id, { status: "Confirmed", meetingLink: links[meeting._id] || meeting.meetingLink })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98]">Confirm</button>
                         <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-red-400/50 hover:text-red-200">Decline</button>
                       </div>
                       {renderAssignees(meeting)}
@@ -215,7 +215,7 @@ export default function AdminMeetingsPage() {
                       />
                       <div className="grid grid-cols-2 gap-3">
                         <button onClick={() => updateMeeting(meeting._id, { meetingLink: links[meeting._id] || meeting.meetingLink })} className="rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-emerald-300/50">Save link</button>
-                        <button onClick={() => updateMeeting(meeting._id, { status: "Completed" })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Complete</button>
+                        <button onClick={() => updateMeeting(meeting._id, { status: "Completed" })} className="rounded-2xl bg-emerald-500/90 px-4 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98]">Complete</button>
                         <button onClick={() => updateMeeting(meeting._id, { status: "Cancelled" })} className="col-span-2 rounded-2xl border border-emerald-200/15 px-4 py-3 transition hover:border-red-400/50 hover:text-red-200">Cancel meeting</button>
                       </div>
                       {renderAssignees(meeting)}

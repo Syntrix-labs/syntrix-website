@@ -9,7 +9,7 @@ export default function Card({ title, value }: CardProps) {
       <h2 className="mb-4 text-lg font-light tracking-wide text-emerald-50/70">{title}</h2>
       <p
         className="text-5xl font-extralight text-white"
-        style={{ textShadow: "0 0 26px rgba(120,210,160,0.4)" }}
+        style={{ textShadow: "0 0 26px rgba(240, 235, 224,0.4)" }}
       >
         {value}
       </p>

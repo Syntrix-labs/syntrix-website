@@ -134,7 +134,7 @@ export default function LoginPage() {
           disabled={isSubmitting || loginSucceeded}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full rounded-2xl bg-emerald-500/90 py-4 font-semibold tracking-wide text-white shadow-lg shadow-emerald-500/25 transition-colors duration-300 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full rounded-2xl bg-emerald-500/90 py-4 font-semibold tracking-wide text-[#0d0d0d] shadow-lg shadow-emerald-500/25 transition-colors duration-300 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loginSucceeded ? "Redirecting..." : isSubmitting ? "Checking..." : "Login"}
         </motion.button>

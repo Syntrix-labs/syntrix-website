@@ -32,7 +32,7 @@ export default function OurWork({ scheduleHref = "/schedule" }: { scheduleHref?:
   return (
     <div className="mx-auto max-w-6xl">
       <motion.div {...reveal} className="mb-14 text-center">
-        <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>OUR WORK</p>
+        <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#b7b1a0" }}>OUR WORK</p>
         <h2 className="text-3xl font-light tracking-wide md:text-5xl">
           {ads.length ? "Real products we've shipped" : "Work directions we ship for clients"}
         </h2>
@@ -81,7 +81,7 @@ export default function OurWork({ scheduleHref = "/schedule" }: { scheduleHref?:
               whileHover={{ y: -6 }}
               className="group rounded-2xl border border-emerald-200/15 bg-emerald-950/20 p-7 backdrop-blur-sm transition hover:border-emerald-300/40 hover:bg-emerald-900/20"
             >
-              <p className="text-sm tracking-wide" style={{ color: "#a9ba9d" }}>{type}</p>
+              <p className="text-sm tracking-wide" style={{ color: "#b7b1a0" }}>{type}</p>
               <h3 className="mt-3 text-2xl font-light">{title}</h3>
               <p className="mt-6 text-sm font-light text-emerald-100/50 transition group-hover:text-emerald-100/80">Start a project →</p>
             </motion.a>

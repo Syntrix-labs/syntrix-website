@@ -67,7 +67,7 @@ export default function DashboardAura() {
         if (p.x < 0 || p.x > 1) p.vx *= -1;
         if (p.y < 0 || p.y > 1) p.vy *= -1;
         ctx.globalAlpha = p.z * 0.35;
-        ctx.fillStyle = "rgba(190,235,200,1)";
+        ctx.fillStyle = "rgba(240, 235, 224,1)";
         ctx.fillRect(p.x * W, p.y * H, 1.4, 1.4);
       }
       ctx.globalAlpha = 1;

@@ -98,7 +98,7 @@ export default function ProfilePage() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="relative mb-4 overflow-hidden rounded-2xl border border-emerald-500/40 p-5"
-          style={{ background: "#0c2a1d" }}
+          style={{ background: "#141310" }}
         >
           <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-emerald-400/10" />
           <div className="relative flex items-center justify-between">
@@ -181,7 +181,7 @@ export default function ProfilePage() {
             <button
               onClick={save}
               disabled={saving}
-              className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60"
+              className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60"
             >
               {saving ? "Saving…" : "Save changes"}
             </button>

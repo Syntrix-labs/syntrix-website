@@ -6,7 +6,7 @@ import { verticals } from "./verticals";
 
 export default function ShowcaseGallery() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#04140d] text-white">
+    <main className="relative min-h-screen overflow-hidden bg-[#0d0d0d] text-white">
       <div className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-emerald-500/20 blur-[130px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-[520px] w-[520px] rounded-full bg-emerald-400/10 blur-[130px]" />
 

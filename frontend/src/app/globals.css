@@ -3,6 +3,30 @@
 @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.30.0/dist/tabler-icons.min.css');
 @import "tailwindcss";
 
+/* ============================================================
+   Brand: monochrome black + cream (Syntrix LABS "S" mark).
+   The whole app was built on the `emerald` scale, so we remap
+   that scale here to a warm cream/stone neutral — one place,
+   entire site restyled. Light shades = cream accents/text,
+   dark shades = near-black surfaces.
+   ============================================================ */
+@theme {
+  --color-emerald-50:  #faf9f4;
+  --color-emerald-100: #f4f1e9;
+  --color-emerald-200: #eae6da;
+  --color-emerald-300: #ddd7c6;
+  --color-emerald-400: #f1ede1;
+  --color-emerald-500: #e7e1d2;
+  --color-emerald-600: #b7b1a0;
+  --color-emerald-700: #6d685c;
+  --color-emerald-800: #38362e;
+  --color-emerald-900: #1b1a15;
+  --color-emerald-950: #121108;
+  /* stray green accents used in a couple of gradients */
+  --color-lime-200: #ece6d7;
+  --color-lime-300: #ddd7c6;
+}
+
 html,
 body {
   margin: 0;
@@ -31,7 +55,7 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f7d5a;
+  background: #6d685c;
   border-radius: 999px;
 }
 
@@ -47,12 +71,12 @@ html {
 }
 .cur-ring.grow {
   transform: translate(-50%, -50%) scale(2.1);
-  background-color: rgba(180, 230, 190, 0.08);
-  border-color: rgba(180, 230, 190, 0.7);
+  background-color: rgba(240, 236, 226, 0.08);
+  border-color: rgba(240, 236, 226, 0.6);
 }
 .cur-dot {
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 10px rgba(180, 230, 190, 0.9);
+  box-shadow: 0 0 10px rgba(240, 236, 226, 0.85);
 }
 
 /* ---- Liquid glass (used by /preview hero) ---- */

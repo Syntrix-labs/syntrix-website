@@ -144,11 +144,11 @@ export default function Home() {
             />
             <h1
               className="relative text-6xl font-extralight tracking-[0.28em] text-white md:text-8xl"
-              style={{ textShadow: "0 0 50px rgba(120,210,160,0.55)" }}
+              style={{ textShadow: "0 0 50px rgba(240, 235, 224,0.55)" }}
             >
               SYNTRIX
             </h1>
-            <p className="relative mt-4 font-mono text-[11px] tracking-[0.6em] md:text-xs" style={{ color: "#a9ba9d" }}>
+            <p className="relative mt-4 font-mono text-[11px] tracking-[0.6em] md:text-xs" style={{ color: "#b7b1a0" }}>
               LABS · DIGITAL STUDIO
             </p>
           </motion.div>
@@ -175,7 +175,7 @@ export default function Home() {
             transition={{ duration: 1, delay: 1 }}
             className="mt-10 flex flex-col gap-4 sm:flex-row"
           >
-            <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-white shadow-lg shadow-emerald-500/30 backdrop-blur transition hover:bg-emerald-400">
+            <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-[#0d0d0d] shadow-lg shadow-emerald-500/30 backdrop-blur transition hover:bg-emerald-400">
               Start your journey
             </a>
             <a href="#work" className="rounded-full border border-emerald-200/25 px-8 py-3.5 text-sm font-medium tracking-wide text-emerald-50 transition hover:border-emerald-200/60">
@@ -189,7 +189,7 @@ export default function Home() {
         <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
           <ParticleFigure />
           <motion.div {...reveal} className="pointer-events-none absolute bottom-20 left-0 right-0 px-6 text-center">
-            <p className="mb-4 font-mono text-xs tracking-[0.5em]" style={{ color: "#a9ba9d" }}>OUR APPROACH</p>
+            <p className="mb-4 font-mono text-xs tracking-[0.5em]" style={{ color: "#b7b1a0" }}>OUR APPROACH</p>
             <h2 className="mx-auto max-w-2xl text-3xl font-light leading-tight tracking-wide md:text-5xl" style={{ textShadow: "0 0 30px rgba(10,30,20,0.8)" }}>
               Human insight, engineered into systems.
             </h2>
@@ -211,7 +211,7 @@ export default function Home() {
                 transition={{ duration: 0.6, delay: i * 0.08 }}
                 className="rounded-2xl border border-emerald-200/12 bg-emerald-950/20 p-6 text-center backdrop-blur-sm"
               >
-                <div className="text-4xl font-extralight text-white md:text-5xl" style={{ textShadow: "0 0 26px rgba(120,210,160,0.4)" }}>
+                <div className="text-4xl font-extralight text-white md:text-5xl" style={{ textShadow: "0 0 26px rgba(240, 235, 224,0.4)" }}>
                   <Counter value={value} suffix={suffix} />
                 </div>
                 <p className="mt-3 text-xs font-light leading-relaxed text-emerald-50/60 md:text-sm">{label}</p>
@@ -224,7 +224,7 @@ export default function Home() {
         <section className="px-6 py-28">
           <div className="mx-auto max-w-6xl">
             <motion.div {...reveal} className="mb-14 max-w-2xl">
-              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>WHY SYNTRIX</p>
+              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#b7b1a0" }}>WHY SYNTRIX</p>
               <h2 className="text-3xl font-light leading-tight tracking-wide md:text-5xl">Reasons startups choose to build with us.</h2>
             </motion.div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -251,7 +251,7 @@ export default function Home() {
         <section className="px-6 py-28">
           <div className="mx-auto max-w-6xl">
             <motion.div {...reveal} className="mb-14 text-center">
-              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>HOW WE WORK</p>
+              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#b7b1a0" }}>HOW WE WORK</p>
               <h2 className="text-3xl font-light tracking-wide md:text-5xl">From first call to launch, in four clear steps.</h2>
             </motion.div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
@@ -264,7 +264,7 @@ export default function Home() {
                   transition={{ duration: 0.6, delay: i * 0.1 }}
                   className="relative rounded-2xl border border-emerald-200/12 bg-emerald-950/20 p-7 backdrop-blur-sm"
                 >
-                  <p className="font-mono text-2xl font-extralight" style={{ color: "#a9ba9d" }}>{num}</p>
+                  <p className="font-mono text-2xl font-extralight" style={{ color: "#b7b1a0" }}>{num}</p>
                   <h3 className="mt-4 text-lg font-light text-white">{title}</h3>
                   <p className="mt-3 text-sm font-light leading-relaxed text-emerald-50/60">{text}</p>
                 </motion.div>
@@ -281,7 +281,7 @@ export default function Home() {
         {/* Tech stack */}
         <section className="px-6 py-28">
           <div className="mx-auto max-w-5xl text-center">
-            <motion.p {...reveal} className="mb-10 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>BUILT WITH A MODERN STACK</motion.p>
+            <motion.p {...reveal} className="mb-10 font-mono text-xs tracking-[0.4em]" style={{ color: "#b7b1a0" }}>BUILT WITH A MODERN STACK</motion.p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               {tech.map((t, i) => (
                 <motion.span
@@ -303,7 +303,7 @@ export default function Home() {
         <section className="px-6 py-28">
           <div className="mx-auto max-w-3xl">
             <motion.div {...reveal} className="mb-10 text-center">
-              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>QUESTIONS</p>
+              <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#b7b1a0" }}>QUESTIONS</p>
               <h2 className="text-3xl font-light tracking-wide md:text-5xl">Everything you might be wondering.</h2>
             </motion.div>
             <div>
@@ -317,7 +317,7 @@ export default function Home() {
         {/* Final CTA */}
         <section id="contact" className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
           <motion.div {...reveal} className="max-w-2xl">
-            <p className="mb-5 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>BEGIN</p>
+            <p className="mb-5 font-mono text-xs tracking-[0.4em]" style={{ color: "#b7b1a0" }}>BEGIN</p>
             <h2 className="text-4xl font-light leading-tight tracking-wide md:text-6xl" style={{ textShadow: "0 0 30px rgba(40,80,55,0.6)" }}>
               Ready to build your next digital product?
             </h2>
@@ -325,7 +325,7 @@ export default function Home() {
               Book a discovery call and we&apos;ll map the scope, timeline, and platform needs before you commit.
             </p>
             <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-              <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-white shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400">
+              <a href={scheduleHref} className="rounded-full bg-emerald-500/90 px-8 py-3.5 text-sm font-medium tracking-wide text-[#0d0d0d] shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400">
                 Schedule a free call
               </a>
               <a href="/login" className="rounded-full border border-emerald-200/25 px-8 py-3.5 text-sm font-medium tracking-wide text-emerald-50 transition hover:border-emerald-200/60">

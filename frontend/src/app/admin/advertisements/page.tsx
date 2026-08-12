@@ -67,7 +67,7 @@ export default function AdvertisementsPage() {
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project title (e.g. Acme Marketing Site)" className={`${adInput} md:col-span-2`} />
           <input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="Website link (https://…)" className={adInput} />
           <input value={appUrl} onChange={(e) => setAppUrl(e.target.value)} placeholder="App link (optional)" className={adInput} />
-          <button onClick={publish} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98] md:col-span-2">
+          <button onClick={publish} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0d0d0d] transition hover:bg-emerald-400 active:scale-[0.98] md:col-span-2">
             <i className="ti ti-camera" aria-hidden /> Capture &amp; publish
           </button>
           {msg && <p className="text-sm text-emerald-200 md:col-span-2">{msg}</p>}
