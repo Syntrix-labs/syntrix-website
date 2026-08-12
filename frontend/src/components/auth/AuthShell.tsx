@@ -19,7 +19,7 @@ export const authItem: Variants = {
 
 /** Shared input styling (focus glow + background lift). */
 export const authInputClass =
-  "w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/40 px-5 py-4 outline-none transition-all duration-300 focus:border-emerald-400/60 focus:bg-emerald-950/60 focus:shadow-[0_0_0_4px_rgba(231, 225, 210,0.10)] disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/40 px-5 py-4 outline-none transition-all duration-300 focus:border-emerald-400/60 focus:bg-emerald-950/60 focus:shadow-[0_0_0_4px_rgba(52,211,153,0.10)] disabled:cursor-not-allowed disabled:opacity-60";
 
 type Perk = [string, string];
 

@@ -80,7 +80,7 @@ export default function PaymentsPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="relative overflow-hidden rounded-2xl border border-emerald-500/40 p-6"
-            style={{ background: "#141d34" }}
+            style={{ background: "#0c2a1d" }}
           >
             <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-400/12" />
             <div className="relative flex items-center justify-between">
@@ -134,7 +134,7 @@ export default function PaymentsPage() {
                     </div>
                     <span className="ml-auto text-base font-medium text-white">{money(p.amount, p.currency)}</span>
                     {payable ? (
-                      <a href={p.paymentUrl} target="_blank" className="shrink-0 rounded-xl bg-emerald-500/90 px-5 py-2 text-sm font-medium text-[#0a1020] transition hover:bg-emerald-400">
+                      <a href={p.paymentUrl} target="_blank" className="shrink-0 rounded-xl bg-emerald-500/90 px-5 py-2 text-sm font-medium text-white transition hover:bg-emerald-400">
                         Pay
                       </a>
                     ) : (

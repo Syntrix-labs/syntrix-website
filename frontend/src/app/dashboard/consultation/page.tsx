@@ -226,7 +226,7 @@ export default function ConsultationPage() {
               onClick={send}
               disabled={!draft.trim() || sending}
               aria-label="Send message"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/90 text-[#0a1020] transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/90 text-white transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50"
             >
               <i className="ti ti-send" aria-hidden />
             </button>

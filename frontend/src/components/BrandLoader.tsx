@@ -16,8 +16,8 @@ for (let i = 0; i < 6; i++) {
  */
 export default function BrandLoader() {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-[#0a1020]">
-      <svg width="180" height="180" viewBox="0 0 200 200" className="drop-shadow-[0_0_24px_rgba(240, 235, 224,0.45)]">
+    <div className="flex h-full w-full flex-col items-center justify-center bg-[#04140d]">
+      <svg width="180" height="180" viewBox="0 0 200 200" className="drop-shadow-[0_0_24px_rgba(120,210,160,0.45)]">
         {centers.map(([cx, cy], i) => (
           <motion.circle
             key={i}
@@ -25,7 +25,7 @@ export default function BrandLoader() {
             cy={cy}
             r={R}
             fill="none"
-            stroke="#b7b1a0"
+            stroke="#a9ba9d"
             strokeWidth={1}
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 0.9 }}

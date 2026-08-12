@@ -123,7 +123,7 @@ export default function ClientsPage() {
                   <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className={inputCls} />
                   <input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} placeholder="Company" className={inputCls} />
                   <div className="flex gap-2 md:col-span-2">
-                    <button onClick={() => saveEdit(client._id)} className="rounded-xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-[#0a1020] transition hover:bg-emerald-400">Save</button>
+                    <button onClick={() => saveEdit(client._id)} className="rounded-xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-400">Save</button>
                     <button onClick={() => setEditId("")} className="rounded-xl border border-emerald-200/15 px-4 py-2.5 text-sm text-emerald-50/70 transition hover:text-white">Cancel</button>
                   </div>
                 </div>

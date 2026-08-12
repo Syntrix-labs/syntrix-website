@@ -6,9 +6,9 @@ import { verticals } from "./verticals";
 
 export default function ShowcaseGallery() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0a1020] text-white">
-      <div className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#4d7cff]/15 blur-[130px]" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[520px] w-[520px] rounded-full bg-[#4d7cff]/10 blur-[130px]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#04140d] text-white">
+      <div className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-emerald-500/20 blur-[130px]" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[520px] w-[520px] rounded-full bg-emerald-400/10 blur-[130px]" />
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <a href="https://syntrixlabs.in" className="text-sm font-medium tracking-wide text-emerald-100/80 transition hover:text-white">SYNTRIX LABS</a>

@@ -54,10 +54,13 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
     window.addEventListener("resize", resize);
 
     // Custom cursor only on real mouse devices; never hide it on touch.
-    // Use the normal system cursor (the custom dot+ring felt dated). We still
-    // track the mouse below for the subtle parallax light, just no fake cursor.
     const prevCursor = document.body.style.cursor;
-    if (cursorEl) cursorEl.style.display = "none";
+    if (finePointer) {
+      document.body.style.cursor = "none";
+      cursorEl?.style.removeProperty("display");
+    } else if (cursorEl) {
+      cursorEl.style.display = "none";
+    }
 
     // --- Flower of Life centers (unit vectors * R) ---
     const cen: [number, number][] = [[0, 0]];
@@ -139,10 +142,10 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
       smx += (mx - smx) * 0.06;
       smy += (my - smy) * 0.06;
 
-      // background gradient: deep navy -> lighter navy (midnight navy + cream)
+      // background gradient: deep green -> laurel (keeps text readable)
       const k = prog * 0.65;
-      const top = [L(10, 20, k), L(16, 30, k), L(32, 52, k)];
-      const bot = [L(8, 24, k), L(13, 36, k), L(28, 64, k)];
+      const top = [L(9, 18, k), L(36, 58, k), L(26, 44, k)];
+      const bot = [L(7, 38, k), L(28, 92, k), L(20, 70, k)];
       const g = ctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, `rgb(${top[0] | 0},${top[1] | 0},${top[2] | 0})`);
       g.addColorStop(1, `rgb(${bot[0] | 0},${bot[1] | 0},${bot[2] | 0})`);
@@ -153,8 +156,8 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
       const lx = W * (L(0.5, 0.68, prog) + (smx - 0.5) * 0.12);
       const ly = H * (0.45 + (smy - 0.5) * 0.1);
       const vl = ctx.createRadialGradient(lx, ly, 0, lx, ly, W * 0.62);
-      vl.addColorStop(0, `rgba(143,180,255,${0.05 + prog * 0.22})`);
-      vl.addColorStop(1, "rgba(143,180,255,0)");
+      vl.addColorStop(0, `rgba(169,186,157,${0.05 + prog * 0.22})`);
+      vl.addColorStop(1, "rgba(169,186,157,0)");
       ctx.fillStyle = vl;
       ctx.fillRect(0, 0, W, H);
 
@@ -180,10 +183,10 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
         const active = p < 1;
         ctx.beginPath();
         ctx.arc(xi, yi, R, -Math.PI / 2, end);
-        ctx.strokeStyle = `rgba(240,235,224,${active ? 0.6 : 0.16})`;
+        ctx.strokeStyle = `rgba(232,245,228,${active ? 0.6 : 0.16})`;
         ctx.lineWidth = active ? 1.1 : 0.7;
         if (active) {
-          ctx.shadowColor = "rgba(238, 233, 222,0.55)";
+          ctx.shadowColor = "rgba(190,220,180,0.55)";
           ctx.shadowBlur = 8;
         } else ctx.shadowBlur = 0;
         ctx.stroke();
@@ -203,9 +206,9 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
         const a0 = now * 0.0006;
         ctx.beginPath();
         ctx.arc(cx, cy, R, a0, a0 + 0.9);
-        ctx.strokeStyle = "rgba(240, 235, 224,0.5)";
+        ctx.strokeStyle = "rgba(200,235,195,0.5)";
         ctx.lineWidth = 1.2;
-        ctx.shadowColor = "rgba(236, 231, 220,0.6)";
+        ctx.shadowColor = "rgba(150,220,160,0.6)";
         ctx.shadowBlur = 8;
         ctx.stroke();
         ctx.shadowBlur = 0;
@@ -251,7 +254,7 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
           const near = Math.max(0, 1 - cd / 240);
           const base = (1 - d / linkDist) * 0.16;
           const alpha = base + near * 0.5 * (1 - d / linkDist);
-          ctx.strokeStyle = `rgba(238, 233, 222,${alpha.toFixed(3)})`;
+          ctx.strokeStyle = `rgba(190,225,180,${alpha.toFixed(3)})`;
           ctx.lineWidth = 0.6 + near * 0.8;
           ctx.beginPath();
           ctx.moveTo(px[i], py[i]);
@@ -266,7 +269,7 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
         const near = Math.max(0, 1 - cd / 200);
         const z = pz[i];
         ctx.globalAlpha = z * 0.45 + near * 0.4;
-        ctx.fillStyle = near > 0.5 ? "rgba(247, 244, 236,1)" : "rgba(240, 235, 224,1)";
+        ctx.fillStyle = near > 0.5 ? "rgba(220,245,210,1)" : "rgba(200,225,190,1)";
         const s = 1.2 + z * 1.1 + near * 1.4;
         ctx.fillRect(px[i] - s / 2, py[i] - s / 2, s, s);
       }

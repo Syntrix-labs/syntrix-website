@@ -126,7 +126,7 @@ export default function AdminProjectsPage() {
             <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Project name" className={adminInput} />
             <input value={form.clientEmail} onChange={(event) => setForm({ ...form, clientEmail: event.target.value })} placeholder="Client email" className={adminInput} />
             <input value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} type="date" className={adminInput} />
-            <button onClick={add} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-[#0a1020] transition hover:bg-emerald-400 active:scale-[0.98]">Assign project</button>
+            <button onClick={add} className="rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98]">Assign project</button>
             {msg && <p className="text-sm text-emerald-200 md:col-span-4">{msg}</p>}
             <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Project description" className={`${adminInput} min-h-24 md:col-span-4`} />
           </div>
@@ -160,7 +160,7 @@ export default function AdminProjectsPage() {
                         <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} placeholder="Description" className={`${adminInput} min-h-20 w-full`} />
                         <input type="date" value={editForm.dueDate} onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })} className={`${adminInput} w-full`} />
                         <div className="flex gap-2">
-                          <button onClick={() => saveEdit(project._id)} className="rounded-xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-[#0a1020] transition hover:bg-emerald-400">Save</button>
+                          <button onClick={() => saveEdit(project._id)} className="rounded-xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-400">Save</button>
                           <button onClick={() => setEditId("")} className="rounded-xl border border-emerald-200/15 px-4 py-2.5 text-sm text-emerald-50/70 transition hover:text-white">Cancel</button>
                         </div>
                       </div>

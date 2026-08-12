@@ -17,7 +17,7 @@ export default function SchedulePage() {
         <section className="relative flex flex-col items-center justify-center overflow-hidden pt-24 pb-8">
           <ParticleShape shape="clock" />
           <div className="relative z-10 -mt-12 px-6 text-center">
-            <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: "#b7b1a0" }}>Schedule</p>
+            <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: "#a9ba9d" }}>Schedule</p>
             <h1 className="max-w-3xl text-4xl font-light leading-tight tracking-wide md:text-6xl" style={{ textShadow: "0 0 30px rgba(10,30,20,0.85)" }}>
               Pick a time that works for you.
             </h1>
@@ -29,14 +29,14 @@ export default function SchedulePage() {
             href="/"
             aria-label="Syntrix Labs home"
             className="text-base font-light tracking-[0.32em] text-white"
-            style={{ textShadow: "0 0 18px rgba(240, 235, 224,0.5)" }}
+            style={{ textShadow: "0 0 18px rgba(120,210,160,0.5)" }}
           >
-            SYNTRIX<span style={{ color: "#b7b1a0" }}>&nbsp;LABS</span>
+            SYNTRIX<span style={{ color: "#a9ba9d" }}>&nbsp;LABS</span>
           </a>
 
           <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
-              <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: "#b7b1a0" }}>
+              <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: "#a9ba9d" }}>
                 Discovery Call
               </p>
               <h2 className="max-w-3xl text-4xl font-light leading-tight tracking-wide md:text-6xl" style={{ textShadow: "0 0 30px rgba(40,80,55,0.6)" }}>
@@ -72,7 +72,7 @@ export default function SchedulePage() {
                 />
               ) : (
                 <div className="flex min-h-[420px] flex-col justify-center rounded-2xl border border-emerald-200/15 bg-emerald-950/30 p-8">
-                  <p className="font-mono text-xs uppercase tracking-[0.24em]" style={{ color: "#b7b1a0" }}>
+                  <p className="font-mono text-xs uppercase tracking-[0.24em]" style={{ color: "#a9ba9d" }}>
                     Meeting Request
                   </p>
                   <h2 className="mt-4 text-3xl font-light">Tell us what you want to build.</h2>

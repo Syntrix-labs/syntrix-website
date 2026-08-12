@@ -168,7 +168,7 @@ export default function ProjectsPage() {
                         key={s}
                         className={`rounded-full border px-3 py-1 text-[11px] ${
                           current
-                            ? "border-emerald-400 bg-emerald-500/25 text-[#0a1020]"
+                            ? "border-emerald-400 bg-emerald-500/25 text-white"
                             : done
                             ? "border-emerald-500/40 bg-emerald-500/12 text-emerald-200"
                             : "border-emerald-200/15 text-emerald-50/40"
@@ -206,7 +206,7 @@ export default function ProjectsPage() {
                           <button
                             onClick={() => uploadDocument(project._id)}
                             disabled={busy === project._id}
-                            className="rounded-xl bg-emerald-500/90 px-5 py-2 text-sm font-medium text-[#0a1020] transition hover:bg-emerald-400 disabled:opacity-60"
+                            className="rounded-xl bg-emerald-500/90 px-5 py-2 text-sm font-medium text-white transition hover:bg-emerald-400 disabled:opacity-60"
                           >
                             {busy === project._id ? "Uploading…" : "Upload"}
                           </button>

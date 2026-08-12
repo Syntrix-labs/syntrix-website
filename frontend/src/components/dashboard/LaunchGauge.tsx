@@ -32,7 +32,7 @@ export default function LaunchGauge({ value, stageLabel }: { value: number; stag
         aria-label={`${Math.round(value)} percent complete, current stage ${stageLabel}`}
         style={{ display: "block" }}
       >
-        <path d="M35 125 A95 95 0 0 1 225 125" fill="none" stroke="rgba(231, 225, 210,0.10)" strokeWidth={11} strokeLinecap="round" />
+        <path d="M35 125 A95 95 0 0 1 225 125" fill="none" stroke="rgba(167,243,208,0.10)" strokeWidth={11} strokeLinecap="round" />
         <motion.path
           d="M35 125 A95 95 0 0 1 225 125"
           fill="none"

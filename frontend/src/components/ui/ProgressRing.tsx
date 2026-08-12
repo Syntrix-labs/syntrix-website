@@ -21,7 +21,7 @@ export default function ProgressRing({
   return (
     <div style={{ position: "relative", width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(231, 225, 210,0.12)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(167,243,208,0.12)" strokeWidth={stroke} />
         <motion.circle
           cx={size / 2}
           cy={size / 2}

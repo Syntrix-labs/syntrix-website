@@ -47,7 +47,7 @@ export default function StatCard({ title, value, caption, href, index = 0 }: Sta
   const inner = (
     <>
       <p className="text-sm font-light tracking-wide text-emerald-50/60">{title}</p>
-      <h2 className="mt-4 text-5xl font-extralight text-white" style={{ textShadow: "0 0 26px rgba(240, 235, 224,0.4)" }}>
+      <h2 className="mt-4 text-5xl font-extralight text-white" style={{ textShadow: "0 0 26px rgba(120,210,160,0.4)" }}>
         <CountUp value={value} />
       </h2>
       {caption && <p className="mt-3 text-sm font-light text-emerald-50/45">{caption}</p>}
