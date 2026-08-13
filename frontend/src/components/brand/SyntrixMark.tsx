@@ -15,7 +15,7 @@ type SyntrixMarkProps = {
  */
 export default function SyntrixMark({
   size = 30,
-  color = "#a9ba9d",
+  color = "#f2efe6",
   className = "",
   title,
 }: SyntrixMarkProps) {

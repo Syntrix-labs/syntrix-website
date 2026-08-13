@@ -24,14 +24,14 @@ export default function BrandLogo({
     >
       <SyntrixMark
         size={compact ? 26 : 22}
-        className="shrink-0 drop-shadow-[0_0_12px_rgba(120,210,160,0.45)]"
+        className="shrink-0 drop-shadow-[0_0_12px_rgba(240,236,226,0.3)]"
       />
       {!compact && (
         <span
           className={`text-sm font-light tracking-[0.3em] text-white ${textClassName}`}
-          style={{ textShadow: "0 0 16px rgba(120,210,160,0.5)" }}
+          style={{ textShadow: "0 0 16px rgba(240,236,226,0.3)" }}
         >
-          SYNTRIX<span style={{ color: "#a9ba9d" }}>&nbsp;LABS</span>
+          SYNTRIX<span style={{ color: "#d8d3c6" }}>&nbsp;LABS</span>
         </span>
       )}
       <span className="sr-only">Syntrix Labs</span>
