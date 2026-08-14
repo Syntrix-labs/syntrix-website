@@ -4,9 +4,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell, { authStagger, authItem, authInputClass } from "@/components/auth/AuthShell";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import NameParticleTransition from "@/components/NameParticleTransition";
 import BrandLoader from "@/components/BrandLoader";
 import { apiFetch, apiGet } from "@/lib/api";
+
+const OAUTH_ERRORS: Record<string, string> = {
+  google_unavailable: "Google sign-in isn't switched on yet. Use email for now.",
+  github_unavailable: "GitHub sign-in isn't switched on yet. Use email for now.",
+  linkedin_unavailable: "LinkedIn sign-in isn't switched on yet. Use email for now.",
+  no_email: "We couldn't read your email from that provider. Try another method.",
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,6 +32,12 @@ export default function LoginPage() {
   useEffect(() => {
     const t = setTimeout(() => setIntro(false), 1800);
     return () => clearTimeout(t);
+  }, []);
+
+  // Surface OAuth failures redirected back from the backend (?error=...).
+  useEffect(() => {
+    const err = new URLSearchParams(window.location.search).get("error");
+    if (err) setMessage(OAUTH_ERRORS[err] || "That sign-in didn't complete. Please try again.");
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -152,6 +166,8 @@ export default function LoginPage() {
           <p className="mt-1 opacity-90">{message}</p>
         </motion.div>
       )}
+
+      {!loginSucceeded && <SocialAuthButtons />}
 
       <p className="mt-8 text-center text-sm text-emerald-50/50">
         Don&apos;t have an account?{" "}

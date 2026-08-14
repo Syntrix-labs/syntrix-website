@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell, { authStagger, authItem, authInputClass } from "@/components/auth/AuthShell";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { apiFetch } from "@/lib/api";
 
 const signupPerks: [string, string][] = [
@@ -135,6 +136,8 @@ export default function SignupPage() {
           {message}
         </motion.p>
       )}
+
+      <SocialAuthButtons />
 
       <p className="mt-8 text-center text-sm text-emerald-50/50">
         Already have an account?{" "}

@@ -19,6 +19,8 @@ const userSchema = new mongoose.Schema({
     enum: ['client', 'team'],
     default: 'client'
   },
+  // Set when the account was created/linked via social sign-in (google/github/linkedin).
+  provider: { type: String },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   phone: String,
