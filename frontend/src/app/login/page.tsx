@@ -24,6 +24,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [loginSucceeded, setLoginSucceeded] = useState(false);
+  const [waking, setWaking] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [transition, setTransition] = useState<{ name: string; destination: string } | null>(null);
   const [intro, setIntro] = useState(true);
@@ -44,21 +45,58 @@ export default function LoginPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage("");
+    setWaking(false);
     setLoginSucceeded(false);
 
+    // The backend (Render free tier) can be asleep and take ~30-60s to wake.
+    // Instead of failing on the first timeout, quietly wait + retry a few times.
+    const wakingMsg = "Waking up the server — the first login after a while can take up to a minute. Hang tight…";
+    let response: Response | null = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const r = await apiFetch(
+          "/api/auth/login",
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) },
+          40000
+        );
+        // 502/503/504 = gateway/cold-start; retry rather than treat as an error.
+        if (r.status >= 502 && r.status <= 504 && attempt < 3) {
+          setWaking(true);
+          setMessage(wakingMsg);
+          await new Promise((res) => setTimeout(res, 1500));
+          continue;
+        }
+        response = r;
+        break;
+      } catch (error) {
+        const timedOut = error instanceof DOMException && error.name === "AbortError";
+        const network = error instanceof TypeError;
+        if ((timedOut || network) && attempt < 3) {
+          setWaking(true);
+          setMessage(wakingMsg);
+          await new Promise((res) => setTimeout(res, 1500));
+          continue;
+        }
+        setWaking(false);
+        setMessage("Server error. Please try again in a moment.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    setWaking(false);
+    if (!response) {
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const response = await apiFetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
       const data = await response.json();
-
       if (data.success) {
         localStorage.setItem("token", data.token);
         const next = new URLSearchParams(window.location.search).get("next");
         const destination = next === "meetings" ? "/dashboard/meetings" : data.isAdmin ? "/admin" : data.isTeam ? "/admin/consultation" : "/dashboard";
+        setMessage("");
         setLoginSucceeded(true);
         const me = await apiGet<{ name?: string }>("/api/auth/me", {});
         setTransition({ name: me.name || "Welcome", destination });
@@ -67,9 +105,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error instanceof DOMException && error.name === "AbortError"
-        ? "The server is waking up. Please try again in a moment."
-        : "Server error. Please try again in a moment.");
+      setMessage("Server error. Please try again in a moment.");
     } finally {
       setIsSubmitting(false);
     }
@@ -150,7 +186,7 @@ export default function LoginPage() {
           whileTap={{ scale: 0.98 }}
           className="w-full rounded-2xl bg-emerald-500/90 py-4 font-semibold tracking-wide text-white shadow-lg shadow-emerald-500/25 transition-colors duration-300 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {loginSucceeded ? "Redirecting..." : isSubmitting ? "Checking..." : "Login"}
+          {loginSucceeded ? "Redirecting..." : waking ? "Waking server…" : isSubmitting ? "Checking..." : "Login"}
         </motion.button>
       </motion.form>
 
@@ -159,10 +195,17 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           className={`mt-5 rounded-2xl border px-4 py-4 text-sm ${
-            loginSucceeded ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100" : "border-red-500/30 bg-red-500/10 text-red-200"
+            loginSucceeded
+              ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+              : waking
+              ? "border-amber-400/30 bg-amber-500/10 text-amber-100"
+              : "border-red-500/30 bg-red-500/10 text-red-200"
           }`}
         >
-          <p className="font-semibold">{loginSucceeded ? "Welcome back" : "Login issue"}</p>
+          <p className="flex items-center gap-2 font-semibold">
+            {waking && <span className="h-2 w-2 animate-ping rounded-full bg-amber-300" />}
+            {loginSucceeded ? "Welcome back" : waking ? "Waking the server" : "Login issue"}
+          </p>
           <p className="mt-1 opacity-90">{message}</p>
         </motion.div>
       )}
