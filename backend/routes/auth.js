@@ -306,14 +306,17 @@ router.put('/reset-password/:token', async (req, res) => {
 // Google, GitHub, LinkedIn. Each provider stays dormant until its
 // CLIENT_ID / CLIENT_SECRET env vars are set. Stateless CSRF via a signed
 // `state` (JWT) — no cookies/sessions needed.
+// Keys are trimmed: a stray space pasted into the Render dashboard makes
+// Google reject the client ("Error 401: invalid_client").
+const envKey = (name) => (process.env[name] || '').trim() || undefined;
 const OAUTH_PROVIDERS = {
   google: {
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
     tokenUrl: 'https://oauth2.googleapis.com/token',
     userUrl: 'https://openidconnect.googleapis.com/v1/userinfo',
     scope: 'openid email profile',
-    id: () => process.env.GOOGLE_CLIENT_ID,
-    secret: () => process.env.GOOGLE_CLIENT_SECRET,
+    id: () => envKey('GOOGLE_CLIENT_ID'),
+    secret: () => envKey('GOOGLE_CLIENT_SECRET'),
     profile: (u) => ({ email: u.email, name: u.name || u.given_name })
   },
   github: {
@@ -322,8 +325,8 @@ const OAUTH_PROVIDERS = {
     userUrl: 'https://api.github.com/user',
     emailsUrl: 'https://api.github.com/user/emails',
     scope: 'read:user user:email',
-    id: () => process.env.GITHUB_CLIENT_ID,
-    secret: () => process.env.GITHUB_CLIENT_SECRET,
+    id: () => envKey('GITHUB_CLIENT_ID'),
+    secret: () => envKey('GITHUB_CLIENT_SECRET'),
     profile: (u) => ({ email: u.email, name: u.name || u.login })
   },
   linkedin: {
@@ -331,8 +334,8 @@ const OAUTH_PROVIDERS = {
     tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
     userUrl: 'https://api.linkedin.com/v2/userinfo',
     scope: 'openid profile email',
-    id: () => process.env.LINKEDIN_CLIENT_ID,
-    secret: () => process.env.LINKEDIN_CLIENT_SECRET,
+    id: () => envKey('LINKEDIN_CLIENT_ID'),
+    secret: () => envKey('LINKEDIN_CLIENT_SECRET'),
     profile: (u) => ({ email: u.email, name: u.name })
   }
 };

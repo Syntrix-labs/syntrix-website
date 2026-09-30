@@ -447,3 +447,32 @@ test("admin can mark a contract signed, then delete it", async () => {
   assert.equal(del.status, 200);
   assert.equal(del.body.success, true);
 });
+
+// ---------- social sign-in ----------
+test("OAuth: google stays off without keys, and padded keys are trimmed", async () => {
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  let res = await request(app).get("/api/auth/oauth/providers");
+  assert.deepEqual(res.body.enabled, []);
+  res = await request(app).get("/api/auth/oauth/google");
+  assert.equal(res.status, 302);
+  assert.match(res.headers.location, /\/login\?error=google_unavailable$/);
+
+  // A stray space pasted into the hosting dashboard must not break the client id.
+  process.env.GOOGLE_CLIENT_ID = "  1234-abc.apps.googleusercontent.com \n";
+  process.env.GOOGLE_CLIENT_SECRET = " secret ";
+  process.env.PUBLIC_APP_URL = "https://syntrixlabs.in";
+  res = await request(app).get("/api/auth/oauth/providers");
+  assert.deepEqual(res.body.enabled, ["google"]);
+  res = await request(app).get("/api/auth/oauth/google");
+  assert.equal(res.status, 302);
+  const url = new URL(res.headers.location);
+  assert.equal(url.host, "accounts.google.com");
+  assert.equal(url.searchParams.get("client_id"), "1234-abc.apps.googleusercontent.com");
+  assert.equal(url.searchParams.get("redirect_uri"), "https://syntrixlabs.in/api/auth/oauth/google/callback");
+  assert.ok(url.searchParams.get("state"));
+
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.PUBLIC_APP_URL;
+});
