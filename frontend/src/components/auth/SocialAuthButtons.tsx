@@ -59,6 +59,11 @@ export default function SocialAuthButtons({ className = "" }: { className?: stri
           );
         })}
       </div>
+      <p className="mt-4 text-center text-xs text-emerald-50/40">
+        By continuing you agree to our{" "}
+        <a href="/terms" className="underline transition hover:text-emerald-200">Terms</a> and{" "}
+        <a href="/privacy" className="underline transition hover:text-emerald-200">Privacy Policy</a>.
+      </p>
     </div>
   );
 }
