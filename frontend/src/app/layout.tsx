@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Loader from "@/components/Loader";
 
@@ -75,9 +75,24 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.png",
-    apple: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
+  // Home-Screen app on iPhone: full-screen, named "Syntrix", dark status bar.
+  appleWebApp: {
+    capable: true,
+    title: "Syntrix",
+    statusBarStyle: "black",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Lets the phone layout use the notch / home-bar safe areas.
+  viewportFit: "cover",
+  // Colours the browser/status bar on Android and in the installed app.
+  themeColor: "#04140d",
 };
 
 export default function RootLayout({

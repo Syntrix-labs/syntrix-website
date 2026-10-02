@@ -153,22 +153,25 @@ export default function ConsultationPage() {
   return (
     <DashboardShell>
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-        <SectionHeader
-          icon="message-2"
-          eyebrow="Consultation"
-          title="Talk to your team"
-          description="A direct line to Soham and Tahir. Project updates, answers, and consultation notes live here."
-        />
+        {/* On phones the chat goes full-screen, so the page heading is desktop-only. */}
+        <div className="hidden md:block">
+          <SectionHeader
+            icon="message-2"
+            eyebrow="Consultation"
+            title="Talk to your team"
+            description="A direct line to Soham and Tahir. Project updates, answers, and consultation notes live here."
+          />
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="overflow-hidden rounded-3xl border border-emerald-200/12 bg-emerald-950/30 backdrop-blur-md"
+          className="flex h-[var(--chat-h)] min-h-[420px] flex-col overflow-hidden rounded-3xl border border-emerald-200/12 bg-emerald-950/30 backdrop-blur-md md:h-auto md:min-h-0"
         >
           {/* thread header */}
-          <div className="flex items-center gap-3 border-b border-emerald-200/10 px-5 py-4">
+          <div className="flex shrink-0 items-center gap-3 border-b border-emerald-200/10 px-4 py-3 md:px-5 md:py-4">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/40 to-emerald-600/30 text-sm font-medium text-white ring-1 ring-emerald-200/20">
               S
             </span>
@@ -181,7 +184,7 @@ export default function ConsultationPage() {
           </div>
 
           {/* thread */}
-          <div className="max-h-[58vh] space-y-1 overflow-y-auto px-4 py-5 md:px-6">
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 py-4 md:max-h-[58vh] md:flex-none md:px-6 md:py-5">
             {messages.map((m, i) => {
               const mine = m.senderRole === "Client";
               const d = dayLabel(m.createdAt);
@@ -246,7 +249,7 @@ export default function ConsultationPage() {
               {fileStatus.text}
             </p>
           )}
-          <div className="flex items-center gap-3 border-t border-emerald-200/10 px-4 py-3 md:px-5">
+          <div className="flex shrink-0 items-center gap-2 border-t border-emerald-200/10 px-3 py-2.5 md:gap-3 md:px-5 md:py-3">
             <AttachFileButton
               caption={draft}
               onStatus={(text, error) => setFileStatus(text ? { text, error } : null)}
@@ -277,7 +280,7 @@ export default function ConsultationPage() {
               <i className="ti ti-send" aria-hidden />
             </button>
           </div>
-          <p className="px-5 pb-3 text-[10px] text-emerald-100/30">Share files up to 10 MB · images, PDFs, designs, zips · kept for 30 days</p>
+          <p className="hidden px-5 pb-3 text-[10px] text-emerald-100/30 md:block">Share files up to 10 MB · images, PDFs, designs, zips · kept for 30 days</p>
         </motion.div>
       </motion.div>
     </DashboardShell>

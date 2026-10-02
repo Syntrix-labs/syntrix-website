@@ -63,6 +63,39 @@ const teamItems = [
 ];
 const teamPaths = teamItems.map((i) => i.href);
 
+// Phone layout: icons + short labels for the bottom tab bar / "More" sheet.
+const NAV_ICONS: Record<string, string> = {
+  "/dashboard": "ti-layout-dashboard",
+  "/dashboard/projects": "ti-folder",
+  "/dashboard/consultation": "ti-message-2",
+  "/dashboard/meetings": "ti-calendar",
+  "/dashboard/payments": "ti-credit-card",
+  "/dashboard/profile": "ti-user-circle",
+  "/admin": "ti-layout-dashboard",
+  "/admin/clients": "ti-users",
+  "/admin/projects": "ti-folder",
+  "/admin/pending-projects": "ti-hourglass",
+  "/admin/consultation": "ti-message-2",
+  "/admin/meetings": "ti-calendar",
+  "/admin/payments": "ti-credit-card",
+  "/admin/team": "ti-users-group",
+  "/admin/team-meetings": "ti-calendar-event",
+  "/admin/contracts": "ti-file-text",
+  "/admin/advertisements": "ti-speakerphone",
+};
+const SHORT_LABELS: Record<string, string> = {
+  Overview: "Home",
+  Dashboard: "Home",
+  Consultation: "Chat",
+  "Client meetings": "Meetings",
+  "Team meetings": "Team",
+};
+const PRIMARY_TABS = {
+  client: ["/dashboard", "/dashboard/projects", "/dashboard/consultation", "/dashboard/meetings"],
+  admin: ["/admin", "/admin/clients", "/admin/consultation", "/admin/projects"],
+  team: ["/admin/consultation", "/admin/meetings", "/admin/team-meetings"],
+};
+
 export default function DashboardShell({ type = "client", children }: { type?: "client" | "admin"; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -71,6 +104,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
   const [userName, setUserName] = useState("");
   const [unread, setUnread] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const prevUnread = useRef<number | null>(null);
   const pathRef = useRef(pathname);
   const consultHref = type === "admin" ? "/admin/consultation" : "/dashboard/consultation";
@@ -110,6 +144,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
 
   useEffect(() => {
     pathRef.current = pathname;
+    setMoreOpen(false);
   }, [pathname]);
 
   // Unread consultation messages: poll gently (30s, only while the tab is
@@ -180,12 +215,34 @@ export default function DashboardShell({ type = "client", children }: { type?: "
   const homeHref = role === "team" ? "/admin/consultation" : type === "admin" ? "/admin" : "/dashboard";
   const initial = (userName || (type === "admin" ? "A" : "C")).charAt(0).toUpperCase();
   const panelLabel = role === "team" ? "Team member" : type === "admin" ? "Admin panel" : "Client portal";
+  const primaryHrefs = PRIMARY_TABS[type === "client" ? "client" : role === "team" ? "team" : "admin"];
+  const primaryItems = items.filter((i) => primaryHrefs.includes(i.href));
+  const moreItems = items.filter((i) => !primaryHrefs.includes(i.href));
+  const moreActive = moreItems.some((i) => i.href === pathname);
+  const badge = unread > 99 ? "99+" : String(unread);
 
   return (
     <main className="relative min-h-screen bg-[#04140d] text-white md:flex">
       <DashboardAura />
+
+      {/* ---------- Phone: compact top bar ---------- */}
+      <header
+        className="sticky top-0 z-40 flex items-center justify-between border-b border-emerald-200/10 bg-[#04140d]/85 px-4 pb-3 backdrop-blur-xl md:hidden"
+        style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+      >
+        <BrandLogo href={homeHref} />
+        <button
+          onClick={() => setMoreOpen(true)}
+          aria-label="Account and menu"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/40 to-emerald-600/30 text-sm font-medium text-white ring-1 ring-emerald-200/20 active:scale-95"
+        >
+          {initial}
+        </button>
+      </header>
+
+      {/* ---------- Desktop / tablet: sidebar ---------- */}
       <aside
-        className={`${collapsed ? "md:w-24" : "md:w-72"} sticky top-0 z-40 flex flex-col border-r border-emerald-200/10 bg-emerald-950/40 p-5 backdrop-blur-md transition-all duration-300 md:min-h-screen md:p-7`}
+        className={`${collapsed ? "md:w-24" : "md:w-72"} sticky top-0 z-40 hidden h-screen flex-col border-r border-emerald-200/10 bg-emerald-950/40 p-7 backdrop-blur-md transition-all duration-300 md:flex`}
       >
         <div className="mb-8 flex items-center justify-between gap-3">
           <BrandLogo href={homeHref} compact={collapsed} />
@@ -198,7 +255,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
           </button>
         </div>
 
-        <nav className="flex gap-2 overflow-x-auto pb-2 md:flex-col md:overflow-visible">
+        <nav className="flex flex-col gap-2 overflow-y-auto">
           {items.map((item) => {
             const active = pathname === item.href;
             return (
@@ -223,7 +280,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
                     <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[#04140d]" aria-label={`${unread} unread`} />
                   ) : (
                     <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 align-middle text-[10px] font-semibold text-white" aria-label={`${unread} unread`}>
-                      {unread > 99 ? "99+" : unread}
+                      {badge}
                     </span>
                   ))}
               </Link>
@@ -231,7 +288,7 @@ export default function DashboardShell({ type = "client", children }: { type?: "
           })}
         </nav>
 
-        <div className="mt-auto hidden pt-8 md:block">
+        <div className="mt-auto pt-8">
           <div className={`flex items-center gap-3 rounded-2xl border border-emerald-200/10 bg-emerald-950/40 p-3 ${collapsed ? "justify-center" : ""}`}>
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/40 to-emerald-600/30 text-sm font-medium text-white ring-1 ring-emerald-200/20">
               {initial}
@@ -252,10 +309,116 @@ export default function DashboardShell({ type = "client", children }: { type?: "
         </div>
       </aside>
 
-      <section className="relative z-10 flex-1 p-6 md:p-10 xl:p-12">
+      <section className="relative z-10 flex-1 px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-4 md:p-10 xl:p-12">
         {ready && <NotifyPrompt />}
         {children}
       </section>
+
+      {/* ---------- Phone: bottom tab bar ---------- */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-emerald-200/10 bg-[#04140d]/90 backdrop-blur-xl md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Main"
+      >
+        <div className="mx-auto flex max-w-lg items-stretch justify-around px-1">
+          {primaryItems.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-1 flex-col items-center gap-0.5 pb-2 pt-2.5 text-[10.5px] tracking-wide transition-colors ${active ? "text-white" : "text-emerald-50/50"}`}
+              >
+                <span className={`relative flex h-8 w-14 items-center justify-center rounded-full transition-colors ${active ? "bg-emerald-500/25" : ""}`}>
+                  <i className={`ti ${NAV_ICONS[item.href] || "ti-point"} text-[22px]`} aria-hidden />
+                  {item.href === consultHref && unread > 0 && (
+                    <span className="absolute -top-1 right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-[#04140d]" aria-label={`${unread} unread`}>
+                      {badge}
+                    </span>
+                  )}
+                </span>
+                {SHORT_LABELS[item.label] || item.label}
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => setMoreOpen(true)}
+            className={`flex flex-1 flex-col items-center gap-0.5 pb-2 pt-2.5 text-[10.5px] tracking-wide ${moreActive ? "text-white" : "text-emerald-50/50"}`}
+          >
+            <span className={`flex h-8 w-14 items-center justify-center rounded-full ${moreActive ? "bg-emerald-500/25" : ""}`}>
+              <i className="ti ti-dots text-[22px]" aria-hidden />
+            </span>
+            More
+          </button>
+        </div>
+      </nav>
+
+      {/* ---------- Phone: "More" sheet ---------- */}
+      <AnimatePresence>
+        {moreOpen && (
+          <>
+            <motion.div
+              key="more-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMoreOpen(false)}
+              className="fixed inset-0 z-[60] bg-black/60 md:hidden"
+            />
+            <motion.div
+              key="more-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 320 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0, bottom: 0.6 }}
+              onDragEnd={(_, info) => info.offset.y > 80 && setMoreOpen(false)}
+              className="fixed inset-x-0 bottom-0 z-[61] rounded-t-3xl border-t border-emerald-200/15 bg-[#0a1f16] px-5 pt-3 md:hidden"
+              style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
+              role="dialog"
+              aria-label="Menu"
+            >
+              <div className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-emerald-200/20" />
+              <div className="mb-5 flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/40 to-emerald-600/30 text-base font-medium text-white ring-1 ring-emerald-200/20">
+                  {initial}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-base font-light text-white">{userName || (type === "admin" ? "Admin" : "Client")}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-100/45">{panelLabel}</p>
+                </div>
+              </div>
+              {moreItems.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {moreItems.map((item) => {
+                    const active = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3.5 text-center text-[11.5px] leading-tight transition-colors ${
+                          active ? "border-emerald-300/40 bg-emerald-500/20 text-white" : "border-emerald-200/10 bg-emerald-950/50 text-emerald-50/75"
+                        }`}
+                      >
+                        <i className={`ti ${NAV_ICONS[item.href] || "ti-point"} text-xl`} aria-hidden />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+              <button
+                onClick={logout}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/25 py-3.5 text-sm text-red-200 transition active:bg-red-500/10"
+              >
+                <i className="ti ti-logout" aria-hidden /> Log out
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {toast && (
@@ -263,13 +426,13 @@ export default function DashboardShell({ type = "client", children }: { type?: "
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24 }}
-            className="fixed bottom-5 right-5 z-[80] flex max-w-sm items-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-950/90 px-4 py-3.5 shadow-2xl shadow-black/40 backdrop-blur-md"
+            className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[80] flex items-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-950/95 px-4 py-3.5 shadow-2xl shadow-black/40 backdrop-blur-md md:bottom-5 md:left-auto md:right-5 md:max-w-sm"
             role="status"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-400/25 text-emerald-100">
               <i className="ti ti-message-2" aria-hidden />
             </span>
-            <p className="text-sm text-emerald-50/90">{toast}</p>
+            <p className="flex-1 text-sm text-emerald-50/90">{toast}</p>
             <Link href={consultHref} onClick={() => setToast(null)} className="rounded-xl bg-emerald-500/90 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-400">
               Open
             </Link>

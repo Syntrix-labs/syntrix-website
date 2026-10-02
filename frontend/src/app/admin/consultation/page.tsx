@@ -130,6 +130,11 @@ export default function AdminConsultationPage() {
     return ms.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())[0];
   };
   const selectedClient = clients.find((c) => c._id === selected);
+  // Phones show either the client list or one conversation; "back" returns to the list.
+  const closeThread = () => {
+    setSelected("");
+    window.history.replaceState(null, "", "/admin/consultation");
+  };
   // Clients with unread messages first, then most recent conversation.
   const lastAt = (id: string) => new Date(lastFor(id)?.createdAt || 0).getTime();
   const sortedClients = [...clients].sort((a, b) => (unreadFor(b._id) > 0 ? 1 : 0) - (unreadFor(a._id) > 0 ? 1 : 0) || lastAt(b._id) - lastAt(a._id));
@@ -144,21 +149,23 @@ export default function AdminConsultationPage() {
 
   return (
     <DashboardShell type="admin">
-      <SectionHeader
-        icon="message-2"
-        eyebrow="Consultation"
-        title={name ? `Welcome back, ${name.split(" ")[0]}` : "Client messages"}
-        description="Pick a client and message them directly. Their replies appear here too."
-      />
+      <div className={selected ? "hidden md:block" : ""}>
+        <SectionHeader
+          icon="message-2"
+          eyebrow="Consultation"
+          title={name ? `Welcome back, ${name.split(" ")[0]}` : "Client messages"}
+          description="Pick a client and message them directly. Their replies appear here too."
+        />
+      </div>
 
       {clients.length === 0 ? (
         <EmptyState icon="users" title="No clients yet" hint="Once clients sign up, you can message them here." />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[280px_1fr]">
           {/* client list */}
-          <div className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-3 backdrop-blur-md">
+          <div className={`${selected ? "hidden md:block" : ""} rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-3 backdrop-blur-md`}>
             <p className="px-2 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-emerald-100/45">Clients</p>
-            <div className="max-h-[60vh] space-y-1 overflow-y-auto">
+            <div className="space-y-1 md:max-h-[60vh] md:overflow-y-auto">
               {sortedClients.map((c) => {
                 const last = lastFor(c._id);
                 const unreadCount = unreadFor(c._id);
@@ -188,19 +195,22 @@ export default function AdminConsultationPage() {
           </div>
 
           {/* thread */}
-          <div className="flex min-h-[60vh] flex-col rounded-3xl border border-emerald-200/12 bg-emerald-950/25 backdrop-blur-md">
+          <div className={`${selected ? "flex" : "hidden md:flex"} h-[var(--chat-h)] min-h-[420px] flex-col overflow-hidden rounded-3xl border border-emerald-200/12 bg-emerald-950/25 backdrop-blur-md md:h-auto md:min-h-[60vh]`}>
             {selected ? (
               <>
-                <div className="flex items-center gap-3 border-b border-emerald-200/10 px-5 py-3.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-400/22 text-sm text-emerald-100">
+                <div className="flex shrink-0 items-center gap-3 border-b border-emerald-200/10 px-3 py-3 md:px-5 md:py-3.5">
+                  <button onClick={closeThread} aria-label="Back to clients" className="-mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-emerald-50/80 active:bg-emerald-200/10 md:hidden">
+                    <i className="ti ti-arrow-left text-xl" aria-hidden />
+                  </button>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-400/22 text-sm text-emerald-100">
                     {(selectedClient?.name || "?").charAt(0).toUpperCase()}
                   </span>
-                  <div>
-                    <p className="text-sm font-light text-white">{selectedClient?.name}</p>
-                    <p className="text-[11px] text-emerald-50/45">{selectedClient?.email}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-light text-white">{selectedClient?.name}</p>
+                    <p className="truncate text-[11px] text-emerald-50/45">{selectedClient?.email}</p>
                   </div>
                 </div>
-                <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5">
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4 md:px-5 md:py-5">
                   {thread.length === 0 && <p className="text-center text-sm text-emerald-50/40">No messages yet — say hello.</p>}
                   {thread.map((m) => {
                     const mine = m.senderRole === "Admin";
@@ -227,7 +237,7 @@ export default function AdminConsultationPage() {
                 {fileStatus && (
                   <p className={`border-t border-emerald-200/10 px-5 pt-2.5 text-xs ${fileStatus.error ? "text-red-300" : "text-emerald-100/60"}`}>{fileStatus.text}</p>
                 )}
-                <div className="flex items-center gap-3 border-t border-emerald-200/10 px-4 py-3">
+                <div className="flex shrink-0 items-center gap-2 border-t border-emerald-200/10 px-3 py-2.5 md:gap-3 md:px-4 md:py-3">
                   <AttachFileButton
                     clientId={selected}
                     caption={draft}

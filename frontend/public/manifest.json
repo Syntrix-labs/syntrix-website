@@ -1,21 +1,25 @@
 {
+  "id": "/app",
   "name": "Syntrix Labs",
   "short_name": "Syntrix",
-  "start_url": "/",
+  "description": "Your Syntrix Labs projects, meetings, payments and team chat.",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "theme_color": "#04140d",
   "background_color": "#04140d",
+  "categories": ["business", "productivity"],
   "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "name": "Messages",
+      "short_name": "Chat",
+      "url": "/app?to=chat",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

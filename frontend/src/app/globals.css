@@ -93,3 +93,25 @@ html {
   border-radius: 9999px;
   box-shadow: none !important;
 }
+/* ---- Phone polish (iPhone + Android) ---- */
+* {
+  -webkit-tap-highlight-color: transparent; /* no grey flash when tapping */
+}
+:root {
+  /* Height for full-screen chat on phones: viewport minus top bar,
+     bottom tab bar, page padding and the iPhone notch/home-bar areas. */
+  --chat-h: calc(100dvh - 10rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+@media (max-width: 767px) {
+  /* iOS Safari zooms the page when focusing an input smaller than 16px. */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  /* Touch scrolling doesn't need visible scrollbars. */
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
