@@ -2,11 +2,35 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import BrandLogo from "@/components/brand/BrandLogo";
 import DashboardAura from "@/components/dashboard/DashboardAura";
+import NotifyPrompt from "@/components/notify/NotifyPrompt";
 import { apiGet } from "@/lib/api";
+import { unlinkThisDevice } from "@/lib/push";
+
+/** Short two-note chime for new messages (no audio file needed). */
+function chime() {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.38);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+    osc.onended = () => ctx.close();
+  } catch {
+    /* audio not available — the pop-up still shows */
+  }
+}
 
 const clientItems = [
   { label: "Overview", href: "/dashboard" },
@@ -45,6 +69,12 @@ export default function DashboardShell({ type = "client", children }: { type?: "
   const [collapsed, setCollapsed] = useState(false);
   const [role, setRole] = useState<"admin" | "team" | null>(null);
   const [userName, setUserName] = useState("");
+  const [unread, setUnread] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
+  const prevUnread = useRef<number | null>(null);
+  const pathRef = useRef(pathname);
+  const consultHref = type === "admin" ? "/admin/consultation" : "/dashboard/consultation";
+  const ready = type === "client" || role !== null;
 
   // Resolve who the user is for admin-area pages.
   useEffect(() => {
@@ -78,7 +108,59 @@ export default function DashboardShell({ type = "client", children }: { type?: "
     }
   }, [type, role, pathname, router]);
 
-  const logout = () => {
+  useEffect(() => {
+    pathRef.current = pathname;
+  }, [pathname]);
+
+  // Unread consultation messages: poll gently (30s, only while the tab is
+  // visible), plus on demand when a chat page marks messages as read.
+  useEffect(() => {
+    if (!ready) return;
+    let stopped = false;
+    const check = async () => {
+      if (document.visibilityState !== "visible") return;
+      const res = await apiGet<{ total?: number }>("/api/consultations/unread", {});
+      if (stopped || typeof res.total !== "number") return;
+      const before = prevUnread.current;
+      if (before !== null && res.total > before && pathRef.current !== consultHref) {
+        const n = res.total - before;
+        setToast(n === 1 ? "You have a new message" : `You have ${n} new messages`);
+        chime();
+      }
+      prevUnread.current = res.total;
+      setUnread(res.total);
+    };
+    check();
+    const id = setInterval(check, 30000);
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("syntrix:unread-refresh", check);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", check);
+      window.removeEventListener("syntrix:unread-refresh", check);
+    };
+  }, [ready, consultHref]);
+
+  // "(3) Syntrix…" in the tab title, and the badge on the installed app icon.
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+\)\s*/, "");
+    document.title = unread ? `(${unread}) ${base}` : base;
+    const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+    try {
+      if (unread) nav.setAppBadge?.(unread)?.catch(() => {});
+      else nav.clearAppBadge?.()?.catch(() => {});
+    } catch {}
+  }, [unread, pathname]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 7000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const logout = async () => {
+    await unlinkThisDevice(); // stop this user's notifications on this device
     localStorage.removeItem("token");
     window.location.href = "/";
   };
@@ -136,6 +218,14 @@ export default function DashboardShell({ type = "client", children }: { type?: "
                   />
                 )}
                 {collapsed ? item.label.charAt(0) : item.label}
+                {item.href === consultHref && unread > 0 &&
+                  (collapsed ? (
+                    <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[#04140d]" aria-label={`${unread} unread`} />
+                  ) : (
+                    <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 align-middle text-[10px] font-semibold text-white" aria-label={`${unread} unread`}>
+                      {unread > 99 ? "99+" : unread}
+                    </span>
+                  ))}
               </Link>
             );
           })}
@@ -162,7 +252,33 @@ export default function DashboardShell({ type = "client", children }: { type?: "
         </div>
       </aside>
 
-      <section className="relative z-10 flex-1 p-6 md:p-10 xl:p-12">{children}</section>
+      <section className="relative z-10 flex-1 p-6 md:p-10 xl:p-12">
+        {ready && <NotifyPrompt />}
+        {children}
+      </section>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24 }}
+            className="fixed bottom-5 right-5 z-[80] flex max-w-sm items-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-950/90 px-4 py-3.5 shadow-2xl shadow-black/40 backdrop-blur-md"
+            role="status"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-400/25 text-emerald-100">
+              <i className="ti ti-message-2" aria-hidden />
+            </span>
+            <p className="text-sm text-emerald-50/90">{toast}</p>
+            <Link href={consultHref} onClick={() => setToast(null)} className="rounded-xl bg-emerald-500/90 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-400">
+              Open
+            </Link>
+            <button onClick={() => setToast(null)} aria-label="Dismiss" className="text-emerald-50/40 transition hover:text-white">
+              <i className="ti ti-x" aria-hidden />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

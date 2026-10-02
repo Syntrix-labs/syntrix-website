@@ -567,3 +567,160 @@ test("chat file: after 30 days it can't be downloaded but the message stays", as
   const indexes = await ChatFile.collection.indexes();
   assert.ok(indexes.some((i) => i.key.expiresAt === 1 && i.expireAfterSeconds === 0), JSON.stringify(indexes));
 });
+
+// ---------- chat notifications ----------
+const webpush = require("web-push");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const resetThread = async () => {
+  await request(app).post("/api/consultations/read").set("x-auth-token", client.token);
+  await request(app).post("/api/consultations/read").set("x-auth-token", admin.token).send({ client: client.id });
+};
+
+test("unread badges: both sides see unread counts and can mark read", async () => {
+  await resetThread();
+  await request(app).post("/api/consultations").set("x-auth-token", admin.token).send({ client: client.id, message: "Logo v2 is ready" });
+  let u = await request(app).get("/api/consultations/unread").set("x-auth-token", client.token);
+  assert.equal(u.body.total, 1);
+  let s = await request(app).get("/api/consultations/unread").set("x-auth-token", admin.token);
+  assert.equal(s.body.byClient[client.id] || 0, 0, "staff's own message isn't unread for staff");
+
+  await request(app).post("/api/consultations").set("x-auth-token", client.token).send({ message: "Love it!" });
+  s = await request(app).get("/api/consultations/unread").set("x-auth-token", admin.token);
+  assert.equal(s.body.byClient[client.id], 1);
+  assert.ok(s.body.total >= 1);
+
+  assert.equal((await request(app).post("/api/consultations/read").set("x-auth-token", client.token)).body.marked, 1);
+  u = await request(app).get("/api/consultations/unread").set("x-auth-token", client.token);
+  assert.equal(u.body.total, 0);
+
+  assert.equal((await request(app).post("/api/consultations/read").set("x-auth-token", admin.token).send({ client: client.id })).body.marked, 1);
+  s = await request(app).get("/api/consultations/unread").set("x-auth-token", admin.token);
+  assert.equal(s.body.byClient[client.id] || 0, 0);
+
+  assert.equal((await request(app).post("/api/consultations/read").set("x-auth-token", admin.token).send({})).status, 400);
+});
+
+test("push: key, subscribe, and new messages push to the other side only", async () => {
+  const PushSubscription = require("../models/PushSubscription");
+  delete process.env.VAPID_PUBLIC_KEY;
+  delete process.env.VAPID_PRIVATE_KEY;
+  assert.deepEqual((await request(app).get("/api/notifications/push/key")).body, { enabled: false });
+
+  const vapid = webpush.generateVAPIDKeys();
+  process.env.VAPID_PUBLIC_KEY = vapid.publicKey;
+  process.env.VAPID_PRIVATE_KEY = vapid.privateKey;
+  process.env.VAPID_SUBJECT = "https://syntrixlabs.in";
+  const key = await request(app).get("/api/notifications/push/key");
+  assert.equal(key.body.enabled, true);
+  assert.equal(key.body.publicKey, vapid.publicKey);
+
+  const bad = await request(app).post("/api/notifications/push/subscribe").set("x-auth-token", client.token).send({ subscription: { endpoint: "http://insecure" } });
+  assert.equal(bad.status, 400);
+  const clientSub = { endpoint: "https://push.example.com/client-phone", keys: { p256dh: "p1", auth: "a1" } };
+  const adminSub = { endpoint: "https://push.example.com/admin-laptop", keys: { p256dh: "p2", auth: "a2" } };
+  assert.equal((await request(app).post("/api/notifications/push/subscribe").set("x-auth-token", client.token).send({ subscription: clientSub })).status, 201);
+  assert.equal((await request(app).post("/api/notifications/push/subscribe").set("x-auth-token", admin.token).send({ subscription: adminSub })).status, 201);
+
+  const calls = [];
+  const original = webpush.sendNotification;
+  const waitFor = async (n) => { for (let i = 0; i < 60 && calls.length < n; i++) await sleep(20); await sleep(60); };
+  try {
+    webpush.sendNotification = async (target, payload) => { calls.push({ endpoint: target.endpoint, payload: JSON.parse(payload) }); };
+
+    await request(app).post("/api/consultations").set("x-auth-token", admin.token).send({ client: client.id, message: "Can we hop on a call?" });
+    await waitFor(1);
+    assert.equal(calls.length, 1, JSON.stringify(calls));
+    assert.equal(calls[0].endpoint, clientSub.endpoint);
+    assert.equal(calls[0].payload.url, "/dashboard/consultation");
+    assert.equal(calls[0].payload.title, "Admin · Syntrix");
+    assert.match(calls[0].payload.body, /hop on a call/);
+
+    calls.length = 0;
+    await request(app).post("/api/consultations").set("x-auth-token", client.token).send({ message: "Sure, 5pm?" });
+    await waitFor(1);
+    assert.equal(calls.length, 1, "only staff devices, not the client's own");
+    assert.equal(calls[0].endpoint, adminSub.endpoint);
+    assert.equal(calls[0].payload.url, `/admin/consultation?client=${client.id}`);
+    assert.match(calls[0].payload.title, /^New message from /);
+
+    // A device that was uninstalled/unsubscribed (410) gets removed.
+    webpush.sendNotification = async () => { const e = new Error("gone"); e.statusCode = 410; throw e; };
+    await request(app).post("/api/consultations").set("x-auth-token", admin.token).send({ client: client.id, message: "ping" });
+    for (let i = 0; i < 60 && (await PushSubscription.exists({ endpoint: clientSub.endpoint })); i++) await sleep(20);
+    assert.equal(await PushSubscription.exists({ endpoint: clientSub.endpoint }), null);
+  } finally {
+    webpush.sendNotification = original;
+    delete process.env.VAPID_PUBLIC_KEY;
+    delete process.env.VAPID_PRIVATE_KEY;
+    delete process.env.VAPID_SUBJECT;
+  }
+
+  assert.equal((await request(app).post("/api/notifications/push/unsubscribe").set("x-auth-token", admin.token).send({ endpoint: adminSub.endpoint })).status, 200);
+  assert.equal(await PushSubscription.exists({ endpoint: adminSub.endpoint }), null);
+});
+
+test("email reminders: only after 10 min unread, one per streak, reset after reading, daily cap", async () => {
+  const Consultation = require("../models/Consultation");
+  const { runEmailSweep } = require("../utils/chatNotifier");
+  await resetThread();
+  await Consultation.updateMany({}, { $set: { emailedAt: new Date() } }); // earlier tests' messages are out of scope
+
+  const sent = [];
+  const send = async (mail) => { sent.push(mail); return true; };
+  const age = (id, min) => Consultation.collection.updateOne({ _id: new mongoose.Types.ObjectId(id) }, { $set: { createdAt: new Date(Date.now() - min * 60000) } });
+  const staffSays = async (text) => (await request(app).post("/api/consultations").set("x-auth-token", admin.token).send({ client: client.id, message: text })).body.message;
+  const clientSays = async (text) => (await request(app).post("/api/consultations").set("x-auth-token", client.token).send({ message: text })).body.message;
+
+  const m1 = await staffSays("Please review the <b>logo</b>");
+  await runEmailSweep({ send });
+  assert.equal(sent.length, 0, "fresh message: no email yet");
+
+  await age(m1._id, 11);
+  await runEmailSweep({ send });
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].to, client.email);
+  assert.equal(sent[0].subject, "New message from Admin");
+  assert.match(sent[0].html, /&lt;b&gt;logo&lt;\/b&gt;/, "message text is HTML-escaped");
+  assert.match(sent[0].text, /\/dashboard\/consultation/);
+
+  const m2 = await staffSays("One more thing");
+  await age(m2._id, 11);
+  await runEmailSweep({ send });
+  assert.equal(sent.length, 1, "same unread streak: no second email");
+
+  await request(app).post("/api/consultations/read").set("x-auth-token", client.token);
+  const m3 = await staffSays("New version uploaded");
+  await age(m3._id, 11);
+  await runEmailSweep({ send });
+  assert.equal(sent.length, 2, "client read it, so a new streak emails again");
+
+  const c1 = await clientSays("Thanks, looks great");
+  await age(c1._id, 11);
+  await runEmailSweep({ send });
+  assert.equal(sent.length, 3);
+  assert.deepEqual(sent[2].to, ["admin@syntrix.test"], "client messages remind the admins");
+  assert.match(sent[2].text, new RegExp(`/admin/consultation\\?client=${client.id}`));
+
+  process.env.CHAT_EMAIL_DAILY_CAP = "0";
+  try {
+    await request(app).post("/api/consultations/read").set("x-auth-token", admin.token).send({ client: client.id });
+    const c2 = await clientSays("Another question");
+    await age(c2._id, 11);
+    await runEmailSweep({ send });
+    assert.equal(sent.length, 3, "daily cap stops further emails");
+  } finally {
+    delete process.env.CHAT_EMAIL_DAILY_CAP;
+  }
+});
+
+test("messages from before notifications launched count as already read", async () => {
+  const Consultation = require("../models/Consultation");
+  const { backfillReadState } = require("../utils/chatNotifier");
+  const created = new Date("2026-01-01T10:00:00Z");
+  const { insertedId } = await Consultation.collection.insertOne({ client: new mongoose.Types.ObjectId(client.id), senderRole: "Admin", message: "old", createdAt: created, updatedAt: created });
+  await backfillReadState();
+  const doc = await Consultation.collection.findOne({ _id: insertedId });
+  assert.equal(doc.readAt.toISOString(), created.toISOString());
+  assert.equal(doc.emailedAt.toISOString(), created.toISOString());
+  await Consultation.collection.deleteOne({ _id: insertedId });
+});

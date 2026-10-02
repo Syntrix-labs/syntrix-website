@@ -24,7 +24,7 @@ async function sendMail({ to, subject, html, text, attachments }) {
   // 1) Resend over HTTPS — works on Render.
   if (process.env.RESEND_API_KEY) {
     const from = process.env.MAIL_FROM || 'Syntrix Labs <onboarding@resend.dev>';
-    const payload = { from, to: [to], subject, html, text };
+    const payload = { from, to: Array.isArray(to) ? to : [to], subject, html, text };
     if (attachments && attachments.length) {
       payload.attachments = attachments.map((att) => {
         const { filename, buffer } = loadAttachment(att);

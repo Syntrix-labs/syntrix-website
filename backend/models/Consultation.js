@@ -16,7 +16,16 @@ const consultationSchema = new mongoose.Schema({
     mimeType: String,
     size: Number,
     expiresAt: Date
-  }
+  },
+  // When the *other* side read it (client reads staff messages, staff read
+  // client messages). null = unread → drives badges and email reminders.
+  readAt: { type: Date, default: null },
+  // Set once the unread-reminder email sweep has looked at this message;
+  // emailSent marks the one message per unread streak that triggered an email.
+  emailedAt: { type: Date, default: null },
+  emailSent: { type: Boolean, default: false }
 }, { timestamps: true });
+
+consultationSchema.index({ client: 1, senderRole: 1, readAt: 1 });
 
 module.exports = mongoose.model('Consultation', consultationSchema);

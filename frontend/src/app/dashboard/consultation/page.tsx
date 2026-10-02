@@ -10,7 +10,9 @@ import { connectSocket } from "@/lib/socket";
 import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachment";
 import AttachFileButton from "@/components/chat/AttachFileButton";
 
-type Message = { _id: string; senderRole: string; senderName?: string; message: string; createdAt?: string; attachment?: Attachment };
+type Message = { _id: string; senderRole: string; senderName?: string; message: string; createdAt?: string; readAt?: string | null; attachment?: Attachment };
+
+const isServerId = (id: string) => /^[a-f0-9]{24}$/.test(id);
 
 const fallback: Message[] = [
   {
@@ -88,6 +90,26 @@ export default function ConsultationPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
+
+  // Mark the team's messages as read while this chat is actually on screen.
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const onVis = () => setVisible(document.visibilityState === "visible");
+    onVis();
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+  useEffect(() => {
+    const hasUnread = messages.some((m) => m.senderRole !== "Client" && !m.readAt && isServerId(m._id));
+    if (!visible || !hasUnread) return;
+    fetch(apiPath("/api/consultations/read"), { method: "POST", headers: authHeaders() })
+      .then(() => {
+        const now = new Date().toISOString();
+        setMessages((prev) => prev.map((m) => (m.senderRole !== "Client" && !m.readAt ? { ...m, readAt: now } : m)));
+        window.dispatchEvent(new Event("syntrix:unread-refresh"));
+      })
+      .catch(() => {});
+  }, [messages, visible]);
 
   const send = async () => {
     const text = draft.trim();

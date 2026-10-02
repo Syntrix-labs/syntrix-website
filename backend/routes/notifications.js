@@ -3,6 +3,38 @@ const router = express.Router();
 const Notification = require('../models/Notification');
 const authMiddleware = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/adminMiddleware');
+const PushSubscription = require('../models/PushSubscription');
+const { pushConfig } = require('../utils/chatNotifier');
+
+// ---- Push notifications (phone/desktop) ----
+
+// Public VAPID key the browser needs to subscribe; enabled=false until the
+// VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY env vars are set on the server.
+router.get('/push/key', (req, res) => {
+  const cfg = pushConfig();
+  res.json(cfg ? { enabled: true, publicKey: cfg.publicKey } : { enabled: false });
+});
+
+router.post('/push/subscribe', authMiddleware, async (req, res) => {
+  const sub = req.body && req.body.subscription;
+  const endpoint = sub && typeof sub.endpoint === 'string' ? sub.endpoint : '';
+  const keys = (sub && sub.keys) || {};
+  if (!/^https:\/\//.test(endpoint) || !keys.p256dh || !keys.auth) {
+    return res.status(400).json({ success: false, message: 'Invalid push subscription' });
+  }
+  await PushSubscription.findOneAndUpdate(
+    { endpoint },
+    { user: req.user.id, endpoint, keys: { p256dh: keys.p256dh, auth: keys.auth }, userAgent: String(req.get('user-agent') || '').slice(0, 300) },
+    { upsert: true, setDefaultsOnInsert: true }
+  );
+  res.status(201).json({ success: true });
+});
+
+router.post('/push/unsubscribe', authMiddleware, async (req, res) => {
+  const endpoint = req.body && typeof req.body.endpoint === 'string' ? req.body.endpoint : '';
+  await PushSubscription.deleteOne({ endpoint, user: req.user.id });
+  res.json({ success: true });
+});
 
 // @route   GET /api/notifications
 // @desc    Get all notifications for the logged-in user

@@ -9,6 +9,10 @@ const authMiddleware = require('../middleware/authMiddleware');
 const requireStaff = require('../middleware/staffMiddleware');
 const { isAdminEmail } = require('../utils/adminAccess');
 const { uploadLimiter } = require('../middleware/rateLimiters');
+const { notifyNewMessage, startChatNotifier } = require('../utils/chatNotifier');
+
+// Email reminders for unread messages run in the background (not in tests).
+startChatNotifier();
 
 const CHAT_FILE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB (MongoDB documents cap at 16 MB)
 const CHAT_FILE_TTL_DAYS = 30;
@@ -34,14 +38,48 @@ async function resolveThread(req) {
   return { me, staff, clientId };
 }
 
-function broadcast(req, clientId, message) {
+function broadcast(req, clientId, message, sender) {
   const io = req.app.get('io');
   if (io) io.to(`user:${clientId}`).emit('consultation:new', message.toObject());
+  // Push to the other side's phones/desktops; never blocks the response.
+  notifyNewMessage(message, sender).catch((error) => console.error('Chat push failed:', error.message));
 }
 
 router.get('/', authMiddleware, async (req, res) => {
   const messages = await Consultation.find({ client: req.user.id }).sort({ createdAt: 1 });
   res.json(messages);
+});
+
+// Unread counts for badges. Clients: staff messages they haven't read.
+// Staff: client messages nobody on the team has read yet, per client.
+router.get('/unread', authMiddleware, async (req, res) => {
+  const me = await User.findById(req.user.id).select('email role');
+  const staff = isAdminEmail(me?.email) || me?.role === 'team';
+  if (!staff) {
+    const total = await Consultation.countDocuments({ client: req.user.id, senderRole: 'Admin', readAt: null });
+    return res.json({ total });
+  }
+  const rows = await Consultation.aggregate([
+    { $match: { senderRole: 'Client', readAt: null } },
+    { $group: { _id: '$client', n: { $sum: 1 } } },
+  ]);
+  const byClient = {};
+  rows.forEach((r) => { if (r._id) byClient[String(r._id)] = r.n; });
+  return res.json({ total: rows.reduce((sum, r) => sum + r.n, 0), byClient });
+});
+
+// Mark the other side's messages in a conversation as read
+// (clients: their own thread; staff: pass { client }).
+router.post('/read', authMiddleware, async (req, res) => {
+  const { staff, clientId } = await resolveThread(req);
+  if (!clientId || !mongoose.isValidObjectId(clientId)) {
+    return res.status(400).json({ success: false, message: 'Select a client' });
+  }
+  const result = await Consultation.updateMany(
+    { client: clientId, senderRole: staff ? 'Client' : 'Admin', readAt: null },
+    { $set: { readAt: new Date() } }
+  );
+  return res.json({ success: true, marked: result.modifiedCount });
 });
 
 router.get('/admin/all', authMiddleware, requireStaff, async (req, res) => {
@@ -74,7 +112,7 @@ router.post('/', authMiddleware, async (req, res) => {
     message: text,
   });
 
-  broadcast(req, clientId, message);
+  broadcast(req, clientId, message, me);
   res.status(201).json({ success: true, message });
 });
 
@@ -113,7 +151,7 @@ router.post('/attachment', authMiddleware, uploadLimiter, receiveChatFile, async
       attachment: { fileId: file._id, name: file.name, mimeType: file.mimeType, size: file.size, expiresAt },
     });
 
-    broadcast(req, clientId, message);
+    broadcast(req, clientId, message, me);
     return res.status(201).json({ success: true, message });
   } catch (error) {
     console.error('Chat file upload error:', error);

@@ -10,7 +10,7 @@ import { connectSocket, type Socket } from "@/lib/socket";
 import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachment";
 import AttachFileButton from "@/components/chat/AttachFileButton";
 
-type Message = { _id: string; senderRole: "Admin" | "Client"; senderName?: string; message: string; createdAt?: string; attachment?: Attachment; client?: { _id?: string; name?: string; email?: string } };
+type Message = { _id: string; senderRole: "Admin" | "Client"; senderName?: string; message: string; createdAt?: string; readAt?: string | null; attachment?: Attachment; client?: { _id?: string; name?: string; email?: string } };
 type Client = { _id: string; name: string; email: string };
 
 const time = (iso?: string) => (iso ? new Date(iso).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
@@ -40,6 +40,9 @@ export default function AdminConsultationPage() {
 
   useEffect(() => {
     load().finally(() => setLoading(false));
+    // Opened from a notification/email link: /admin/consultation?client=<id>
+    const fromLink = new URLSearchParams(window.location.search).get("client");
+    if (fromLink) setSelected(fromLink);
   }, []);
 
   // Real-time: socket pushes new messages instantly (falls back to polling).
@@ -80,6 +83,31 @@ export default function AdminConsultationPage() {
     bottomRef.current?.scrollIntoView({ block: "end" });
   }, [selected, messages]);
 
+  // Mark the open client's messages as read while the conversation is on screen.
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const onVis = () => setVisible(document.visibilityState === "visible");
+    onVis();
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+  const unreadFor = (id: string) => messages.filter((m) => clientIdOf(m) === id && m.senderRole === "Client" && !m.readAt).length;
+  const selectedUnread = selected ? unreadFor(selected) : 0;
+  useEffect(() => {
+    if (!visible || !selected || !selectedUnread) return;
+    fetch(apiPath("/api/consultations/read"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ client: selected }),
+    })
+      .then(() => {
+        const now = new Date().toISOString();
+        setMessages((prev) => prev.map((m) => (clientIdOf(m) === selected && m.senderRole === "Client" && !m.readAt ? { ...m, readAt: now } : m)));
+        window.dispatchEvent(new Event("syntrix:unread-refresh"));
+      })
+      .catch(() => {});
+  }, [visible, selected, selectedUnread]);
+
   const send = async () => {
     const text = draft.trim();
     if (!text || !selected || sending) return;
@@ -102,6 +130,9 @@ export default function AdminConsultationPage() {
     return ms.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())[0];
   };
   const selectedClient = clients.find((c) => c._id === selected);
+  // Clients with unread messages first, then most recent conversation.
+  const lastAt = (id: string) => new Date(lastFor(id)?.createdAt || 0).getTime();
+  const sortedClients = [...clients].sort((a, b) => (unreadFor(b._id) > 0 ? 1 : 0) - (unreadFor(a._id) > 0 ? 1 : 0) || lastAt(b._id) - lastAt(a._id));
 
   if (loading) {
     return (
@@ -128,8 +159,9 @@ export default function AdminConsultationPage() {
           <div className="rounded-3xl border border-emerald-200/12 bg-emerald-950/25 p-3 backdrop-blur-md">
             <p className="px-2 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-emerald-100/45">Clients</p>
             <div className="max-h-[60vh] space-y-1 overflow-y-auto">
-              {clients.map((c) => {
+              {sortedClients.map((c) => {
                 const last = lastFor(c._id);
+                const unreadCount = unreadFor(c._id);
                 const active = c._id === selected;
                 return (
                   <button
@@ -141,9 +173,14 @@ export default function AdminConsultationPage() {
                       {(c.name || "?").charAt(0).toUpperCase()}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-light text-white">{c.name}</p>
+                      <p className={`truncate text-sm ${unreadCount ? "font-medium text-white" : "font-light text-white"}`}>{c.name}</p>
                       <p className="truncate text-[11px] text-emerald-50/45">{last ? last.message || (last.attachment?.name ? `📎 ${last.attachment.name}` : "") : c.email}</p>
                     </div>
+                    {unreadCount > 0 && (
+                      <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-semibold text-white" aria-label={`${unreadCount} unread`}>
+                        {unreadCount}
+                      </span>
+                    )}
                   </button>
                 );
               })}

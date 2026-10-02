@@ -4,7 +4,7 @@
     {
       "name": "syntrix-backend",
       "runtimeExecutable": "env",
-      "runtimeArgs": ["PORT=5055", "CLIENT_URL=http://localhost:3100", "npm", "--prefix", "backend", "start"],
+      "runtimeArgs": ["PORT=5055", "CLIENT_URL=http://localhost:3100", "RESEND_API_KEY=", "EMAIL_USER=", "EMAIL_PASS=", "npm", "--prefix", "backend", "start"],
       "port": 5055
     },
     {
