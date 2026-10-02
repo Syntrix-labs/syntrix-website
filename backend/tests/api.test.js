@@ -476,3 +476,94 @@ test("OAuth: google stays off without keys, and padded keys are trimmed", async 
   delete process.env.GOOGLE_CLIENT_SECRET;
   delete process.env.PUBLIC_APP_URL;
 });
+
+// ---------- consultation file sharing ----------
+const binary = (res, cb) => { const chunks = []; res.on("data", (c) => chunks.push(c)); res.on("end", () => cb(null, Buffer.concat(chunks))); };
+let chatFileId = "";
+
+test("client sends a file in consultation; it lasts 30 days", async () => {
+  const png = Buffer.from("89504e470d0a1a0a-fake-logo", "utf8");
+  const res = await request(app).post("/api/consultations/attachment").set("x-auth-token", client.token)
+    .field("message", "Here is our old logo")
+    .attach("file", png, { filename: "old-logo.png", contentType: "image/png" });
+  assert.equal(res.status, 201);
+  const m = res.body.message;
+  assert.equal(m.senderRole, "Client");
+  assert.equal(m.message, "Here is our old logo");
+  assert.equal(m.attachment.name, "old-logo.png");
+  assert.equal(m.attachment.size, png.length);
+  const days = (new Date(m.attachment.expiresAt) - Date.now()) / 86400000;
+  assert.ok(days > 29.9 && days <= 30, `expires in ${days} days`);
+  chatFileId = m.attachment.fileId;
+
+  const thread = await request(app).get("/api/consultations").set("x-auth-token", client.token);
+  assert.ok(thread.body.some((x) => x.attachment && x.attachment.fileId === chatFileId));
+});
+
+test("chat file: owner and staff can download, other clients cannot", async () => {
+  const own = await request(app).get(`/api/consultations/files/${chatFileId}`).set("x-auth-token", client.token).buffer(true).parse(binary);
+  assert.equal(own.status, 200);
+  assert.equal(own.body.toString("utf8"), "89504e470d0a1a0a-fake-logo");
+  assert.match(own.headers["content-disposition"], /^attachment; filename\*=UTF-8''old-logo\.png$/);
+  assert.equal(own.headers["x-content-type-options"], "nosniff");
+
+  const staff = await request(app).get(`/api/consultations/files/${chatFileId}`).set("x-auth-token", admin.token).buffer(true).parse(binary);
+  assert.equal(staff.status, 200);
+
+  const other = await request(app).post("/api/auth/signup").send({ name: "Other Client", email: "other-client@syntrix.test", password: "password123" });
+  const denied = await request(app).get(`/api/consultations/files/${chatFileId}`).set("x-auth-token", other.body.token);
+  assert.equal(denied.status, 403);
+
+  const anon = await request(app).get(`/api/consultations/files/${chatFileId}`);
+  assert.equal(anon.status, 401);
+});
+
+test("staff sends a design file into a chosen client's thread", async () => {
+  const res = await request(app).post("/api/consultations/attachment").set("x-auth-token", admin.token)
+    .field("client", client.id).field("message", "New logo concept v1")
+    .attach("file", Buffer.from("<svg/>"), { filename: "logo-v1.svg", contentType: "image/svg+xml" });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.message.senderRole, "Admin");
+  assert.equal(res.body.message.senderName, "Admin");
+  assert.equal(String(res.body.message.client), client.id);
+
+  const noClient = await request(app).post("/api/consultations/attachment").set("x-auth-token", admin.token)
+    .attach("file", Buffer.from("x"), "a.png");
+  assert.equal(noClient.status, 400);
+});
+
+test("chat file: blocks programs, empty uploads and files over 10 MB", async () => {
+  const exe = await request(app).post("/api/consultations/attachment").set("x-auth-token", client.token)
+    .attach("file", Buffer.from("MZ"), "setup.exe");
+  assert.equal(exe.status, 400);
+
+  const none = await request(app).post("/api/consultations/attachment").set("x-auth-token", client.token).field("message", "hi");
+  assert.equal(none.status, 400);
+
+  const big = await request(app).post("/api/consultations/attachment").set("x-auth-token", client.token)
+    .attach("file", Buffer.alloc(10 * 1024 * 1024 + 1), "huge.zip");
+  assert.equal(big.status, 413);
+});
+
+test("chat file: after 30 days it can't be downloaded but the message stays", async () => {
+  const ChatFile = require("../models/ChatFile");
+  await ChatFile.updateOne({ _id: chatFileId }, { expiresAt: new Date(Date.now() - 1000) });
+
+  const res = await request(app).get(`/api/consultations/files/${chatFileId}`).set("x-auth-token", client.token);
+  assert.equal(res.status, 410);
+  assert.equal(res.body.expired, true);
+
+  // Simulate MongoDB's TTL monitor having removed the bytes entirely.
+  await ChatFile.deleteOne({ _id: chatFileId });
+  const gone = await request(app).get(`/api/consultations/files/${chatFileId}`).set("x-auth-token", client.token);
+  assert.equal(gone.status, 410);
+
+  const thread = await request(app).get("/api/consultations").set("x-auth-token", client.token);
+  const msg = thread.body.find((x) => x.attachment && x.attachment.fileId === chatFileId);
+  assert.ok(msg, "message with the expired file is still in the thread");
+  assert.equal(msg.attachment.name, "old-logo.png");
+
+  // The TTL index exists so MongoDB deletes expired files on its own.
+  const indexes = await ChatFile.collection.indexes();
+  assert.ok(indexes.some((i) => i.key.expiresAt === 1 && i.expireAfterSeconds === 0), JSON.stringify(indexes));
+});

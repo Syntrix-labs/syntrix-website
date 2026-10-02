@@ -2,9 +2,15 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "syntrix-backend",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["PORT=5055", "CLIENT_URL=http://localhost:3100", "npm", "--prefix", "backend", "start"],
+      "port": 5055
+    },
+    {
       "name": "syntrix-frontend",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev", "--", "-p", "3100"],
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["BACKEND_URL=http://localhost:5055", "NEXT_PUBLIC_SOCKET_URL=http://localhost:5055", "npm", "--prefix", "frontend", "run", "dev", "--", "-p", "3100"],
       "port": 3100
     }
   ]

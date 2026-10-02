@@ -7,8 +7,10 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { DashboardSkeleton, EmptyState } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 import { connectSocket, type Socket } from "@/lib/socket";
+import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachment";
+import AttachFileButton from "@/components/chat/AttachFileButton";
 
-type Message = { _id: string; senderRole: "Admin" | "Client"; message: string; createdAt?: string; client?: { _id?: string; name?: string; email?: string } };
+type Message = { _id: string; senderRole: "Admin" | "Client"; senderName?: string; message: string; createdAt?: string; attachment?: Attachment; client?: { _id?: string; name?: string; email?: string } };
 type Client = { _id: string; name: string; email: string };
 
 const time = (iso?: string) => (iso ? new Date(iso).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
@@ -22,6 +24,7 @@ export default function AdminConsultationPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [name, setName] = useState("");
+  const [fileStatus, setFileStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
 
@@ -53,6 +56,7 @@ export default function AdminConsultationPage() {
   // Join the selected client's room so their replies arrive live.
   useEffect(() => {
     if (selected) socketRef.current?.emit("join", selected);
+    setFileStatus(null);
   }, [selected]);
 
   // Fallback: poll for new messages while the page is open.
@@ -138,7 +142,7 @@ export default function AdminConsultationPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-light text-white">{c.name}</p>
-                      <p className="truncate text-[11px] text-emerald-50/45">{last ? last.message : c.email}</p>
+                      <p className="truncate text-[11px] text-emerald-50/45">{last ? last.message || (last.attachment?.name ? `📎 ${last.attachment.name}` : "") : c.email}</p>
                     </div>
                   </button>
                 );
@@ -166,17 +170,36 @@ export default function AdminConsultationPage() {
                     return (
                       <div key={m._id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                         <div className="max-w-[78%]">
-                          <div className={`rounded-2xl px-4 py-2.5 text-sm font-light ${mine ? "rounded-br-md bg-emerald-500/22 text-emerald-50" : "rounded-bl-md border border-emerald-200/10 bg-emerald-950/55 text-emerald-50/90"}`}>
-                            {m.message}
-                          </div>
-                          <p className={`mt-1 px-1 text-[10px] text-emerald-100/35 ${mine ? "text-right" : ""}`}>{mine ? "You" : selectedClient?.name} · {time(m.createdAt)}</p>
+                          {m.attachment?.fileId && (
+                            <div className={`w-72 max-w-full ${mine ? "ml-auto" : ""} ${m.message ? "mb-1.5" : ""}`}>
+                              <ChatAttachment attachment={m.attachment} mine={mine} />
+                            </div>
+                          )}
+                          {m.message && (
+                            <div className={`rounded-2xl px-4 py-2.5 text-sm font-light ${mine ? "rounded-br-md bg-emerald-500/22 text-emerald-50" : "rounded-bl-md border border-emerald-200/10 bg-emerald-950/55 text-emerald-50/90"}`}>
+                              {m.message}
+                            </div>
+                          )}
+                          <p className={`mt-1 px-1 text-[10px] text-emerald-100/35 ${mine ? "text-right" : ""}`}>{mine ? (m.senderName && m.senderName !== name ? m.senderName : "You") : selectedClient?.name} · {time(m.createdAt)}</p>
                         </div>
                       </div>
                     );
                   })}
                   <div ref={bottomRef} />
                 </div>
+                {fileStatus && (
+                  <p className={`border-t border-emerald-200/10 px-5 pt-2.5 text-xs ${fileStatus.error ? "text-red-300" : "text-emerald-100/60"}`}>{fileStatus.text}</p>
+                )}
                 <div className="flex items-center gap-3 border-t border-emerald-200/10 px-4 py-3">
+                  <AttachFileButton
+                    clientId={selected}
+                    caption={draft}
+                    onStatus={(text, error) => setFileStatus(text ? { text, error } : null)}
+                    onSent={async () => {
+                      setDraft("");
+                      await load();
+                    }}
+                  />
                   <input
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}

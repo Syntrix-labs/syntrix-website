@@ -7,8 +7,10 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { DashboardSkeleton } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
 import { connectSocket } from "@/lib/socket";
+import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachment";
+import AttachFileButton from "@/components/chat/AttachFileButton";
 
-type Message = { _id: string; senderRole: string; message: string; createdAt?: string };
+type Message = { _id: string; senderRole: string; senderName?: string; message: string; createdAt?: string; attachment?: Attachment };
 
 const fallback: Message[] = [
   {
@@ -38,6 +40,7 @@ export default function ConsultationPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [fileStatus, setFileStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -183,17 +186,24 @@ export default function ConsultationPage() {
                       </span>
                     )}
                     <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
-                      <div
-                        className={`rounded-2xl px-4 py-2.5 text-sm font-light leading-relaxed ${
-                          mine
-                            ? "rounded-br-md bg-emerald-500/22 text-emerald-50"
-                            : "rounded-bl-md border border-emerald-200/10 bg-emerald-950/55 text-emerald-50/90"
-                        }`}
-                      >
-                        {m.message}
-                      </div>
+                      {m.attachment?.fileId && (
+                        <div className={`w-72 max-w-full ${m.message ? "mb-1.5" : ""}`}>
+                          <ChatAttachment attachment={m.attachment} mine={mine} />
+                        </div>
+                      )}
+                      {m.message && (
+                        <div
+                          className={`rounded-2xl px-4 py-2.5 text-sm font-light leading-relaxed ${
+                            mine
+                              ? "rounded-br-md bg-emerald-500/22 text-emerald-50"
+                              : "rounded-bl-md border border-emerald-200/10 bg-emerald-950/55 text-emerald-50/90"
+                          }`}
+                        >
+                          {m.message}
+                        </div>
+                      )}
                       <span className="mt-1 px-1 text-[10px] text-emerald-100/35">
-                        {mine ? name : "Syntrix"} · {timeLabel(m.createdAt)}
+                        {mine ? name : m.senderName ? `${m.senderName} · Syntrix` : "Syntrix"} · {timeLabel(m.createdAt)}
                       </span>
                     </div>
                     {mine && (
@@ -209,7 +219,21 @@ export default function ConsultationPage() {
           </div>
 
           {/* composer */}
+          {fileStatus && (
+            <p className={`border-t border-emerald-200/10 px-5 pt-2.5 text-xs ${fileStatus.error ? "text-red-300" : "text-emerald-100/60"}`}>
+              {fileStatus.text}
+            </p>
+          )}
           <div className="flex items-center gap-3 border-t border-emerald-200/10 px-4 py-3 md:px-5">
+            <AttachFileButton
+              caption={draft}
+              onStatus={(text, error) => setFileStatus(text ? { text, error } : null)}
+              onSent={async () => {
+                setDraft("");
+                const fresh = await apiGet<Message[]>("/api/consultations", []);
+                if (fresh.length) setMessages(fresh);
+              }}
+            />
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -231,6 +255,7 @@ export default function ConsultationPage() {
               <i className="ti ti-send" aria-hidden />
             </button>
           </div>
+          <p className="px-5 pb-3 text-[10px] text-emerald-100/30">Share files up to 10 MB · images, PDFs, designs, zips · kept for 30 days</p>
         </motion.div>
       </motion.div>
     </DashboardShell>
