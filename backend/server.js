@@ -172,6 +172,7 @@ app.get('/api/admin/summary', requireDatabase, authMiddleware, requireAdmin, asy
   const Meeting = require('./models/Meeting');
   const Consultation = require('./models/Consultation');
   const TeamMember = require('./models/TeamMember');
+  const { isAdminEmail } = require('./utils/adminAccess');
 
   const [
     totalClients,
@@ -181,7 +182,9 @@ app.get('/api/admin/summary', requireDatabase, authMiddleware, requireAdmin, asy
     consultationMessages,
     teamMembers
   ] = await Promise.all([
-    User.countDocuments(),
+    // Same rule as the Clients list: not a team member and not an admin email.
+    User.find({ role: { $ne: 'team' } }).select('email').lean()
+      .then((users) => users.filter((u) => !isAdminEmail(u.email)).length),
     Project.countDocuments({ status: { $ne: 'Completed' } }),
     Payment.countDocuments({ status: { $ne: 'Paid' } }),
     Meeting.countDocuments({ status: 'Upcoming' }),

@@ -339,6 +339,12 @@ test("clients list excludes admins and team members", async () => {
   assert.ok(!emails.includes("mate@syntrix.test")); // team member excluded
 });
 
+test("dashboard client count matches the clients list (no admins or team)", async () => {
+  const list = await request(app).get("/api/admin/clients").set("x-auth-token", admin.token);
+  const summary = await request(app).get("/api/admin/summary").set("x-auth-token", admin.token);
+  assert.equal(summary.body.totalClients, list.body.length);
+});
+
 test("team member can use staff endpoints", async () => {
   assert.equal((await request(app).get("/api/consultations/admin/all").set("x-auth-token", teamToken)).status, 200);
   assert.equal((await request(app).get("/api/meetings/admin/all").set("x-auth-token", teamToken)).status, 200);
