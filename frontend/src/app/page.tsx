@@ -130,7 +130,7 @@ export default function Home() {
 
       <main className="relative z-10 text-white">
         {/* Hero */}
-        <section className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <section className="flex min-h-svh flex-col items-center justify-center px-6 pt-16 text-center md:min-h-screen md:pt-0">
           <motion.div
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -143,7 +143,7 @@ export default function Home() {
               style={{ animation: "slowspin 26s linear infinite" }}
             />
             <h1
-              className="relative text-6xl font-extralight tracking-[0.28em] text-white md:text-8xl"
+              className="relative text-[3.4rem] font-extralight tracking-[0.28em] text-white sm:text-6xl md:text-8xl"
               style={{ textShadow: "0 0 50px rgba(120,210,160,0.55)" }}
             >
               SYNTRIX
@@ -186,7 +186,7 @@ export default function Home() {
         </section>
 
         {/* Figure */}
-        <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
+        <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden md:min-h-screen">
           <ParticleFigure />
           <motion.div {...reveal} className="pointer-events-none absolute bottom-20 left-0 right-0 px-6 text-center">
             <p className="mb-4 font-mono text-xs tracking-[0.5em]" style={{ color: "#a9ba9d" }}>OUR APPROACH</p>
@@ -200,7 +200,7 @@ export default function Home() {
         <ServiceSections scheduleHref={scheduleHref} />
 
         {/* Stats */}
-        <section className="px-6 py-28">
+        <section className="px-6 py-16 md:py-28">
           <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4">
             {stats.map(([value, suffix, label], i) => (
               <motion.div
@@ -221,9 +221,9 @@ export default function Home() {
         </section>
 
         {/* Why work with us */}
-        <section className="px-6 py-28">
+        <section className="px-6 py-16 md:py-28">
           <div className="mx-auto max-w-6xl">
-            <motion.div {...reveal} className="mb-14 max-w-2xl">
+            <motion.div {...reveal} className="mb-10 max-w-2xl md:mb-14">
               <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>WHY SYNTRIX</p>
               <h2 className="text-3xl font-light leading-tight tracking-wide md:text-5xl">Reasons startups choose to build with us.</h2>
             </motion.div>
@@ -248,9 +248,9 @@ export default function Home() {
         </section>
 
         {/* Process */}
-        <section className="px-6 py-28">
+        <section className="px-6 py-16 md:py-28">
           <div className="mx-auto max-w-6xl">
-            <motion.div {...reveal} className="mb-14 text-center">
+            <motion.div {...reveal} className="mb-10 text-center md:mb-14">
               <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>HOW WE WORK</p>
               <h2 className="text-3xl font-light tracking-wide md:text-5xl">From first call to launch, in four clear steps.</h2>
             </motion.div>
@@ -274,12 +274,12 @@ export default function Home() {
         </section>
 
         {/* Our work */}
-        <section id="work" className="px-6 py-28">
+        <section id="work" className="px-6 py-16 md:py-28">
           <OurWork scheduleHref={scheduleHref} />
         </section>
 
         {/* Tech stack */}
-        <section className="px-6 py-28">
+        <section className="px-6 py-16 md:py-28">
           <div className="mx-auto max-w-5xl text-center">
             <motion.p {...reveal} className="mb-10 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>BUILT WITH A MODERN STACK</motion.p>
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -300,7 +300,7 @@ export default function Home() {
         </section>
 
         {/* FAQ */}
-        <section className="px-6 py-28">
+        <section className="px-6 py-16 md:py-28">
           <div className="mx-auto max-w-3xl">
             <motion.div {...reveal} className="mb-10 text-center">
               <p className="mb-4 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>QUESTIONS</p>
@@ -315,7 +315,7 @@ export default function Home() {
         </section>
 
         {/* Final CTA */}
-        <section id="contact" className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <section id="contact" className="flex min-h-[80vh] flex-col items-center justify-center px-6 text-center md:min-h-screen">
           <motion.div {...reveal} className="max-w-2xl">
             <p className="mb-5 font-mono text-xs tracking-[0.4em]" style={{ color: "#a9ba9d" }}>BEGIN</p>
             <h2 className="text-4xl font-light leading-tight tracking-wide md:text-6xl" style={{ textShadow: "0 0 30px rgba(40,80,55,0.6)" }}>

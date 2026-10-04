@@ -103,6 +103,9 @@ export default function ParticleFigure() {
     };
 
     const resize = () => {
+      // iPhone/Android fire "resize" while the address bar slides during
+      // scrolling; only rebuild when the canvas size really changed.
+      if (W && canvas.clientWidth === W && canvas.clientHeight === H) return;
       DPR = Math.min(window.devicePixelRatio || 1, 2);
       W = canvas.clientWidth;
       H = canvas.clientHeight;
@@ -194,7 +197,7 @@ export default function ParticleFigure() {
     <canvas
       ref={canvasRef}
       aria-hidden
-      className="h-[78vh] w-full"
+      className="h-[62vh] w-full md:h-[78vh]"
     />
   );
 }

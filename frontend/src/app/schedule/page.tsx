@@ -1,3 +1,4 @@
+import Navbar from "@/components/navbar/Navbar";
 import ImmersiveScene from "@/components/ImmersiveScene";
 import ParticleShape from "@/components/ParticleShape";
 
@@ -11,6 +12,7 @@ const bookingHref = isExternalSchedulingUrl ? schedulingUrl : fallbackMailto;
 export default function SchedulePage() {
   return (
     <>
+      <Navbar />
       <ImmersiveScene />
       <main className="relative z-10 text-white">
         {/* Particle hero — clock */}
@@ -25,15 +27,6 @@ export default function SchedulePage() {
         </section>
 
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 pb-20">
-          <a
-            href="/"
-            aria-label="Syntrix Labs home"
-            className="text-base font-light tracking-[0.32em] text-white"
-            style={{ textShadow: "0 0 18px rgba(120,210,160,0.5)" }}
-          >
-            SYNTRIX<span style={{ color: "#a9ba9d" }}>&nbsp;LABS</span>
-          </a>
-
           <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
               <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: "#a9ba9d" }}>

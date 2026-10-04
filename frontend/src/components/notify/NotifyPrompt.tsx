@@ -86,7 +86,7 @@ export default function NotifyPrompt() {
   const copy = {
     ask: {
       title: "Turn on message notifications",
-      body: "Get a notification on this device the moment someone replies in Consultation — even when this site is closed.",
+      body: "Get notified the moment someone replies in Consultation — even when this app is closed.",
     },
     "ios-install": {
       title: "Get notifications on your iPhone",
@@ -105,47 +105,48 @@ export default function NotifyPrompt() {
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
-          className="mb-6 flex flex-col gap-4 rounded-3xl border border-emerald-300/25 bg-gradient-to-br from-emerald-500/15 to-emerald-950/40 p-5 backdrop-blur-md md:flex-row md:items-center"
+          className="relative mb-4 flex items-start gap-3 rounded-2xl border border-emerald-300/25 bg-gradient-to-br from-emerald-500/15 to-emerald-950/40 p-4 backdrop-blur-md md:mb-6 md:gap-4 md:rounded-3xl md:p-5"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/20 text-xl text-emerald-100">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-400/20 text-lg text-emerald-100 md:h-11 md:w-11 md:rounded-2xl md:text-xl">
             <i className={`ti ${mode === "blocked" ? "ti-bell-off" : mode === "ios-install" ? "ti-device-mobile" : "ti-bell-ringing"}`} aria-hidden />
           </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-base font-light text-white">{copy[mode].title}</p>
+          <div className="min-w-0 flex-1 pr-6">
+            <p className="text-[15px] font-normal text-white md:text-base md:font-light">{copy[mode].title}</p>
             {mode === "ios-install" ? (
-              <ol className="mt-1.5 list-decimal space-y-0.5 pl-5 text-sm font-light text-emerald-50/70">
-                <li>
-                  Tap the <strong>Share</strong> button <i className="ti ti-share-2" aria-hidden /> at the bottom of Safari
-                </li>
-                <li>
-                  Choose <strong>Add to Home Screen</strong>
-                </li>
-                <li>Open Syntrix from your Home Screen and tap &quot;Turn on notifications&quot;</li>
-              </ol>
+              <p className="mt-1 text-[13px] font-light leading-snug text-emerald-50/70 md:text-sm">
+                In Safari tap <strong className="font-medium">Share</strong> <i className="ti ti-share-2" aria-hidden /> →{" "}
+                <strong className="font-medium">Add to Home Screen</strong>, then open Syntrix from your Home Screen.
+              </p>
             ) : (
-              <p className="mt-1 text-sm font-light text-emerald-50/70">{copy[mode].body}</p>
+              <p className="mt-1 text-[13px] font-light leading-snug text-emerald-50/70 md:text-sm">{copy[mode].body}</p>
             )}
             {note && <p className="mt-2 text-xs text-emerald-200">{note}</p>}
-          </div>
-          <div className="flex flex-wrap gap-2">
             {mode === "ask" && (
-              <button
-                onClick={turnOn}
-                disabled={busy}
-                className="rounded-2xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60"
-              >
-                {busy ? "Turning on…" : "Turn on notifications"}
-              </button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={turnOn}
+                  disabled={busy}
+                  className="rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60"
+                >
+                  {busy ? "Turning on…" : "Turn on"}
+                </button>
+                {installEvent && (
+                  <button onClick={install} className="rounded-xl border border-emerald-200/25 px-4 py-2 text-sm text-emerald-50/85 transition hover:border-emerald-300/50">
+                    <i className="ti ti-download mr-1" aria-hidden /> Install app
+                  </button>
+                )}
+              </div>
             )}
-            {mode === "ask" && installEvent && (
-              <button onClick={install} className="rounded-2xl border border-emerald-200/25 px-4 py-2.5 text-sm text-emerald-50/85 transition hover:border-emerald-300/50">
-                <i className="ti ti-download mr-1" aria-hidden /> Install app
-              </button>
-            )}
-            <button onClick={later} className="rounded-2xl px-4 py-2.5 text-sm text-emerald-50/55 transition hover:text-white">
-              {mode === "ios-install" ? "Remind me tomorrow" : "Later"}
-            </button>
           </div>
+          {/* "Later": hides it until tomorrow (it returns daily until notifications are on) */}
+          <button
+            onClick={later}
+            aria-label="Remind me tomorrow"
+            title="Remind me tomorrow"
+            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-emerald-50/45 transition hover:bg-emerald-200/10 hover:text-white"
+          >
+            <i className="ti ti-x" aria-hidden />
+          </button>
         </motion.div>
       )}
     </AnimatePresence>

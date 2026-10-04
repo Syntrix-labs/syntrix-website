@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import BrandLogo from "@/components/brand/BrandLogo";
 import DashboardAura from "@/components/dashboard/DashboardAura";
@@ -96,7 +96,23 @@ const PRIMARY_TABS = {
   team: ["/admin/consultation", "/admin/meetings", "/admin/team-meetings"],
 };
 
-export default function DashboardShell({ type = "client", children }: { type?: "client" | "admin"; children: React.ReactNode }) {
+type ShellProps = { type?: "client" | "admin"; children: React.ReactNode };
+
+// The shell is mounted once by app/admin/layout.tsx and app/dashboard/layout.tsx,
+// so it stays put while pages change (like a real app). Pages still wrap
+// themselves in <DashboardShell>; inside a mounted shell that's a no-op.
+const InShell = createContext(false);
+
+export default function DashboardShell(props: ShellProps) {
+  if (useContext(InShell)) return <>{props.children}</>;
+  return (
+    <InShell.Provider value>
+      <Shell {...props} />
+    </InShell.Provider>
+  );
+}
+
+function Shell({ type = "client", children }: ShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -310,8 +326,16 @@ export default function DashboardShell({ type = "client", children }: { type?: "
       </aside>
 
       <section className="relative z-10 flex-1 px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-4 md:p-10 xl:p-12">
-        {ready && <NotifyPrompt />}
-        {children}
+        {/* On phones the chat is full-screen, so the prompt only shows on the other pages there */}
+        {ready && (
+          <div className={pathname === consultHref ? "hidden md:block" : undefined}>
+            <NotifyPrompt />
+          </div>
+        )}
+        {/* quick fade between pages; opacity only, so fixed-position modals inside pages still work */}
+        <motion.div key={pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.18 }}>
+          {children}
+        </motion.div>
       </section>
 
       {/* ---------- Phone: bottom tab bar ---------- */}

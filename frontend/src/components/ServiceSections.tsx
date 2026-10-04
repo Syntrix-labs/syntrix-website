@@ -439,7 +439,7 @@ export default function ServiceSections({ scheduleHref = "/schedule" }: { schedu
       {services.map((s, idx) => {
         const flip = idx % 2 === 1;
         return (
-          <div key={s.num} className="flex min-h-screen items-center px-6 py-20">
+          <div key={s.num} className="flex items-center px-6 py-14 md:min-h-screen md:py-20">
             <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
               {/* copy */}
               <motion.div {...reveal} className={flip ? "lg:order-2" : ""}>

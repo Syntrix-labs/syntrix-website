@@ -43,9 +43,12 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
       H = 0,
       DPR = 1;
     const resize = () => {
+      // Sized to the large viewport (h-lvh), so the phone address bar sliding
+      // in and out while scrolling doesn't resize/flicker the background.
+      if (W && canvas.clientWidth === W && canvas.clientHeight === H) return;
       DPR = Math.min(window.devicePixelRatio || 1, 2);
-      W = window.innerWidth;
-      H = window.innerHeight;
+      W = canvas.clientWidth;
+      H = canvas.clientHeight;
       canvas.width = W * DPR;
       canvas.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -341,7 +344,7 @@ export default function ImmersiveScene({ scrollDraw = false }: Props) {
       <canvas
         ref={canvasRef}
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 h-full w-full"
+        className="pointer-events-none fixed left-0 top-0 z-0 h-lvh w-full"
       />
       {/* lagging ring */}
       <div

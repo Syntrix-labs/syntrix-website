@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 type SyntrixMarkProps = {
   size?: number;
   color?: string;
@@ -19,6 +21,9 @@ export default function SyntrixMark({
   className = "",
   title,
 }: SyntrixMarkProps) {
+  // Unique per logo: with one shared id, a hidden copy (e.g. the phone header on
+  // desktop) breaks the mask for every other copy and they render as squares.
+  const maskId = `syntrix-s-cut-${useId().replace(/:/g, "")}`;
   return (
     <svg
       width={size}
@@ -30,13 +35,13 @@ export default function SyntrixMark({
       aria-label={title}
     >
       {title && <title>{title}</title>}
-      <mask id="syntrix-s-cut">
+      <mask id={maskId}>
         <rect width="200" height="200" fill="black" />
         <circle cx="100" cy="100" r="82" fill="white" />
         {/* diagonal "/" gap through the centre, splitting the disc into an S */}
         <rect x="-40" y="90.5" width="280" height="19" fill="black" transform="rotate(-45 100 100)" />
       </mask>
-      <rect width="200" height="200" fill={color} mask="url(#syntrix-s-cut)" />
+      <rect width="200" height="200" fill={color} mask={`url(#${maskId})`} />
     </svg>
   );
 }

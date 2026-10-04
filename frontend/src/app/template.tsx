@@ -1,6 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+
+// Logged-in areas behave like an app: no curtain between pages.
+const APP_AREAS = ["/admin", "/dashboard", "/app"];
 
 /**
  * Runs on every route change (Next.js re-mounts template per navigation).
@@ -9,6 +13,9 @@ import { motion } from "framer-motion";
  * a containing block for the fixed ImmersiveScene background.
  */
 export default function Template({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname() || "/";
+  if (APP_AREAS.some((p) => pathname === p || pathname.startsWith(p + "/"))) return <>{children}</>;
+
   return (
     <>
       <motion.div
