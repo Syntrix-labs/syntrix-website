@@ -9,7 +9,8 @@ const authMiddleware = require('../middleware/authMiddleware');
 const requireStaff = require('../middleware/staffMiddleware');
 const { isAdminEmail } = require('../utils/adminAccess');
 const { uploadLimiter } = require('../middleware/rateLimiters');
-const { notifyNewMessage, startChatNotifier } = require('../utils/chatNotifier');
+const { announceMessage, startChatNotifier } = require('../utils/chatNotifier');
+const { visibleClientIds, canSeeClient } = require('../utils/teamScope');
 
 // Email reminders for unread messages run in the background (not in tests).
 startChatNotifier();
@@ -30,19 +31,22 @@ const receiveChatFile = (req, res, next) =>
     });
 
 // Staff (admins + team) post into a chosen client's thread as "Admin"; clients
-// can only ever post into their own thread as "Client".
+// can only ever post into their own thread as "Client". Team members only
+// reach clients whose projects they're assigned to (see utils/teamScope).
 async function resolveThread(req) {
   const me = await User.findById(req.user.id).select('name email role');
-  const staff = isAdminEmail(me?.email) || me?.role === 'team';
+  const isAdmin = isAdminEmail(me?.email);
+  const staff = isAdmin || me?.role === 'team';
   const clientId = staff ? req.body.client : req.user.id;
-  return { me, staff, clientId };
+  const allowed = !staff || (await canSeeClient({ email: me?.email, isAdmin }, clientId));
+  return { me, staff, clientId, allowed };
 }
 
+const notYourClient = (res) =>
+  res.status(403).json({ success: false, message: "You can only message clients whose projects you're assigned to." });
+
 function broadcast(req, clientId, message, sender) {
-  const io = req.app.get('io');
-  if (io) io.to(`user:${clientId}`).emit('consultation:new', message.toObject());
-  // Push to the other side's phones/desktops; never blocks the response.
-  notifyNewMessage(message, sender).catch((error) => console.error('Chat push failed:', error.message));
+  announceMessage(req.app.get('io'), message, sender);
 }
 
 router.get('/', authMiddleware, async (req, res) => {
@@ -54,13 +58,16 @@ router.get('/', authMiddleware, async (req, res) => {
 // Staff: client messages nobody on the team has read yet, per client.
 router.get('/unread', authMiddleware, async (req, res) => {
   const me = await User.findById(req.user.id).select('email role');
-  const staff = isAdminEmail(me?.email) || me?.role === 'team';
-  if (!staff) {
+  const isAdmin = isAdminEmail(me?.email);
+  if (!isAdmin && me?.role !== 'team') {
     const total = await Consultation.countDocuments({ client: req.user.id, senderRole: 'Admin', readAt: null });
     return res.json({ total });
   }
+  const visible = await visibleClientIds({ email: me.email, isAdmin });
+  const match = { senderRole: 'Client', readAt: null };
+  if (visible) match.client = { $in: visible.map((id) => new mongoose.Types.ObjectId(id)) };
   const rows = await Consultation.aggregate([
-    { $match: { senderRole: 'Client', readAt: null } },
+    { $match: match },
     { $group: { _id: '$client', n: { $sum: 1 } } },
   ]);
   const byClient = {};
@@ -71,10 +78,11 @@ router.get('/unread', authMiddleware, async (req, res) => {
 // Mark the other side's messages in a conversation as read
 // (clients: their own thread; staff: pass { client }).
 router.post('/read', authMiddleware, async (req, res) => {
-  const { staff, clientId } = await resolveThread(req);
+  const { staff, clientId, allowed } = await resolveThread(req);
   if (!clientId || !mongoose.isValidObjectId(clientId)) {
     return res.status(400).json({ success: false, message: 'Select a client' });
   }
+  if (!allowed) return notYourClient(res);
   const result = await Consultation.updateMany(
     { client: clientId, senderRole: staff ? 'Client' : 'Admin', readAt: null },
     { $set: { readAt: new Date() } }
@@ -83,13 +91,15 @@ router.post('/read', authMiddleware, async (req, res) => {
 });
 
 router.get('/admin/all', authMiddleware, requireStaff, async (req, res) => {
-  const messages = await Consultation.find()
+  const visible = await visibleClientIds(req.staff);
+  const messages = await Consultation.find(visible ? { client: { $in: visible } } : {})
     .populate('client', 'name email')
     .sort({ createdAt: -1 });
   res.json(messages);
 });
 
 router.get('/admin/:clientId', authMiddleware, requireStaff, async (req, res) => {
+  if (!(await canSeeClient(req.staff, req.params.clientId))) return notYourClient(res);
   const messages = await Consultation.find({ client: req.params.clientId }).sort({ createdAt: 1 });
   res.json(messages);
 });
@@ -100,10 +110,11 @@ router.post('/', authMiddleware, async (req, res) => {
     return res.status(400).json({ success: false, message: 'Message is required' });
   }
 
-  const { me, staff, clientId } = await resolveThread(req);
+  const { me, staff, clientId, allowed } = await resolveThread(req);
   if (staff && !clientId) {
     return res.status(400).json({ success: false, message: 'Select a client to message' });
   }
+  if (!allowed) return notYourClient(res);
 
   const message = await Consultation.create({
     client: clientId,
@@ -126,10 +137,11 @@ router.post('/attachment', authMiddleware, uploadLimiter, receiveChatFile, async
       return res.status(400).json({ success: false, message: "Programs and scripts can't be sent in chat." });
     }
 
-    const { me, staff, clientId } = await resolveThread(req);
+    const { me, staff, clientId, allowed } = await resolveThread(req);
     if (!clientId || !mongoose.isValidObjectId(clientId)) {
       return res.status(400).json({ success: false, message: 'Select a client to message' });
     }
+    if (!allowed) return notYourClient(res);
 
     const expiresAt = new Date(Date.now() + CHAT_FILE_TTL_DAYS * 24 * 60 * 60 * 1000);
     const file = await ChatFile.create({
@@ -171,8 +183,11 @@ router.get('/files/:fileId', authMiddleware, async (req, res) => {
 
   if (String(file.client) !== String(req.user.id)) {
     const me = await User.findById(req.user.id).select('email role');
-    const staff = isAdminEmail(me?.email) || me?.role === 'team';
-    if (!staff) return res.status(403).json({ success: false, message: 'Not allowed' });
+    const isAdmin = isAdminEmail(me?.email);
+    const staff = isAdmin || me?.role === 'team';
+    if (!staff || !(await canSeeClient({ email: me.email, isAdmin }, file.client))) {
+      return res.status(403).json({ success: false, message: 'Not allowed' });
+    }
   }
 
   res.set({

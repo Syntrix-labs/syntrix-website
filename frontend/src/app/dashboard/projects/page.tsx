@@ -7,6 +7,8 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import LaunchGauge from "@/components/dashboard/LaunchGauge";
 import { DashboardSkeleton, EmptyState } from "@/components/dashboard/States";
 import { apiGet, apiPath, authHeaders } from "@/lib/api";
+import Countdown, { formatDeadline } from "@/components/projects/Countdown";
+import Link from "next/link";
 
 const steps = ["Created", "Coding Starting", "Frontend Review", "Test", "Final Review", "Publish"];
 const progressOf = (stage?: string) => {
@@ -23,6 +25,8 @@ type Project = {
   trackingStage?: string;
   dueDate?: string;
   documentLinks?: Doc[];
+  assignee?: { name?: string; role?: string };
+  handover?: { status?: "none" | "submitted" | "approved" | "changes" };
 };
 
 const fallbackProjects: Project[] = [
@@ -45,16 +49,6 @@ function fileMeta(name: string): { icon: string; color: string } {
   if (["xls", "xlsx", "csv"].includes(ext)) return { icon: "file-type-xls", color: "#7fd0a0" };
   if (["ppt", "pptx"].includes(ext)) return { icon: "file-type-ppt", color: "#f0a87f" };
   return { icon: "file", color: "#9fb6a6" };
-}
-
-function countdown(due?: string): { text: string; color: string } | null {
-  if (!due) return null;
-  const ms = new Date(due).getTime() - Date.now();
-  if (Number.isNaN(ms)) return null;
-  const days = Math.ceil(ms / 86400000);
-  if (days < 0) return { text: `${Math.abs(days)} days overdue`, color: "#f08a8a" };
-  if (days === 0) return { text: "due today", color: "#f0c98a" };
-  return { text: `${days} days left`, color: days <= 7 ? "#f0c98a" : "#9fb6a6" };
 }
 
 export default function ProjectsPage() {
@@ -125,7 +119,6 @@ export default function ProjectsPage() {
           ) : projects.map((project, projectIndex) => {
             const progress = progressOf(project.trackingStage);
             const stageIndex = Math.max(0, steps.indexOf(project.trackingStage || "Created"));
-            const cd = countdown(project.dueDate);
             const selected = files[project._id];
             return (
               <motion.div
@@ -142,16 +135,27 @@ export default function ProjectsPage() {
                   <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] text-emerald-200">
                     {project.status || "In progress"}
                   </span>
-                  {cd && (
-                    <span className="ml-auto text-xs" style={{ color: cd.color }}>
-                      <i className="ti ti-clock" aria-hidden /> {cd.text}
+                  {project.dueDate && (
+                    <span className="ml-auto">
+                      <Countdown due={project.dueDate} done={project.status === "Completed"} size="sm" />
                     </span>
                   )}
                 </div>
                 {project.description && <p className="mt-2 text-sm font-light text-emerald-50/55">{project.description}</p>}
                 <p className="mt-1 text-xs text-emerald-50/40">
-                  {project.dueDate ? `Due ${new Date(project.dueDate).toLocaleDateString()}` : "Timeline set by your team"}
+                  {project.dueDate ? `Due ${formatDeadline(project.dueDate)}` : "Timeline set by your team"}
+                  {project.assignee?.name ? ` · ${project.assignee.name}${project.assignee.role ? ` (${project.assignee.role})` : ""} is working on this` : ""}
                 </p>
+                {project.handover?.status === "submitted" && (
+                  <Link
+                    href="/dashboard/consultation"
+                    className="mt-3 flex items-center gap-2 rounded-2xl border border-emerald-300/35 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-50 transition hover:bg-emerald-500/25"
+                  >
+                    <i className="ti ti-package" aria-hidden />
+                    <span className="flex-1">Your work is ready — review it in Chat and tap &quot;Done&quot; if you&apos;re happy.</span>
+                    <i className="ti ti-arrow-right" aria-hidden />
+                  </Link>
+                )}
 
                 {/* launch gauge */}
                 <div className="my-4">

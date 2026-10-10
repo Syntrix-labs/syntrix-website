@@ -26,7 +26,7 @@ export default function AppEntry() {
       }
       const staff = me.isAdmin || me.isTeam;
       if (toChat) router.replace(staff ? "/admin/consultation" : "/dashboard/consultation");
-      else router.replace(me.isAdmin ? "/admin" : me.isTeam ? "/admin/consultation" : "/dashboard");
+      else router.replace(me.isAdmin ? "/admin" : me.isTeam ? "/admin/my-projects" : "/dashboard");
     });
   }, [router]);
 

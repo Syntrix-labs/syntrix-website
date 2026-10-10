@@ -41,7 +41,39 @@ const projectSchema = new mongoose.Schema({
     name: String,
     url: String,
     uploadedAt: { type: Date, default: Date.now }
-  }]
-}, { timestamps: true }); 
+  }],
+  // The team member doing the work (one at a time). Their details are copied
+  // in so the project still reads right if the member is later removed.
+  assignee: {
+    member: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
+    name: String,
+    role: String,
+    email: String,
+    assignedAt: Date
+  },
+  // Previous assignees — internal only, never shown to the client.
+  assignmentHistory: [{
+    member: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
+    name: String,
+    role: String,
+    email: String,
+    assignedAt: Date,
+    endedAt: Date,
+    outcome: { type: String, enum: ['reassigned', 'disapproved'] },
+    reason: String
+  }],
+  // Finish-job flow: the assignee hands over, the client approves or asks for changes.
+  handover: {
+    status: { type: String, enum: ['none', 'submitted', 'approved', 'changes'], default: 'none' },
+    by: String,
+    note: String,
+    submittedAt: Date,
+    respondedAt: Date,
+    clientNote: String
+  },
+  completedAt: Date,
+  // When the "deadline in 24 hours" reminder went to the assignee (reset when the deadline or assignee changes).
+  deadlineReminderSentAt: Date
+}, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);

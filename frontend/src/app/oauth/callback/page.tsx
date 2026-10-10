@@ -17,7 +17,7 @@ export default function OAuthCallbackPage() {
     }
     localStorage.setItem("token", token);
     apiGet<{ isAdmin?: boolean; isTeam?: boolean }>("/api/auth/me", {}).then((u) => {
-      router.replace(u.isAdmin ? "/admin" : u.isTeam ? "/admin/consultation" : "/dashboard");
+      router.replace(u.isAdmin ? "/admin" : u.isTeam ? "/admin/my-projects" : "/dashboard");
     });
   }, [router]);
 

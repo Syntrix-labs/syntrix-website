@@ -17,6 +17,12 @@ const consultationSchema = new mongoose.Schema({
     size: Number,
     expiresAt: Date
   },
+  // 'handover' = a "work is ready" card from the assigned team member; the
+  // client answers it right in the chat (Done / Request changes).
+  kind: { type: String, enum: ['text', 'handover'], default: 'text' },
+  project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
+  projectTitle: String,
+  handoverState: { type: String, enum: ['pending', 'approved', 'changes', 'cancelled'] },
   // When the *other* side read it (client reads staff messages, staff read
   // client messages). null = unread → drives badges and email reminders.
   readAt: { type: Date, default: null },

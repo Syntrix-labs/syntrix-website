@@ -4,6 +4,7 @@ const Consultation = require('../models/Consultation');
 const PushSubscription = require('../models/PushSubscription');
 const User = require('../models/User');
 const { adminEmails } = require('./adminAccess');
+const { assignedTeamEmails } = require('./teamScope');
 const { sendMail } = require('./mailer');
 
 /**
@@ -39,8 +40,10 @@ function pushConfig() {
   return { publicKey };
 }
 
-async function staffUserIds() {
-  const staff = await User.find({ $or: [{ role: 'team' }, { email: { $in: adminEmails() } }] }).select('_id');
+/** Who hears about a client's messages: admins + the team members assigned to that client. */
+async function staffUserIds(clientId) {
+  const emails = [...adminEmails(), ...(await assignedTeamEmails(clientId))];
+  const staff = await User.find({ email: { $in: emails } }).select('_id');
   return staff.map((u) => String(u._id));
 }
 
@@ -78,13 +81,20 @@ async function notifyNewMessage(message, sender) {
       tag: `chat-${clientId}`,
     });
   }
-  const staff = (await staffUserIds()).filter((id) => id !== String(sender && sender._id));
+  const staff = (await staffUserIds(clientId)).filter((id) => id !== String(sender && sender._id));
   return pushToUsers(staff, {
     title: `New message from ${message.senderName || 'a client'}`,
     body,
     url: `/admin/consultation?client=${clientId}`,
     tag: `chat-${clientId}`,
   });
+}
+
+/** Deliver a just-saved chat message: live over the socket, plus push to the other side. */
+function announceMessage(io, message, sender) {
+  if (io) io.to(`user:${message.client}`).emit('consultation:new', message.toObject());
+  // Never blocks the caller's response.
+  notifyNewMessage(message, sender).catch((error) => console.error('Chat push failed:', error.message));
 }
 
 function reminderEmail({ toClient, clientName, senderName, count, text, link }) {
@@ -205,4 +215,4 @@ function startChatNotifier() {
   else mongoose.connection.once('open', begin);
 }
 
-module.exports = { pushConfig, notifyNewMessage, runEmailSweep, backfillReadState, startChatNotifier, preview };
+module.exports = { pushConfig, pushToUsers, notifyNewMessage, announceMessage, runEmailSweep, backfillReadState, startChatNotifier, preview, escapeHtml, siteUrl };

@@ -113,9 +113,13 @@ app.get('/api/admin/clients', requireDatabase, authMiddleware, requireStaff, asy
   const Project = require('./models/Project');
   const Payment = require('./models/Payment');
   const { isAdminEmail } = require('./utils/adminAccess');
+  const { visibleClientIds } = require('./utils/teamScope');
   // Clients section lists genuine clients only — team members (role 'team')
   // and admins (email in ADMIN_EMAILS) belong to the Team area, not here.
-  const allUsers = await User.find({ role: { $ne: 'team' } }).select('-password').sort({ createdAt: -1 });
+  // Team members only get the clients whose projects they're assigned to.
+  const visible = await visibleClientIds(req.staff);
+  const allUsers = await User.find({ role: { $ne: 'team' }, ...(visible ? { _id: { $in: visible } } : {}) })
+    .select('-password').sort({ createdAt: -1 });
   const clients = allUsers.filter((u) => !isAdminEmail(u.email));
   const results = await Promise.all(clients.map(async (client) => {
     const activeProjects = await Project.countDocuments({ client: client._id, status: { $ne: 'Completed' } });
@@ -269,6 +273,7 @@ if (require.main === module) {
   const jwt = require('jsonwebtoken');
   const User = require('./models/User');
   const { isAdminEmail } = require('./utils/adminAccess');
+  const { canSeeClient } = require('./utils/teamScope');
 
   const server = http.createServer(app);
   const io = new Server(server, {
@@ -286,6 +291,7 @@ if (require.main === module) {
       try {
         const user = await User.findById(userId).select('email role');
         socket.data.isStaff = isAdminEmail(user && user.email) || (user && user.role === 'team');
+        socket.data.staff = { email: user && user.email, isAdmin: isAdminEmail(user && user.email) };
       } catch {
         socket.data.isStaff = false;
       }
@@ -299,10 +305,14 @@ if (require.main === module) {
     if (socket.data.userId) {
       socket.join(`user:${socket.data.userId}`); // a client's own consultation room
     }
-    // Admins can join a specific client's room to watch that conversation live.
-    socket.on('join', (clientId) => {
-      if (socket.data.isStaff && clientId) {
-        socket.join(`user:${clientId}`);
+    // Staff can join a client's room to watch that conversation live
+    // (team members only for clients whose projects they're assigned to).
+    socket.on('join', async (clientId) => {
+      if (!socket.data.isStaff || !clientId) return;
+      try {
+        if (await canSeeClient(socket.data.staff, clientId)) socket.join(`user:${clientId}`);
+      } catch {
+        /* ignore — the page falls back to polling */
       }
     });
   });

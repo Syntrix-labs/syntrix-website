@@ -730,3 +730,187 @@ test("messages from before notifications launched count as already read", async 
   assert.equal(doc.emailedAt.toISOString(), created.toISOString());
   await Consultation.collection.deleteOne({ _id: insertedId });
 });
+
+// ---------- project assignment, deadline countdown & hand-over ----------
+const work = { designer: null, dev: null, designerToken: "", devToken: "", projectId: "", sent: [] };
+const waitFor = async (check, ms = 2000) => {
+  const end = Date.now() + ms;
+  while (!check() && Date.now() < end) await new Promise((r) => setTimeout(r, 20));
+};
+
+test("admin assigns a project + deadline to a team member, who gets an email", async () => {
+  const projectWork = require("../utils/projectWork");
+  projectWork.mailer.send = async (mail) => {
+    work.sent.push(mail);
+    return true;
+  };
+  const addMember = async (name, role, email) => {
+    const added = await request(app).post("/api/team").set("x-auth-token", admin.token).send({ name, role, email });
+    const login = await request(app).post("/api/auth/login").send({ email, password: "123456" });
+    return { member: added.body.member, token: login.body.token };
+  };
+  const designer = await addMember("Riya Sen", "Designer", "riya@syntrix.test");
+  const dev = await addMember("Arun Roy", "Developer", "arun@syntrix.test");
+  Object.assign(work, { designer: designer.member, designerToken: designer.token, dev: dev.member, devToken: dev.token });
+
+  const due = new Date(Date.now() + 3 * 86400000).toISOString();
+  const res = await request(app).post("/api/projects").set("x-auth-token", admin.token)
+    .send({ title: "Brand refresh", clientEmail: client.email, dueDate: due, memberId: work.designer._id });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.project.assignee.email, "riya@syntrix.test");
+  assert.equal(res.body.project.assignee.role, "Designer");
+  assert.equal(new Date(res.body.project.dueDate).toISOString(), due);
+  work.projectId = res.body.project._id;
+
+  await waitFor(() => work.sent.length === 1);
+  assert.equal(work.sent.length, 1);
+  assert.equal(work.sent[0].to, "riya@syntrix.test");
+  assert.match(work.sent[0].subject, /Brand refresh/);
+});
+
+test("only the assignee sees the project in My projects; clients never see team emails", async () => {
+  const mine = await request(app).get("/api/projects/assigned").set("x-auth-token", work.designerToken);
+  assert.equal(mine.status, 200);
+  assert.ok(mine.body.some((p) => p._id === work.projectId));
+  const other = await request(app).get("/api/projects/assigned").set("x-auth-token", work.devToken);
+  assert.ok(!other.body.some((p) => p._id === work.projectId));
+  assert.equal((await request(app).get("/api/projects/assigned").set("x-auth-token", client.token)).status, 403);
+
+  const clientView = await request(app).get("/api/projects").set("x-auth-token", client.token);
+  const p = clientView.body.find((x) => x._id === work.projectId);
+  assert.equal(p.assignee.name, "Riya Sen");
+  assert.equal(p.assignee.email, undefined);
+  assert.equal(p.assignmentHistory, undefined);
+});
+
+test("changing the deadline emails the assignee", async () => {
+  work.sent.length = 0;
+  const newDue = new Date(Date.now() + 5 * 86400000).toISOString();
+  const res = await request(app).put(`/api/projects/${work.projectId}`).set("x-auth-token", admin.token).send({ dueDate: newDue });
+  assert.equal(res.status, 200);
+  assert.equal(new Date(res.body.dueDate).toISOString(), newDue);
+  await waitFor(() => work.sent.length === 1);
+  assert.match(work.sent[0].subject, /Deadline changed/);
+  // the generic update can't touch the assignee
+  await request(app).put(`/api/projects/${work.projectId}`).set("x-auth-token", admin.token).send({ assignee: { email: "x@y.z" } });
+  const after = await request(app).get(`/api/projects/${work.projectId}`).set("x-auth-token", admin.token);
+  assert.equal(after.body.assignee.email, "riya@syntrix.test");
+});
+
+test("only the assignee (or an admin) can finish the job", async () => {
+  const notMine = await request(app).post(`/api/projects/${work.projectId}/handover`).set("x-auth-token", work.devToken);
+  assert.equal(notMine.status, 403);
+  const clientTry = await request(app).post(`/api/projects/${work.projectId}/handover`).set("x-auth-token", client.token);
+  assert.equal(clientTry.status, 403);
+});
+
+test("finishing the job posts a hand-over card in the client's chat", async () => {
+  const res = await request(app).post(`/api/projects/${work.projectId}/handover`).set("x-auth-token", work.designerToken)
+    .send({ note: "Logo + colours are in the shared folder." });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.project.status, "In Review");
+  assert.equal(res.body.project.handover.status, "submitted");
+
+  const thread = await request(app).get("/api/consultations").set("x-auth-token", client.token);
+  const card = thread.body.find((m) => m.kind === "handover" && m.project === work.projectId);
+  assert.ok(card, "client sees the hand-over card");
+  assert.equal(card.handoverState, "pending");
+  assert.equal(card.senderName, "Riya Sen");
+  assert.match(card.message, /Brand refresh/);
+
+  const again = await request(app).post(`/api/projects/${work.projectId}/handover`).set("x-auth-token", work.designerToken);
+  assert.equal(again.status, 409);
+});
+
+test("disapproving the assignee reassigns, records why, and withdraws their hand-over", async () => {
+  work.sent.length = 0;
+  const res = await request(app).post(`/api/projects/${work.projectId}/disapprove`).set("x-auth-token", admin.token)
+    .send({ reason: "Work was incomplete", memberId: work.dev._id });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.project.assignee.email, "arun@syntrix.test");
+  assert.equal(res.body.project.status, "In Progress");
+  assert.equal(res.body.project.handover.status, "none");
+  const last = res.body.project.assignmentHistory.at(-1);
+  assert.equal(last.email, "riya@syntrix.test");
+  assert.equal(last.outcome, "disapproved");
+  assert.equal(last.reason, "Work was incomplete");
+  await waitFor(() => work.sent.length === 1);
+  assert.equal(work.sent[0].to, "arun@syntrix.test", "the new assignee is emailed");
+
+  const thread = await request(app).get("/api/consultations").set("x-auth-token", client.token);
+  const card = thread.body.find((m) => m.kind === "handover" && m.project === work.projectId);
+  assert.equal(card.handoverState, "cancelled");
+  const respond = await request(app).post(`/api/projects/${work.projectId}/handover/respond`).set("x-auth-token", client.token).send({ approve: true });
+  assert.equal(respond.status, 409, "nothing to approve after the hand-over was withdrawn");
+
+  const oldMine = await request(app).get("/api/projects/assigned").set("x-auth-token", work.designerToken);
+  assert.ok(!oldMine.body.some((p) => p._id === work.projectId), "removed member no longer sees it");
+  const teamView = await request(app).get("/api/projects/assigned").set("x-auth-token", work.devToken);
+  assert.equal(teamView.body.find((p) => p._id === work.projectId).assignmentHistory, undefined, "team never sees disapprovals");
+});
+
+test("a disapproved member can't see the client's chat, so never learns who replaced them", async () => {
+  assert.ok(!work.sent.some((m) => m.to === "riya@syntrix.test"), "no email to the removed member");
+
+  // Riya (removed): the client and their conversation are gone for her.
+  const list = await request(app).get("/api/admin/clients").set("x-auth-token", work.designerToken);
+  assert.ok(!list.body.some((c) => c.email === client.email));
+  const all = await request(app).get("/api/consultations/admin/all").set("x-auth-token", work.designerToken);
+  assert.ok(!all.body.some((m) => String(m.client?._id || m.client) === client.id));
+  assert.equal((await request(app).get(`/api/consultations/admin/${client.id}`).set("x-auth-token", work.designerToken)).status, 403);
+  assert.equal((await request(app).post("/api/consultations").set("x-auth-token", work.designerToken).send({ client: client.id, message: "hi" })).status, 403);
+  assert.equal((await request(app).post("/api/consultations/read").set("x-auth-token", work.designerToken).send({ client: client.id })).status, 403);
+  const unread = await request(app).get("/api/consultations/unread").set("x-auth-token", work.designerToken);
+  assert.equal(unread.body.byClient[client.id], undefined);
+
+  // Arun (now assigned) can work with the client.
+  const arunList = await request(app).get("/api/admin/clients").set("x-auth-token", work.devToken);
+  assert.ok(arunList.body.some((c) => c.email === client.email));
+  assert.equal((await request(app).get(`/api/consultations/admin/${client.id}`).set("x-auth-token", work.devToken)).status, 200);
+});
+
+test("client can ask for changes, then approve the work", async () => {
+  await request(app).post(`/api/projects/${work.projectId}/handover`).set("x-auth-token", work.devToken).send({ note: "v1" });
+  assert.equal((await request(app).post(`/api/projects/${work.projectId}/handover/respond`).set("x-auth-token", admin.token).send({ approve: true })).status, 403);
+
+  work.sent.length = 0;
+  const changes = await request(app).post(`/api/projects/${work.projectId}/handover/respond`).set("x-auth-token", client.token)
+    .send({ approve: false, note: "Make the logo bigger" });
+  assert.equal(changes.status, 200);
+  assert.equal(changes.body.project.status, "In Progress");
+  assert.equal(changes.body.project.handover.status, "changes");
+  assert.match(changes.body.message.message, /Make the logo bigger/);
+  await waitFor(() => work.sent.length === 1);
+  assert.match(work.sent[0].subject, /Changes requested/);
+
+  await request(app).post(`/api/projects/${work.projectId}/handover`).set("x-auth-token", work.devToken).send({ note: "v2" });
+  const ok = await request(app).post(`/api/projects/${work.projectId}/handover/respond`).set("x-auth-token", client.token).send({ approve: true });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.body.project.status, "Completed");
+  assert.equal(ok.body.project.handover.status, "approved");
+  assert.ok(ok.body.project.completedAt);
+
+  const thread = await request(app).get("/api/consultations").set("x-auth-token", client.token);
+  const cards = thread.body.filter((m) => m.kind === "handover" && m.project === work.projectId).map((m) => m.handoverState);
+  assert.deepEqual(cards, ["cancelled", "changes", "approved"]);
+  assert.ok(thread.body.some((m) => m.senderRole === "Client" && /I'm satisfied/.test(m.message)));
+
+  assert.equal((await request(app).post(`/api/projects/${work.projectId}/handover/respond`).set("x-auth-token", client.token).send({ approve: true })).status, 409);
+  assert.equal((await request(app).post(`/api/projects/${work.projectId}/handover`).set("x-auth-token", work.devToken)).status, 409);
+});
+
+test("assignees get one reminder when under 24 hours are left", async () => {
+  const { runDeadlineReminders } = require("../utils/projectWork");
+  const soon = new Date(Date.now() + 2 * 3600000).toISOString();
+  const later = new Date(Date.now() + 4 * 86400000).toISOString();
+  const mk = (title, dueDate) => request(app).post("/api/projects").set("x-auth-token", admin.token)
+    .send({ title, clientEmail: client.email, dueDate, memberId: work.dev._id });
+  await mk("Landing page", soon);
+  await mk("Admin panel", later);
+  await new Promise((r) => setTimeout(r, 100));
+  work.sent.length = 0;
+
+  assert.equal(await runDeadlineReminders(), 1);
+  assert.match(work.sent[0].subject, /24 hours left: Landing page/);
+  assert.equal(await runDeadlineReminders(), 0, "only once per deadline");
+});

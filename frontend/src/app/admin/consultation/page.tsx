@@ -9,8 +9,21 @@ import { apiGet, apiPath, authHeaders } from "@/lib/api";
 import { connectSocket, type Socket } from "@/lib/socket";
 import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachment";
 import AttachFileButton from "@/components/chat/AttachFileButton";
+import HandoverCard, { type HandoverState } from "@/components/chat/HandoverCard";
 
-type Message = { _id: string; senderRole: "Admin" | "Client"; senderName?: string; message: string; createdAt?: string; readAt?: string | null; attachment?: Attachment; client?: { _id?: string; name?: string; email?: string } };
+type Message = {
+  _id: string;
+  senderRole: "Admin" | "Client";
+  senderName?: string;
+  message: string;
+  createdAt?: string;
+  readAt?: string | null;
+  attachment?: Attachment;
+  client?: { _id?: string; name?: string; email?: string };
+  kind?: "text" | "handover";
+  projectTitle?: string;
+  handoverState?: HandoverState;
+};
 type Client = { _id: string; name: string; email: string };
 
 const time = (iso?: string) => (iso ? new Date(iso).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
@@ -159,7 +172,7 @@ export default function AdminConsultationPage() {
       </div>
 
       {clients.length === 0 ? (
-        <EmptyState icon="users" title="No clients yet" hint="Once clients sign up, you can message them here." />
+        <EmptyState icon="users" title="No clients yet" hint="Clients show up here once they sign up. Team members see the clients of projects assigned to them." />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[280px_1fr]">
           {/* client list */}
@@ -217,12 +230,17 @@ export default function AdminConsultationPage() {
                     return (
                       <div key={m._id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                         <div className="max-w-[78%]">
+                          {m.kind === "handover" && (
+                            <div className={mine ? "flex justify-end" : ""}>
+                              <HandoverCard title={m.projectTitle} text={m.message} by={m.senderName} state={m.handoverState} viewer="staff" />
+                            </div>
+                          )}
                           {m.attachment?.fileId && (
                             <div className={`w-72 max-w-full ${mine ? "ml-auto" : ""} ${m.message ? "mb-1.5" : ""}`}>
                               <ChatAttachment attachment={m.attachment} mine={mine} />
                             </div>
                           )}
-                          {m.message && (
+                          {m.message && m.kind !== "handover" && (
                             <div className={`rounded-2xl px-4 py-2.5 text-sm font-light ${mine ? "rounded-br-md bg-emerald-500/22 text-emerald-50" : "rounded-bl-md border border-emerald-200/10 bg-emerald-950/55 text-emerald-50/90"}`}>
                               {m.message}
                             </div>

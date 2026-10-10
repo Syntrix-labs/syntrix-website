@@ -48,7 +48,7 @@ export default function LaunchGauge({ value, stageLabel }: { value: number; stag
         {ticks.map((t, i) => (
           <circle key={i} cx={t.x} cy={t.y} r={2.6} fill={t.on ? "#eafff2" : "#1d4634"} />
         ))}
-        <motion.circle cx={cur.x} cy={cur.y} r={7} fill="#34d399" animate={{ r: [7, 11, 7] }} transition={{ duration: 1.6, repeat: Infinity }} />
+        <motion.circle cx={cur.x} cy={cur.y} r={7} fill="#34d399" initial={{ r: 7 }} animate={{ r: [7, 11, 7] }} transition={{ duration: 1.6, repeat: Infinity }} />
       </svg>
       <div style={{ position: "absolute", left: 0, right: 0, top: "46%", textAlign: "center" }}>
         <p style={{ margin: 0, fontSize: 34, fontWeight: 300, color: "#eafff2", lineHeight: 1 }}>

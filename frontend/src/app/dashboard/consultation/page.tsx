@@ -9,8 +9,21 @@ import { apiGet, apiPath, authHeaders } from "@/lib/api";
 import { connectSocket } from "@/lib/socket";
 import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachment";
 import AttachFileButton from "@/components/chat/AttachFileButton";
+import HandoverCard, { type HandoverState } from "@/components/chat/HandoverCard";
 
-type Message = { _id: string; senderRole: string; senderName?: string; message: string; createdAt?: string; readAt?: string | null; attachment?: Attachment };
+type Message = {
+  _id: string;
+  senderRole: string;
+  senderName?: string;
+  message: string;
+  createdAt?: string;
+  readAt?: string | null;
+  attachment?: Attachment;
+  kind?: "text" | "handover";
+  project?: string;
+  projectTitle?: string;
+  handoverState?: HandoverState;
+};
 
 const isServerId = (id: string) => /^[a-f0-9]{24}$/.test(id);
 
@@ -140,6 +153,23 @@ export default function ConsultationPage() {
     }
   };
 
+  // Answer a "work handed over" card: approve, or ask for changes.
+  const respond = async (m: Message, approve: boolean, note: string) => {
+    if (!m.project) return false;
+    try {
+      const res = await fetch(apiPath(`/api/projects/${m.project}/handover/respond`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ approve, note }),
+      });
+      const fresh = await apiGet<Message[]>("/api/consultations", []);
+      if (fresh.length) setMessages(fresh);
+      return res.ok;
+    } catch {
+      return false;
+    }
+  };
+
   let lastDay = "";
 
   if (loading) {
@@ -211,12 +241,22 @@ export default function ConsultationPage() {
                       </span>
                     )}
                     <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
+                      {m.kind === "handover" && (
+                        <HandoverCard
+                          title={m.projectTitle}
+                          text={m.message}
+                          by={m.senderName}
+                          state={m.handoverState}
+                          viewer="client"
+                          onRespond={(approve, note) => respond(m, approve, note)}
+                        />
+                      )}
                       {m.attachment?.fileId && (
                         <div className={`w-72 max-w-full ${m.message ? "mb-1.5" : ""}`}>
                           <ChatAttachment attachment={m.attachment} mine={mine} />
                         </div>
                       )}
-                      {m.message && (
+                      {m.message && m.kind !== "handover" && (
                         <div
                           className={`rounded-2xl px-4 py-2.5 text-sm font-light leading-relaxed ${
                             mine

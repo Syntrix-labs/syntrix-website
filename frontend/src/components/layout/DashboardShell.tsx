@@ -57,6 +57,7 @@ const adminItems = [
 
 // Pages a team member is allowed to use.
 const teamItems = [
+  { label: "My projects", href: "/admin/my-projects" },
   { label: "Consultation", href: "/admin/consultation" },
   { label: "Client meetings", href: "/admin/meetings" },
   { label: "Team meetings", href: "/admin/team-meetings" },
@@ -82,6 +83,7 @@ const NAV_ICONS: Record<string, string> = {
   "/admin/team-meetings": "ti-calendar-event",
   "/admin/contracts": "ti-file-text",
   "/admin/advertisements": "ti-speakerphone",
+  "/admin/my-projects": "ti-briefcase",
 };
 const SHORT_LABELS: Record<string, string> = {
   Overview: "Home",
@@ -89,11 +91,12 @@ const SHORT_LABELS: Record<string, string> = {
   Consultation: "Chat",
   "Client meetings": "Meetings",
   "Team meetings": "Team",
+  "My projects": "Projects",
 };
 const PRIMARY_TABS = {
   client: ["/dashboard", "/dashboard/projects", "/dashboard/consultation", "/dashboard/meetings"],
   admin: ["/admin", "/admin/clients", "/admin/consultation", "/admin/projects"],
-  team: ["/admin/consultation", "/admin/meetings", "/admin/team-meetings"],
+  team: ["/admin/my-projects", "/admin/consultation", "/admin/meetings", "/admin/team-meetings"],
 };
 
 type ShellProps = { type?: "client" | "admin"; children: React.ReactNode };
@@ -154,7 +157,7 @@ function Shell({ type = "client", children }: ShellProps) {
   // Keep team members out of admin-only pages.
   useEffect(() => {
     if (type === "admin" && role === "team" && !teamPaths.includes(pathname)) {
-      router.replace("/admin/consultation");
+      router.replace("/admin/my-projects");
     }
   }, [type, role, pathname, router]);
 
@@ -228,7 +231,7 @@ function Shell({ type = "client", children }: ShellProps) {
   }
 
   const items = type === "admin" ? (role === "team" ? teamItems : adminItems) : clientItems;
-  const homeHref = role === "team" ? "/admin/consultation" : type === "admin" ? "/admin" : "/dashboard";
+  const homeHref = role === "team" ? "/admin/my-projects" : type === "admin" ? "/admin" : "/dashboard";
   const initial = (userName || (type === "admin" ? "A" : "C")).charAt(0).toUpperCase();
   const panelLabel = role === "team" ? "Team member" : type === "admin" ? "Admin panel" : "Client portal";
   const primaryHrefs = PRIMARY_TABS[type === "client" ? "client" : role === "team" ? "team" : "admin"];
