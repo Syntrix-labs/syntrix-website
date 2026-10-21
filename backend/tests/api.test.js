@@ -938,3 +938,54 @@ test("logins last 30 days, and active users get a renewed token once a day", asy
   const expired = jwt.sign({ user: { id: client.id } }, process.env.JWT_SECRET, { expiresIn: -10 });
   assert.equal((await request(app).get("/api/auth/me").set("x-auth-token", expired)).status, 401);
 });
+
+// ---------- admin arranges a meeting with a client ----------
+test("admin schedules a meeting: client sees it, gets a chat message and one email", async () => {
+  const notice = require("../utils/meetingNotice");
+  const sent = [];
+  notice.mailer.send = async (mail) => {
+    sent.push(mail);
+    return true;
+  };
+  const res = await request(app).post("/api/meetings").set("x-auth-token", admin.token).send({
+    client: client.id,
+    title: "Design review",
+    date: "2026-11-05",
+    time: "18:30",
+    meetingPlatform: "Google Meet",
+    meetingLink: "https://meet.google.com/abc-defg-hij",
+    notes: "We'll walk through the homepage.",
+  });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.meeting.status, "Confirmed");
+  assert.equal(res.body.meeting.client.email, client.email);
+  assert.equal(res.body.emailed, true);
+
+  const mine = await request(app).get("/api/meetings").set("x-auth-token", client.token);
+  assert.ok(mine.body.some((m) => m.title === "Design review" && m.status === "Confirmed"));
+
+  const chat = await request(app).get("/api/consultations").set("x-auth-token", client.token);
+  const msg = chat.body.find((m) => /Meeting scheduled: "Design review"/.test(m.message));
+  assert.ok(msg, "client gets a chat message");
+  assert.match(msg.message, /https:\/\/meet\.google\.com\/abc-defg-hij/);
+  assert.match(msg.message, /5 Nov 2026/);
+  assert.ok(msg.emailedAt, "no second (reminder) email for it");
+
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].to, client.email);
+  assert.match(sent[0].subject, /Design review/);
+  assert.match(sent[0].html, /calendar\.google\.com/);
+  // 18:30 IST = 13:00 UTC
+  assert.match(decodeURIComponent(sent[0].text), /20261105T130000Z\/20261105T134500Z/);
+});
+
+test("scheduling validates the client, the date/time, and team access", async () => {
+  const bad = (body, token = admin.token) => request(app).post("/api/meetings").set("x-auth-token", token).send(body);
+  assert.equal((await bad({ title: "x", date: "2026-11-05", time: "10:00" })).status, 400);
+  assert.equal((await bad({ client: client.id, title: "x", date: "5/11/2026", time: "10:00" })).status, 400);
+  const adminMe = await request(app).get("/api/auth/me").set("x-auth-token", admin.token);
+  assert.equal((await bad({ client: adminMe.body._id, title: "x", date: "2026-11-05", time: "10:00" })).status, 404);
+  // a team member with no project for this client can't arrange meetings with them
+  assert.equal((await bad({ client: client.id, title: "x", date: "2026-11-05", time: "10:00" }, work.designerToken)).status, 403);
+  assert.equal((await bad({ client: client.id, title: "x", date: "2026-11-05", time: "10:00" }, client.token)).status, 403);
+});

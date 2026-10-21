@@ -22,6 +22,16 @@ type Meeting = {
 };
 
 type TeamMember = { _id: string; name: string; email?: string; role?: string };
+type Client = { _id: string; name?: string; email?: string };
+
+const platforms = ["Google Meet", "Zoom", "Phone", "Other"];
+const emptyForm = { client: "", title: "Project discussion", date: "", time: "", meetingPlatform: "Google Meet", meetingLink: "", notes: "", assignees: [] as string[] };
+const fieldClass =
+  "w-full rounded-2xl border border-emerald-200/15 bg-emerald-950/50 px-4 py-3 text-emerald-50/85 outline-none transition placeholder:text-emerald-50/30 focus:border-emerald-400/60";
+const todayIso = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 const fallbackMeetings: Meeting[] = [
   {
@@ -42,6 +52,12 @@ export default function AdminMeetingsPage() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [links, setLinks] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  // "Arrange a meeting" form
+  const [clients, setClients] = useState<Client[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [formMsg, setFormMsg] = useState<{ text: string; error?: boolean } | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,8 +73,15 @@ export default function AdminMeetingsPage() {
       } else {
         await Promise.all([
           apiGet<Meeting[]>("/api/meetings/admin/all", fallbackMeetings).then((m) => !cancelled && setMeetings(m)),
-          apiGet<TeamMember[]>("/api/team", []).then((t) => !cancelled && setTeam(t.filter((x) => x.email)))
+          apiGet<TeamMember[]>("/api/team", []).then((t) => !cancelled && setTeam(t.filter((x) => x.email))),
+          apiGet<Client[]>("/api/admin/clients", []).then((c) => !cancelled && setClients(c))
         ]);
+        // Opened from a client's "Schedule meeting" button: /admin/meetings?schedule=<clientId>
+        const preset = new URLSearchParams(window.location.search).get("schedule");
+        if (preset && !cancelled) {
+          setForm((f) => ({ ...f, client: preset }));
+          setShowForm(true);
+        }
       }
     })().finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
@@ -72,6 +95,39 @@ export default function AdminMeetingsPage() {
       body: JSON.stringify(body)
     });
   };
+
+  const schedule = async () => {
+    if (!form.client || !form.date || !form.time) {
+      setFormMsg({ text: "Choose a client, a date and a time.", error: true });
+      return;
+    }
+    setSaving(true);
+    setFormMsg(null);
+    try {
+      const res = await fetch(apiPath("/api/meetings"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ ...form, title: form.title.trim() || "Project discussion" })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setFormMsg({ text: data.message || "Couldn't schedule the meeting — please try again.", error: true });
+        return;
+      }
+      const who = clients.find((c) => c._id === form.client)?.name || "The client";
+      setMeetings((prev) => [data.meeting, ...prev]);
+      setForm(emptyForm);
+      setShowForm(false);
+      setFormMsg({ text: `Meeting booked. ${who} has been notified in their chat${data.emailed ? " and by email" : ""}.` });
+    } catch {
+      setFormMsg({ text: "Couldn't schedule the meeting — please try again.", error: true });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleFormAssignee = (email: string) =>
+    setForm((f) => ({ ...f, assignees: f.assignees.includes(email) ? f.assignees.filter((e) => e !== email) : [...f.assignees, email] }));
 
   const toggleAssignee = (meeting: Meeting, email: string) => {
     const current = meeting.assignees || [];
@@ -248,8 +304,89 @@ export default function AdminMeetingsPage() {
         <SectionHeader
           icon="calendar" eyebrow="Meetings"
           title="Meeting requests and schedule"
-          description="Clients request a time from their dashboard. Admin confirms, adds a meeting link, picks which team members join, and marks finished calls as completed."
+          description="Arrange a meeting with any client, or confirm the times clients request. Add the link, pick which team members join, and mark finished calls as completed."
         />
+
+        {/* ---------- Arrange a meeting ---------- */}
+        <div className="mb-8 rounded-3xl border border-emerald-300/20 bg-gradient-to-br from-emerald-500/10 to-emerald-950/30 p-5 backdrop-blur-sm md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-light tracking-wide">Arrange a meeting</h2>
+              <p className="mt-0.5 text-sm text-emerald-50/50">Book a call with a client — they&apos;re notified instantly in their chat and by email.</p>
+            </div>
+            {!showForm && (
+              <button
+                onClick={() => { setShowForm(true); setFormMsg(null); }}
+                className="flex items-center gap-2 rounded-2xl bg-emerald-500/90 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-400 active:scale-[0.98]"
+              >
+                <i className="ti ti-calendar-plus" aria-hidden /> Schedule a meeting
+              </button>
+            )}
+          </div>
+          {formMsg && <p className={`mt-3 text-sm ${formMsg.error ? "text-red-300" : "text-emerald-200"}`}>{formMsg.text}</p>}
+
+          {showForm && (
+            <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+              <select value={form.client} onChange={(e) => setForm({ ...form, client: e.target.value })} className={fieldClass} aria-label="Client">
+                <option value="">Choose a client…</option>
+                {clients.map((c) => <option key={c._id} value={c._id}>{c.name}{c.email ? ` — ${c.email}` : ""}</option>)}
+              </select>
+              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Meeting title" className={fieldClass} aria-label="Meeting title" />
+              <label className="block">
+                <span className="mb-1 block px-1 text-[11px] uppercase tracking-wider text-emerald-100/45">Date</span>
+                <input type="date" min={todayIso()} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={fieldClass} />
+              </label>
+              <label className="block">
+                <span className="mb-1 block px-1 text-[11px] uppercase tracking-wider text-emerald-100/45">Time (IST)</span>
+                <input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className={fieldClass} />
+              </label>
+              <select value={form.meetingPlatform} onChange={(e) => setForm({ ...form, meetingPlatform: e.target.value })} className={fieldClass} aria-label="Platform">
+                {platforms.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <input
+                value={form.meetingLink}
+                onChange={(e) => setForm({ ...form, meetingLink: e.target.value })}
+                placeholder={form.meetingPlatform === "Phone" ? "Phone number (optional)" : "Meeting link — Google Meet / Zoom (optional)"}
+                className={fieldClass}
+                aria-label="Meeting link"
+              />
+              <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Agenda / note for the client (optional)" rows={2} className={`${fieldClass} md:col-span-2`} />
+              {team.length > 0 && (
+                <div className="md:col-span-2">
+                  <p className="mb-2 px-1 text-[11px] uppercase tracking-wider text-emerald-100/45">Who joins from the team</p>
+                  <div className="flex flex-wrap gap-2">
+                    {team.map((member) => {
+                      const email = (member.email || "").toLowerCase();
+                      const on = form.assignees.includes(email);
+                      return (
+                        <button
+                          key={member._id}
+                          type="button"
+                          onClick={() => toggleFormAssignee(email)}
+                          className={`rounded-full border px-3 py-1.5 text-xs transition ${on ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-100" : "border-emerald-200/15 text-emerald-50/55 hover:border-emerald-300/40"}`}
+                        >
+                          {on ? "✓ " : ""}{member.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2 md:col-span-2">
+                <button
+                  onClick={schedule}
+                  disabled={saving}
+                  className="flex-1 rounded-2xl bg-emerald-500/90 px-6 py-3 font-medium tracking-wide text-white transition hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-60 md:flex-none"
+                >
+                  {saving ? "Scheduling…" : "Schedule meeting"}
+                </button>
+                <button onClick={() => { setShowForm(false); setForm(emptyForm); }} className="rounded-2xl px-5 py-3 text-sm text-emerald-50/60 transition hover:text-white">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {meetings.length === 0 ? (
           <EmptyState icon="calendar" title="No meetings yet" hint="Client meeting requests will appear here." />
