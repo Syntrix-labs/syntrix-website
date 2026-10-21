@@ -11,6 +11,7 @@ import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachmen
 import AttachFileButton from "@/components/chat/AttachFileButton";
 import HandoverCard, { type HandoverState } from "@/components/chat/HandoverCard";
 import LinkifiedText from "@/components/chat/LinkifiedText";
+import { useChatScroll } from "@/components/chat/useChatScroll";
 
 type Message = {
   _id: string;
@@ -39,7 +40,6 @@ export default function AdminConsultationPage() {
   const [sending, setSending] = useState(false);
   const [name, setName] = useState("");
   const [fileStatus, setFileStatus] = useState<{ text: string; error?: boolean } | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -93,9 +93,8 @@ export default function AdminConsultationPage() {
     .filter((m) => clientIdOf(m) === selected)
     .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: "end" });
-  }, [selected, messages]);
+  const last = thread[thread.length - 1];
+  const { listRef, hasNew, toBottom } = useChatScroll(selected || "none", last?._id, last?.senderRole === "Admin");
 
   // Mark the open client's messages as read while the conversation is on screen.
   const [visible, setVisible] = useState(true);
@@ -209,7 +208,7 @@ export default function AdminConsultationPage() {
           </div>
 
           {/* thread */}
-          <div className={`${selected ? "flex" : "hidden md:flex"} h-[var(--chat-h)] min-h-[420px] flex-col overflow-hidden rounded-3xl border border-emerald-200/12 bg-emerald-950/25 backdrop-blur-md md:h-auto md:min-h-[60vh]`}>
+          <div data-chat-card className={`${selected ? "flex" : "hidden md:flex"} relative h-[var(--chat-h)] min-h-[420px] flex-col overflow-hidden rounded-3xl border border-emerald-200/12 bg-emerald-950/25 backdrop-blur-md md:h-[70vh] md:min-h-[460px]`}>
             {selected ? (
               <>
                 <div className="flex shrink-0 items-center gap-3 border-b border-emerald-200/10 px-3 py-3 md:px-5 md:py-3.5">
@@ -224,7 +223,7 @@ export default function AdminConsultationPage() {
                     <p className="truncate text-[11px] text-emerald-50/45">{selectedClient?.email}</p>
                   </div>
                 </div>
-                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4 md:px-5 md:py-5">
+                <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4 md:px-5 md:py-5">
                   {thread.length === 0 && <p className="text-center text-sm text-emerald-50/40">No messages yet — say hello.</p>}
                   {thread.map((m) => {
                     const mine = m.senderRole === "Admin";
@@ -251,12 +250,19 @@ export default function AdminConsultationPage() {
                       </div>
                     );
                   })}
-                  <div ref={bottomRef} />
                 </div>
+              {hasNew && (
+                <button
+                  onClick={() => toBottom(true)}
+                  className="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 text-xs font-medium text-white shadow-lg shadow-black/30 active:scale-95"
+                >
+                  New messages <i className="ti ti-arrow-down" aria-hidden />
+                </button>
+              )}
                 {fileStatus && (
                   <p className={`border-t border-emerald-200/10 px-5 pt-2.5 text-xs ${fileStatus.error ? "text-red-300" : "text-emerald-100/60"}`}>{fileStatus.text}</p>
                 )}
-                <div className="flex shrink-0 items-center gap-2 border-t border-emerald-200/10 px-3 py-2.5 md:gap-3 md:px-4 md:py-3">
+                <div data-chat-composer className="flex shrink-0 items-center gap-2 border-t border-emerald-200/10 px-3 py-2.5 md:gap-3 md:px-4 md:py-3">
                   <AttachFileButton
                     clientId={selected}
                     caption={draft}

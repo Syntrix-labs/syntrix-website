@@ -114,4 +114,19 @@ html {
     width: 0;
     height: 0;
   }
+  /* Keyboard open (set by DashboardShell): the tab bar would only sit on top of it. */
+  html[data-keyboard] [data-mobile-tabbar] {
+    display: none;
+  }
+  html[data-keyboard] [data-shell-section] {
+    padding-bottom: 0.5rem;
+  }
+  /* Typing in a chat: fit the conversation into the area above the keyboard
+     (top bar + page padding ≈ 4.6rem, plus the notch). */
+  html[data-keyboard-chat] {
+    --chat-h: calc(var(--vvh, 100dvh) - max(0.75rem, env(safe-area-inset-top)) - 4.6rem);
+  }
+  html[data-keyboard-chat] [data-chat-card] {
+    min-height: 0;
+  }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -11,6 +11,7 @@ import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachmen
 import AttachFileButton from "@/components/chat/AttachFileButton";
 import HandoverCard, { type HandoverState } from "@/components/chat/HandoverCard";
 import LinkifiedText from "@/components/chat/LinkifiedText";
+import { useChatScroll } from "@/components/chat/useChatScroll";
 
 type Message = {
   _id: string;
@@ -57,7 +58,6 @@ export default function ConsultationPage() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fileStatus, setFileStatus] = useState<{ text: string; error?: boolean } | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiGet<Message[]>("/api/consultations", fallback)
@@ -101,9 +101,8 @@ export default function ConsultationPage() {
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages]);
+  const last = messages[messages.length - 1];
+  const { listRef, hasNew, toBottom } = useChatScroll(loading ? "loading" : "chat", last?._id, last?.senderRole === "Client");
 
   // Mark the team's messages as read while this chat is actually on screen.
   const [visible, setVisible] = useState(true);
@@ -199,7 +198,8 @@ export default function ConsultationPage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="flex h-[var(--chat-h)] min-h-[420px] flex-col overflow-hidden rounded-3xl border border-emerald-200/12 bg-emerald-950/30 backdrop-blur-md md:h-auto md:min-h-0"
+          data-chat-card
+          className="relative flex h-[var(--chat-h)] min-h-[420px] flex-col overflow-hidden rounded-3xl border border-emerald-200/12 bg-emerald-950/30 backdrop-blur-md md:h-auto md:min-h-0"
         >
           {/* thread header */}
           <div className="flex shrink-0 items-center gap-3 border-b border-emerald-200/10 px-4 py-3 md:px-5 md:py-4">
@@ -215,7 +215,7 @@ export default function ConsultationPage() {
           </div>
 
           {/* thread */}
-          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 py-4 md:max-h-[58vh] md:flex-none md:px-6 md:py-5">
+          <div ref={listRef} className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 py-4 md:max-h-[58vh] md:flex-none md:px-6 md:py-5">
             {messages.map((m, i) => {
               const mine = m.senderRole === "Client";
               const d = dayLabel(m.createdAt);
@@ -281,8 +281,15 @@ export default function ConsultationPage() {
                 </div>
               );
             })}
-            <div ref={bottomRef} />
           </div>
+          {hasNew && (
+            <button
+              onClick={() => toBottom(true)}
+              className="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 text-xs font-medium text-white shadow-lg shadow-black/30 active:scale-95"
+            >
+              New messages <i className="ti ti-arrow-down" aria-hidden />
+            </button>
+          )}
 
           {/* composer */}
           {fileStatus && (
@@ -290,7 +297,7 @@ export default function ConsultationPage() {
               {fileStatus.text}
             </p>
           )}
-          <div className="flex shrink-0 items-center gap-2 border-t border-emerald-200/10 px-3 py-2.5 md:gap-3 md:px-5 md:py-3">
+          <div data-chat-composer className="flex shrink-0 items-center gap-2 border-t border-emerald-200/10 px-3 py-2.5 md:gap-3 md:px-5 md:py-3">
             <AttachFileButton
               caption={draft}
               onStatus={(text, error) => setFileStatus(text ? { text, error } : null)}

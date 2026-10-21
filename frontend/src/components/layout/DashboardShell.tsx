@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import BrandLogo from "@/components/brand/BrandLogo";
 import DashboardAura from "@/components/dashboard/DashboardAura";
 import NotifyPrompt from "@/components/notify/NotifyPrompt";
-import { apiGet } from "@/lib/api";
+import { apiGet, goToLogin, loadMe } from "@/lib/api";
 import { unlinkThisDevice } from "@/lib/push";
 
 /** Short two-note chime for new messages (no audio file needed). */
@@ -124,35 +124,77 @@ function Shell({ type = "client", children }: ShellProps) {
   const [unread, setUnread] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  // Server asleep/slow: keep showing "waking up" and retry — never log out for it.
+  const [waking, setWaking] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const [meAttempt, setMeAttempt] = useState(0);
   const prevUnread = useRef<number | null>(null);
   const pathRef = useRef(pathname);
   const consultHref = type === "admin" ? "/admin/consultation" : "/dashboard/consultation";
   const ready = type === "client" || role !== null;
 
-  // Resolve who the user is for admin-area pages.
+  // Who is signed in. Only an invalid/expired login goes back to the login
+  // page; a sleeping or slow server just shows "waking up" and retries.
   useEffect(() => {
-    if (type !== "admin") return;
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
+    const hadToken = Boolean(localStorage.getItem("token"));
     let cancelled = false;
-    apiGet<{ isAdmin?: boolean; isTeam?: boolean; name?: string }>("/api/auth/me", { isAdmin: false }).then((u) => {
+    setOffline(false);
+    loadMe(() => setWaking(true)).then((r) => {
       if (cancelled) return;
-      setUserName(u.name || "");
-      if (u.isAdmin) setRole("admin");
-      else if (u.isTeam) setRole("team");
+      setWaking(false);
+      if (r.status === "signed-out") return goToLogin(hadToken);
+      if (r.status === "offline") return setOffline(true);
+      setUserName(r.user.name || "");
+      if (type !== "admin") return;
+      if (r.user.isAdmin) setRole("admin");
+      else if (r.user.isTeam) setRole("team");
       else router.replace("/dashboard");
     });
-    return () => { cancelled = true; };
-  }, [router, type]);
+    return () => {
+      cancelled = true;
+    };
+  }, [router, type, meAttempt]);
 
+  // Phone keyboard: while typing, hide the tab bar; in a chat, size the
+  // conversation to the area above the keyboard (iPhone doesn't shrink the
+  // page for the keyboard, so we read the visible height ourselves).
   useEffect(() => {
-    if (type === "client") {
-      apiGet<{ name?: string }>("/api/auth/me", {}).then((u) => setUserName(u.name || ""));
-    }
-  }, [type]);
+    if (!window.matchMedia("(pointer: coarse)").matches) return;
+    const root = document.documentElement;
+    const vv = window.visualViewport;
+    const isField = (el: Element | null) =>
+      !!el &&
+      (el.tagName === "TEXTAREA" ||
+        (el as HTMLElement).isContentEditable ||
+        (el.tagName === "INPUT" && !["checkbox", "radio", "button", "submit", "file", "range", "color"].includes((el as HTMLInputElement).type)));
+    let timer = 0;
+    const update = () => {
+      const active = document.activeElement;
+      const typing = isField(active);
+      const inChat = typing && !!active?.closest("[data-chat-composer]");
+      root.toggleAttribute("data-keyboard", typing);
+      root.toggleAttribute("data-keyboard-chat", inChat);
+      if (vv) root.style.setProperty("--vvh", `${Math.round(vv.height)}px`);
+      // Keep the chat header in place instead of the page sliding up.
+      if (inChat && window.scrollY > 0) window.scrollTo(0, 0);
+    };
+    const later = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(update, 60);
+    };
+    update();
+    document.addEventListener("focusin", later);
+    document.addEventListener("focusout", later);
+    vv?.addEventListener("resize", later);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("focusin", later);
+      document.removeEventListener("focusout", later);
+      vv?.removeEventListener("resize", later);
+      root.removeAttribute("data-keyboard");
+      root.removeAttribute("data-keyboard-chat");
+    };
+  }, []);
 
   // Keep team members out of admin-only pages.
   useEffect(() => {
@@ -221,11 +263,16 @@ function Shell({ type = "client", children }: ShellProps) {
 
   if (type === "admin" && role === null) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#04140d] px-6 text-white">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#04140d] px-6 text-center text-white">
         <div className="flex items-center gap-3 rounded-2xl border border-emerald-200/15 bg-emerald-950/30 px-6 py-5 text-sm text-emerald-50/80 backdrop-blur-sm">
-          <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
-          Checking access…
+          {!offline && <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />}
+          {offline ? "Can't reach the server right now." : waking ? "Waking up the server — this can take up to a minute…" : "Checking access…"}
         </div>
+        {offline && (
+          <button onClick={() => setMeAttempt((n) => n + 1)} className="rounded-2xl bg-emerald-500/90 px-6 py-2.5 text-sm font-medium text-white active:scale-[0.98]">
+            Try again
+          </button>
+        )}
       </main>
     );
   }
@@ -328,7 +375,18 @@ function Shell({ type = "client", children }: ShellProps) {
         </div>
       </aside>
 
-      <section className="relative z-10 flex-1 px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-4 md:p-10 xl:p-12">
+      <section data-shell-section className="relative z-10 flex-1 px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-4 md:p-10 xl:p-12">
+        {type === "client" && (waking || offline) && (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-amber-300/25 bg-amber-400/10 px-4 py-2.5 text-xs text-amber-100">
+            {!offline && <span className="h-2 w-2 shrink-0 animate-ping rounded-full bg-amber-300" />}
+            <span className="flex-1">{offline ? "Can't reach the server right now." : "Waking up the server — this can take up to a minute…"}</span>
+            {offline && (
+              <button onClick={() => setMeAttempt((n) => n + 1)} className="rounded-xl bg-amber-300/20 px-3 py-1.5 font-medium text-amber-50">
+                Try again
+              </button>
+            )}
+          </div>
+        )}
         {/* On phones the chat is full-screen, so the prompt only shows on the other pages there */}
         {ready && (
           <div className={pathname === consultHref ? "hidden md:block" : undefined}>
@@ -343,6 +401,7 @@ function Shell({ type = "client", children }: ShellProps) {
 
       {/* ---------- Phone: bottom tab bar ---------- */}
       <nav
+        data-mobile-tabbar
         className="fixed inset-x-0 bottom-0 z-50 border-t border-emerald-200/10 bg-[#04140d]/90 backdrop-blur-xl md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Main"

@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { refreshIfOld } = require('../utils/session');
 
 module.exports = function (req, res, next) {
   // 1. Get the token from the header
@@ -13,6 +14,7 @@ module.exports = function (req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded.user;
+    refreshIfOld(decoded, res); // keep active users signed in
     next(); // Move on to the next piece of middleware or the route handler
   } catch (err) {
     res.status(401).json({ message: 'Token is not valid' });

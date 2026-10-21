@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { SESSION_TTL } = require('../utils/session');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware'); // Import the middleware
 const crypto = require('crypto');
@@ -71,7 +72,7 @@ router.post('/signup', authLimiter, async (req, res) => {
     await user.save();
 
     const payload = { user: { id: user.id } };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: SESSION_TTL });
 
     res.status(201).json({
       success: true,
@@ -118,7 +119,7 @@ router.post('/login', authLimiter, async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: '7d' },
+      { expiresIn: SESSION_TTL },
       (err, token) => {
         if (err) throw err;
         res.json({ success: true, token, isAdmin: isAdminEmail(user.email), isTeam: user.role === 'team', isMarketingHead: isMarketingHeadEmail(user.email) });
@@ -442,7 +443,7 @@ router.get('/oauth/:provider/callback', async (req, res) => {
       await user.save();
     }
 
-    const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET, { expiresIn: SESSION_TTL });
     return res.redirect(`${base}/oauth/callback?token=${token}`);
   } catch (err) {
     console.error('OAuth error:', err && err.message);

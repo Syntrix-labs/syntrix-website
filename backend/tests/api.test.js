@@ -914,3 +914,27 @@ test("assignees get one reminder when under 24 hours are left", async () => {
   assert.match(work.sent[0].subject, /24 hours left: Landing page/);
   assert.equal(await runDeadlineReminders(), 0, "only once per deadline");
 });
+
+// ---------- sessions ----------
+test("logins last 30 days, and active users get a renewed token once a day", async () => {
+  const jwt = require("jsonwebtoken");
+  const login = await request(app).post("/api/auth/login").send({ email: client.email, password: client.password });
+  const fresh = jwt.decode(login.body.token);
+  assert.equal(fresh.exp - fresh.iat, 30 * 24 * 3600);
+
+  const me = await request(app).get("/api/auth/me").set("x-auth-token", login.body.token);
+  assert.equal(me.headers["x-refresh-token"], undefined, "a new token isn't renewed");
+
+  const twoDaysAgo = Math.floor(Date.now() / 1000) - 2 * 86400;
+  const old = jwt.sign({ user: { id: client.id }, iat: twoDaysAgo }, process.env.JWT_SECRET, { expiresIn: "30d" });
+  const res = await request(app).get("/api/auth/me").set("x-auth-token", old);
+  assert.equal(res.status, 200);
+  const renewed = res.headers["x-refresh-token"];
+  assert.ok(renewed, "a day-old token comes back renewed");
+  assert.equal(jwt.decode(renewed).user.id, client.id);
+  assert.ok(jwt.decode(renewed).exp > jwt.decode(old).exp);
+  assert.match(res.headers["access-control-expose-headers"] || "", /X-Refresh-Token/);
+
+  const expired = jwt.sign({ user: { id: client.id } }, process.env.JWT_SECRET, { expiresIn: -10 });
+  assert.equal((await request(app).get("/api/auth/me").set("x-auth-token", expired)).status, 401);
+});

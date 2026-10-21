@@ -93,6 +93,9 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   // Colours the browser/status bar on Android and in the installed app.
   themeColor: "#04140d",
+  // Android: the on-screen keyboard shrinks the page, so chats keep the
+  // typing box and newest message in view (iPhone is handled in DashboardShell).
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

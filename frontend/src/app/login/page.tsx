@@ -35,10 +35,13 @@ export default function LoginPage() {
     return () => clearTimeout(t);
   }, []);
 
-  // Surface OAuth failures redirected back from the backend (?error=...).
+  // Surface OAuth failures redirected back from the backend (?error=...),
+  // or a login that ran out (?session=expired).
   useEffect(() => {
-    const err = new URLSearchParams(window.location.search).get("error");
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
     if (err) setMessage(OAUTH_ERRORS[err] || "That sign-in didn't complete. Please try again.");
+    else if (params.get("session") === "expired") setMessage("You were away for a while, so please log in again.");
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
