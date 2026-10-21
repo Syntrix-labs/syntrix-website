@@ -10,6 +10,7 @@ import { connectSocket, type Socket } from "@/lib/socket";
 import ChatAttachment, { type Attachment } from "@/components/chat/ChatAttachment";
 import AttachFileButton from "@/components/chat/AttachFileButton";
 import HandoverCard, { type HandoverState } from "@/components/chat/HandoverCard";
+import LinkifiedText from "@/components/chat/LinkifiedText";
 
 type Message = {
   _id: string;
@@ -242,7 +243,7 @@ export default function AdminConsultationPage() {
                           )}
                           {m.message && m.kind !== "handover" && (
                             <div className={`rounded-2xl px-4 py-2.5 text-sm font-light ${mine ? "rounded-br-md bg-emerald-500/22 text-emerald-50" : "rounded-bl-md border border-emerald-200/10 bg-emerald-950/55 text-emerald-50/90"}`}>
-                              {m.message}
+                              <LinkifiedText text={m.message} />
                             </div>
                           )}
                           <p className={`mt-1 px-1 text-[10px] text-emerald-100/35 ${mine ? "text-right" : ""}`}>{mine ? (m.senderName && m.senderName !== name ? m.senderName : "You") : selectedClient?.name} · {time(m.createdAt)}</p>

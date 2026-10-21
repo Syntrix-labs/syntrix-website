@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import LinkifiedText from "@/components/chat/LinkifiedText";
 
 export type HandoverState = "pending" | "approved" | "changes" | "cancelled";
 
@@ -58,7 +59,7 @@ export default function HandoverCard({
         </div>
       </div>
       <div className="px-4 py-3">
-        <p className="text-[13px] font-light leading-relaxed text-emerald-50/85">{text}</p>
+        <p className="text-[13px] font-light leading-relaxed text-emerald-50/85"><LinkifiedText text={text} /></p>
         {by && <p className="mt-1.5 text-[11px] text-emerald-100/45">From {by}</p>}
 
         {canAnswer && !asking && (
